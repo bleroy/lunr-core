@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Lunr</RootNamespace>
+    <Version>2.3.8</Version>
+    <Authors>Bertrand Le Roy</Authors>
+    <Company>Decent Consulting</Company>
+    <Description>A .NET Core port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright."</Description>
+    <Copyright>2020 Bertrand Le Roy</Copyright>
+    <PackageProjectUrl>https://github.com/bleroy/lunr-core</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/bleroy/lunr-core</RepositoryUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
+  </ItemGroup>
+
+</Project>
