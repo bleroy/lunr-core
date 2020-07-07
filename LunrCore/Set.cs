@@ -21,6 +21,8 @@ namespace Lunr
         public Set(IEnumerable<T> elements)
             => _innerSet = new HashSet<T>(elements);
 
+        public Set(params T[] elements) : this((IEnumerable<T>)elements) { }
+
         public bool Contains(T item) => _innerSet.Contains(item);
 
         public ISet<T> Intersect(ISet<T> other)
