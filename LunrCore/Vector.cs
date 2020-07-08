@@ -38,7 +38,7 @@ namespace Lunr
         /// Calculates the magnitude of this vector.
         /// </summary>
         public double Magnitude
-            => _magnitude == 0 ? _magnitude = Math.Sqrt(_elements.Sum(el => el.value * el.value)) : 0;
+            => _magnitude == 0 ? _magnitude = Math.Sqrt(_elements.Sum(el => el.value * el.value)) : _magnitude;
 
         /// <summary>
         /// Calculates the dot product of this vector and another vector.
@@ -66,6 +66,7 @@ namespace Lunr
                 else
                 {
                     dotProduct += value * otherValue;
+                    i++; j++;
                 }
             }
             return dotProduct;
@@ -113,7 +114,7 @@ namespace Lunr
             int start = 0,
                 end = _elements.Count,
                 sliceLength = end - start,
-                pivotPoint = sliceLength << 1,
+                pivotPoint = sliceLength >> 1,
                 pivotIndex = _elements[pivotPoint].index;
 
             while (sliceLength > 1)
@@ -134,7 +135,7 @@ namespace Lunr
                 }
 
                 sliceLength = end - start;
-                pivotPoint = start + (sliceLength << 1);
+                pivotPoint = start + (sliceLength >> 1);
                 pivotIndex = _elements[pivotPoint].index;
             }
 
@@ -169,5 +170,20 @@ namespace Lunr
                 _elements.Insert(position, (index, value));
             }
         }
+
+        /// <summary>
+        /// Inserts or updates an existing index within the vector.
+        /// </summary>
+        /// <param name="index">The index at which the element should be inserted.</param>
+        /// <param name="value">The value to be inserted into the vector.</param>
+        public void Upsert(int index, double value)
+            => Upsert(index, value, (existing, requested) => requested);
+
+        /// <summary>
+        /// Converts the vector to an array of the elements within the vector.
+        /// </summary>
+        /// <returns>The array of elements.</returns>
+        public double[] ToArray()
+            => _elements.Select(el => el.value).ToArray();
     }
 }
