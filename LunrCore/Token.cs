@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Lunr
 {
@@ -10,11 +11,19 @@ namespace Lunr
         /// </summary>
         /// <param name="tokenString">The token string.</param>
         /// <param name="metadata">Metadata associated with this token.</param>
-        public Token(string tokenString, IDictionary<string, object>? metadata = null)
+        public Token(string tokenString, IDictionary<string, object>? metadata = null!)
         {
             String = tokenString ?? "";
             Metadata = metadata ?? new Dictionary<string, object>();
         }
+
+        /// <summary>
+        /// Creates a new token from a string.
+        /// </summary>
+        /// <param name="tokenString">The token string.</param>
+        /// <param name="metadata">Metadata associated with this token.</param>
+        public Token(string tokenString, params (string key, object value)[] metadata)
+            : this(tokenString, metadata.ToDictionary(kvp => kvp.key, kvp => kvp.value)) { }
 
         /// <summary>
         /// The string token being wrapped.
