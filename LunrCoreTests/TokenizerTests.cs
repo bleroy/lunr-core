@@ -42,7 +42,7 @@ namespace LunrCoreTests
         public void NullIsConvertedToEmptyString()
         {
             IEnumerable<string> tokens = new Tokenizer()
-                .Tokenize(new[] { "foo", null, "baz" })
+                .Tokenize(new[] { "foo", null, "baz" }!)
                 .Select(t => t.String);
 
             Assert.Equal(new[] { "foo", "", "baz" }, tokens);
@@ -61,7 +61,7 @@ namespace LunrCoreTests
         [Fact]
         public void HandlingNullArguments()
         {
-            Assert.Empty(new Tokenizer().Tokenize((object)null));
+            Assert.Empty(new Tokenizer().Tokenize(""));
         }
 
         [Fact]
