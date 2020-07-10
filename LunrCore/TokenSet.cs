@@ -99,11 +99,14 @@ namespace Lunr
             var root = new TokenSet(idProvider);
 
             var stack = new Stack<(TokenSet node, int editsRemaining, string str)>();
-            stack.Push((root, editDistance, str));
+            stack.Push((
+                node: root,
+                editsRemaining: editDistance,
+                str));
 
-            while (stack.Count > 0)
+            while (stack.Any())
             {
-                (TokenSet node, int editsRemaining, string frameStr) = stack.Pop();
+                (TokenSet frameNode, int frameEditsRemaining, string frameStr) = stack.Pop();
 
                 // no edit
                 if (frameStr.Length > 0)
@@ -111,14 +114,14 @@ namespace Lunr
                     char ch = frameStr[0];
 
                     TokenSet noEditNode;
-                    if (node.Edges.TryGetValue(ch, out TokenSet existingChNode))
+                    if (frameNode.Edges.TryGetValue(ch, out TokenSet existingChNode))
                     {
                         noEditNode = existingChNode;
                     }
                     else
                     {
                         noEditNode = new TokenSet(idProvider);
-                        node.Edges.Add(ch, noEditNode);
+                        frameNode.Edges.Add(ch, noEditNode);
                     }
 
                     if (frameStr.Length == 1)
@@ -126,38 +129,52 @@ namespace Lunr
                         noEditNode.IsFinal = true;
                     }
 
-                    stack.Push((noEditNode, editsRemaining, frameStr.Substring(1)));
+                    stack.Push((
+                        node: noEditNode,
+                        editsRemaining: frameEditsRemaining,
+                        str: frameStr.Substring(1)));
                 }
 
-                if (editsRemaining == 0) continue;
+                if (frameEditsRemaining == 0) continue;
 
                 // insertion
                 TokenSet insertionNode;
-                if (node.Edges.TryGetValue(Query.Wildcard, out TokenSet wildcardNode))
+                if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet wildcardNode))
                 {
                     insertionNode = wildcardNode;
                 }
                 else
                 {
                     insertionNode = new TokenSet(idProvider);
-                    node.Edges.Add(Query.Wildcard, insertionNode);
+                    frameNode.Edges.Add(Query.Wildcard, insertionNode);
                 }
 
-                stack.Push((insertionNode, editsRemaining - 1, frameStr));
+                if (frameStr.Length == 0)
+                {
+                    insertionNode.IsFinal = true;
+                }
+
+                stack.Push((
+                    node: insertionNode,
+                    editsRemaining: frameEditsRemaining - 1,
+                    str: frameStr));
 
                 // deletion
                 // Can only do a deletion if we have enough edits remaining
                 // and if there are characters left to delete in the string.
                 if (frameStr.Length > 1)
                 {
-                    stack.Push((node, editsRemaining - 1, frameStr.Substring(1)));
+                    stack.Push((
+                        node: frameNode,
+                        editsRemaining: frameEditsRemaining - 1,
+                        str: frameStr.Substring(1)));
                 }
 
                 // deletion
                 // Just removing the last character from the string.
                 if (frameStr.Length == 1)
                 {
-                    node.IsFinal = true;
+                    frameNode.IsFinal = true;
                 }
 
                 // substitution
@@ -166,14 +183,14 @@ namespace Lunr
                 if (frameStr.Length >= 1)
                 {
                     TokenSet substitutionNode;
-                    if (node.Edges.TryGetValue(Query.Wildcard, out TokenSet substitutionWildcardNode))
+                    if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet substitutionWildcardNode))
                     {
                         substitutionNode = substitutionWildcardNode;
                     }
                     else
                     {
                         substitutionNode = new TokenSet(idProvider);
-                        node.Edges.Add(Query.Wildcard, substitutionNode);
+                        frameNode.Edges.Add(Query.Wildcard, substitutionNode);
                     }
 
                     if (frameStr.Length == 1)
@@ -181,7 +198,10 @@ namespace Lunr
                         substitutionNode.IsFinal = true;
                     }
 
-                    stack.Push((substitutionNode, editsRemaining - 1, frameStr.Substring(1)));
+                    stack.Push((
+                        node: substitutionNode,
+                        editsRemaining: frameEditsRemaining - 1,
+                        str: frameStr.Substring(1)));
                 }
 
                 // transposition
@@ -193,14 +213,14 @@ namespace Lunr
                     char chB = frameStr[1];
                     TokenSet transposeNode;
 
-                    if (node.Edges.TryGetValue(chB, out TokenSet chBNode))
+                    if (frameNode.Edges.TryGetValue(chB, out TokenSet chBNode))
                     {
                         transposeNode = chBNode;
                     }
                     else
                     {
                         transposeNode = new TokenSet(idProvider);
-                        node.Edges.Add(chB, transposeNode);
+                        frameNode.Edges.Add(chB, transposeNode);
                     }
 
                     if (frameStr.Length == 1) // Note: I'm pretty sure this can't happen, just porting the js version closely.
@@ -208,7 +228,10 @@ namespace Lunr
                         transposeNode.IsFinal = true;
                     }
 
-                    stack.Push((transposeNode, editsRemaining - 1, chA + frameStr.Substring(2)));
+                    stack.Push((
+                        node: transposeNode,
+                        editsRemaining: frameEditsRemaining - 1,
+                        str: chA + frameStr.Substring(2)));
                 }
             }
 
@@ -241,16 +264,16 @@ namespace Lunr
             for (int i = 0; i < str.Length; i++)
             {
                 char ch = str[i];
-                // bool isFinal = i == str.Length - 1; // Dead code in the original code base.
+                bool isFinal = i == str.Length - 1;
 
                 if (ch == Query.Wildcard)
                 {
                     node.Edges.Add(ch, node);
-                    node.IsFinal = true;
+                    node.IsFinal = isFinal;
                 }
                 else
                 {
-                    var next = new TokenSet(idProvider) { IsFinal = true };
+                    var next = new TokenSet(idProvider) { IsFinal = isFinal };
 
                     node.Edges.Add(ch, next);
                     node = next;
@@ -274,7 +297,7 @@ namespace Lunr
             Stack<(string prefix, TokenSet node)> stack = new Stack<(string, TokenSet)>();
             stack.Push(("", this));
 
-            while (stack.Count > 0)
+            while (stack.Any())
             {
                 (string prefix, TokenSet node) = stack.Pop();
 
@@ -307,7 +330,7 @@ namespace Lunr
                 = new Stack<(TokenSet, TokenSet, TokenSet)>();
             stack.Push((other, output, this));
 
-            while (stack.Count > 0)
+            while (stack.Any())
             {
                 (TokenSet frameQNode, TokenSet frameOutput, TokenSet frameNode) = stack.Pop();
 
@@ -315,25 +338,28 @@ namespace Lunr
                 {
                     foreach ((char nEdge, TokenSet node) in frameNode.Edges)
                     {
-                        bool isFinal = node.IsFinal && qNode.IsFinal;
-
-                        if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet next))
+                        if (nEdge == qEdge || qEdge == '*')
                         {
-                            // an edge already exists for this character
-                            // no need to create a new node, just set the finality
-                            // bit unless this node is already final
-                            next.IsFinal = next.IsFinal || isFinal;
-                        }
-                        else
-                        {
-                            // no edge exists yet, must create one
-                            // set the finality bit and insert it
-                            // into the output
-                            next = new TokenSet { IsFinal = isFinal };
-                            frameOutput.Edges.Add(nEdge, next);
-                        }
+                            bool isFinal = node.IsFinal && qNode.IsFinal;
 
-                        stack.Push((qNode, next, node));
+                            if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet next))
+                            {
+                                // an edge already exists for this character
+                                // no need to create a new node, just set the finality
+                                // bit unless this node is already final
+                                next.IsFinal = next.IsFinal || isFinal;
+                            }
+                            else
+                            {
+                                // no edge exists yet, must create one
+                                // set the finality bit and insert it
+                                // into the output
+                                next = new TokenSet { IsFinal = isFinal };
+                                frameOutput.Edges.Add(nEdge, next);
+                            }
+
+                            stack.Push((qNode, next, node));
+                        }
                     }
                 }
             }
