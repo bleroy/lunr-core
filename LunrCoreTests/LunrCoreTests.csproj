@@ -18,4 +18,10 @@
     <ProjectReference Include="..\LunrCore\LunrCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="fixtures\stemming_vocab.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

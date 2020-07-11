@@ -18,7 +18,7 @@ namespace LunrCoreTests
             foreach (string word in stopWords)
             {
                 Assert.True(filter.IsStopWord(word));
-                Assert.Empty(await FilterHelper(word));
+                Assert.Empty(await filter.FilterFunction.BasicallyRun(word));
             }
         }
 
@@ -30,26 +30,11 @@ namespace LunrCoreTests
             foreach (string word in nonStopWords)
             {
                 Assert.False(filter.IsStopWord(word));
-                Assert.Equal(new[] { word }, await FilterHelper(word));
+                Assert.Equal(new[] { word }, await filter.FilterFunction.BasicallyRun(word));
             }
         }
 
         // Note: the lunr.js library has other tests here that are more
         // implementation specific and that I'm not replicating here.
-
-        private async Task<string[]> FilterHelper(string word)
-        {
-            var result = new List<string>();
-            var cancellationToken = new CancellationToken();
-            await foreach (Token token in filter.FilterFunction(
-                new Token(word),
-                0,
-                AsyncEnumerableExtensions.Empty<Token>(),
-                cancellationToken))
-            {
-                result.Add(token.String);
-            }
-            return result.ToArray();
-        }
     }
 }
