@@ -13,9 +13,9 @@ namespace LunrCoreTests
         [Fact]
         public async Task StemmerReducesWordsToTheirStem()
         {
-            var testData = JsonSerializer
+            Dictionary<string, string> testData = JsonSerializer
                 .Deserialize<Dictionary<string, string>>(
-                    File.ReadAllText(@".\fixtures\stemming_vocab.json"));
+                    File.ReadAllText(Path.Combine("fixtures", "stemming_vocab.json")));
 
             foreach((string word, string expected) in testData)
             {

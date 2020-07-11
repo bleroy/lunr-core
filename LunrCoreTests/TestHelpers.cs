@@ -1,4 +1,5 @@
 ﻿using Lunr;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -30,5 +31,25 @@ namespace LunrCoreTests
             }
             return result.ToArray();
         }
+
+        public static Pipeline.Function ToPipelineFunction(this Func<Token, Token> fun)
+            => (
+                Token token,
+                int i,
+                IAsyncEnumerable<Token> tokens,
+                CancellationToken cancellationToken)
+                => new Token[] { fun(token) }.ToAsyncEnumerable(cancellationToken);
+
+        public static Pipeline.Function ToPipelineFunction(this Action<int> action)
+            => (
+                Token token,
+                int i,
+                IAsyncEnumerable<Token> tokens,
+                CancellationToken cancellationToken)
+                =>
+                {
+                    action(i);
+                    return new Token[] { token }.ToAsyncEnumerable(cancellationToken);
+                };
     }
 }

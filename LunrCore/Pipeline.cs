@@ -213,7 +213,7 @@ namespace Lunr
         public Pipeline Remove(Function existingFunction)
         {
             int position = Process.IndexOf(existingFunction);
-            if (position == -1) throw new InvalidOperationException($"Can't find {nameof(existingFunction)}.");
+            if (position == -1) return this;
             Process.RemoveAt(position);
             return this;
         }
