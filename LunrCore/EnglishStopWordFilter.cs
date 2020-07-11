@@ -125,6 +125,6 @@
             "your"
         });
 
-        public override ISet<string> StopWords => _stopWords;
+        protected override ISet<string> StopWords => _stopWords;
     }
 }

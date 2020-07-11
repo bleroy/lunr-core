@@ -10,7 +10,7 @@ namespace Lunr
     /// A set of internal simple extensions to work with asynchronous enumerables
     /// without importing System.Linq.Async.
     /// </summary>
-    internal static class AsyncEnumerableExtensions
+    public static class AsyncEnumerableExtensions
     {
         /// <summary>
         /// Applies the provided selector on each item in the source enumeration,
@@ -137,6 +137,11 @@ namespace Lunr
                 result.Add(item);
             }
             return result;
+        }
+
+        public static async IAsyncEnumerable<T> Empty<T>()
+        {
+            yield break;
         }
     }
 }

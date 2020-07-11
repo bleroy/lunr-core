@@ -7,8 +7,7 @@ namespace Lunr
 {
     public abstract class StopWordFilterBase
     {
-        public abstract ISet<string> StopWords { get; }
-
+        protected abstract ISet<string> StopWords { get; }
 
         private async IAsyncEnumerable<Token> StopFilterImplementation(
             Token token,
@@ -17,9 +16,11 @@ namespace Lunr
             tokens,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested || StopWords.Contains(token.String)) yield break;
+            if (cancellationToken.IsCancellationRequested || IsStopWord(token.String)) yield break;
             yield return await Task.FromResult(token);
         }
+
+        public virtual bool IsStopWord(string word) => StopWords.Contains(word);
 
         public Pipeline.Function FilterFunction => StopFilterImplementation;
     }
