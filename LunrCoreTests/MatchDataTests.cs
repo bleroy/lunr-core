@@ -1,0 +1,69 @@
+﻿using Lunr;
+using System.Collections.Generic;
+using Xunit;
+
+namespace LunrCoreTests
+{
+    public class MatchDataTests
+    {
+        [Fact]
+        public void MatchDataCombines()
+        {
+            var match = new MatchData(
+                "foo",
+                "title",
+                new Dictionary<string, IList<object>>{
+                    { "position", new List<object> { 1 } }
+                });
+            match.Combine(new MatchData(
+                "bar",
+                "title",
+                new Dictionary<string, IList<object>>{
+                    { "position", new List<object> { 2 } }
+                }));
+            match.Combine(new MatchData(
+                "baz",
+                "body",
+                new Dictionary<string, IList<object>>{
+                    { "position", new List<object> { 3 } }
+                }));
+            match.Combine(new MatchData(
+                "baz",
+                "body",
+                new Dictionary<string, IList<object>>{
+                    { "position", new List<object> { 4 } }
+                }));
+
+            Assert.Equal(
+                new[] { "foo", "bar", "baz" },
+                match.Metadata.Keys);
+
+            Assert.Equal(
+                new object[] { 1 },
+                match.Metadata["foo"]["title"]["position"]);
+            Assert.Equal(
+                new object[] { 2 },
+                match.Metadata["bar"]["title"]["position"]);
+            Assert.Equal(
+                new object[] { 3, 4 },
+                match.Metadata["baz"]["body"]["position"]);
+        }
+
+        [Fact]
+        public void CombineDoesntMutateDataSource()
+        {
+            var metadata = new Dictionary<string, IList<object>>
+            {
+                { "foo", new object[] { 1 } }
+            };
+            var matchData1 = new MatchData("foo", "title", metadata);
+            var matchData2 = new MatchData("foo", "title", metadata);
+
+            matchData1.Combine(matchData2);
+
+            Assert.Equal(
+                new object[] { 1 },
+                metadata["foo"]);
+        }
+    }
+}
