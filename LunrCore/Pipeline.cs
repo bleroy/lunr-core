@@ -60,7 +60,6 @@ namespace Lunr
             IAsyncEnumerable<Token> tokens,
             CancellationToken cancellationToken);
 
-        private readonly IDictionary<string, Function> _registeredFunctions;
         private readonly IList<Function> _process;
         private readonly IList<string> _processFunctionNames = Array.Empty<string>();
 
@@ -71,7 +70,7 @@ namespace Lunr
         /// <param name="functions">A list of functions to build the pipeline process from.</param>
         public Pipeline(IDictionary<string, Function> functionRegistry, params Function[] functions)
         {
-            _registeredFunctions = functionRegistry;
+            RegisteredFunctions = functionRegistry;
             _process = new List<Function>(functions);
         }
 
@@ -80,7 +79,7 @@ namespace Lunr
         /// </summary>
         public Pipeline()
         {
-            _registeredFunctions = new Dictionary<string, Function>();
+            RegisteredFunctions = new Dictionary<string, Function>();
             _process = new List<Function>();
         }
 
@@ -91,6 +90,8 @@ namespace Lunr
         /// <param name="functionNames">The pipeline description asd a list of function names.</param>
         public Pipeline(IEnumerable<string> functionNames) : this()
             => _processFunctionNames = functionNames.ToList();
+
+        public IDictionary<string, Function> RegisteredFunctions { get; }
 
         /// <summary>
         /// Gets the list of functions in the pipeline, rehydrating it from the registry if necessary.
@@ -123,12 +124,12 @@ namespace Lunr
         /// <returns>The pipeline.</returns>
         public Pipeline RegisterFunction(Function fn, string label)
         {
-            if (_registeredFunctions.ContainsKey(label))
+            if (RegisteredFunctions.ContainsKey(label))
             {
                 throw new InvalidOperationException($"A pipeline function with the name {label} already exists.");
             }
 
-            _registeredFunctions[label] = fn;
+            RegisteredFunctions[label] = fn;
             return this;
         }
 
@@ -146,7 +147,7 @@ namespace Lunr
             if (_process.Any()) throw new InvalidOperationException("This pipeline has already been loaded.");
             foreach (string function in functions)
             {
-                if (_registeredFunctions.TryGetValue(function, out Function registeredFunction))
+                if (RegisteredFunctions.TryGetValue(function, out Function registeredFunction))
                 {
                     _process.Add(registeredFunction);
                 }
@@ -161,7 +162,7 @@ namespace Lunr
         /// <remarks>In lunr.js, this method is calles "toJSON" which is a bit of a misnomer, so I renamed it "Save" because it's the reverse of "Load".</remarks>
         /// <returns>The list of name of the functions forming the pipeline process.</returns>
         public IEnumerable<string> Save()
-            => Process.Select(fn => _registeredFunctions.First(kvp => kvp.Value == fn).Key);
+            => Process.Select(fn => RegisteredFunctions.First(kvp => kvp.Value == fn).Key);
 
         /// <summary>
         /// Adds new functions to the end of the pipeline.
@@ -297,12 +298,11 @@ namespace Lunr
             await foreach (Token token in tokens)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                IAsyncEnumerable<Token>? processedTokens = step(token, i++, tokens, cancellationToken);
-                if (processedTokens is null) continue;
+                IAsyncEnumerable<Token> processedTokens = step(token, i++, tokens, cancellationToken);
                 await foreach (Token processedToken in processedTokens)
                 {
                     if (cancellationToken.IsCancellationRequested) yield break;
-                    yield return processedToken;
+                    if (processedToken.String != "") yield return processedToken;
                 }
             }
         }

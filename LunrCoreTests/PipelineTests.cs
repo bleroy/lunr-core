@@ -142,7 +142,6 @@ namespace LunrCoreTests
             var cancellationToken = new CancellationToken();
             await foreach (string resultToken in pipeline.RunString(
                 "foo",
-                new Dictionary<string, object>(),
                 cancellationToken))
             {
                 Assert.Equal("foobar", resultToken);
@@ -166,7 +165,6 @@ namespace LunrCoreTests
             var cancellationToken = new CancellationToken();
             await foreach (string resultToken in pipeline.RunString(
                 "foo",
-                new Dictionary<string, object>(),
                 cancellationToken))
             {
                 Assert.Equal("foo", resultToken);
@@ -190,6 +188,164 @@ namespace LunrCoreTests
                 Assert.False(true, "Function fn is supposed to eat tokens.");
             }
             Assert.True(_hasRun);
+        }
+
+        [Fact]
+        public async Task RunPassesOutputOfOneFunctionAsInputToTheNext()
+        {
+            Func<Token, Token> fn1 = t =>
+            {
+                Assert.Equal("foo", t);
+                return new Token(t.String.ToUpperInvariant());
+            };
+
+            Func<Token, Token> fn2 = t =>
+            {
+                Assert.Equal("FOO", t);
+                return new Token(t + t);
+            };
+
+            var pipeline = new Pipeline();
+            pipeline.Add(fn1.ToPipelineFunction());
+            pipeline.Add(fn2.ToPipelineFunction());
+
+            var cancellationToken = new CancellationToken();
+            await foreach (string resultToken in pipeline.RunString(
+                "foo",
+                new Dictionary<string, object>(),
+                cancellationToken))
+            {
+                Assert.Equal("FOOFOO", resultToken);
+            }
+        }
+
+        [Fact]
+        public async Task FiltersOutNullAndEmptyStrings()
+        {
+            var tokens = new List<Token>();
+
+            Func<Token, Token> fn = t =>
+            {
+                tokens.Add(t);
+                return t;
+            };
+
+            var pipeline = new Pipeline();
+            pipeline.Add(NullAndEmptyFun);
+            pipeline.Add(fn.ToPipelineFunction());
+
+            var cancellationToken = new CancellationToken();
+            var output = new List<string>();
+            await foreach (Token resultToken in pipeline.Run(
+                new[] { "a", "b", "c", "d", "foo", "bar", "baz" }
+                    .Select(s => new Token(s))
+                    .ToAsyncEnumerable(cancellationToken),
+                cancellationToken))
+            {
+                output.Add(resultToken.String);
+            }
+
+            Assert.Equal(new[] { "b", "d" }, tokens.Select(t => t.String));
+            Assert.Equal(new[] { "b", "d" }, output);
+        }
+
+        [Fact]
+        public async Task ExpandingTokensPassedToOutput()
+        {
+            var pipeline = new Pipeline();
+            pipeline.Add(ExpandTokenFun);
+
+            var cancellationToken = new CancellationToken();
+            IList<string> output = await pipeline.RunString(
+                "foo",
+                cancellationToken)
+                .ToList(cancellationToken);
+
+            Assert.Equal(new[] { "foo", "FOO" }, output);
+        }
+
+        [Fact]
+        public async Task ExpandingTokensPassedToTheNextFunction()
+        {
+            var received = new List<string>();
+
+            Func<Token, Token> fn = t =>
+            {
+                received.Add(t);
+                return t;
+            };
+
+            var pipeline = new Pipeline();
+            pipeline.Add(ExpandTokenFun);
+            pipeline.Add(fn.ToPipelineFunction());
+
+            var cancellationToken = new CancellationToken();
+            await pipeline.RunString("foo", cancellationToken)
+                .ToList(cancellationToken);
+
+            Assert.Equal(new[] { "foo", "FOO" }, received);
+        }
+
+        [Fact]
+        public void SaveReturnsAnArrayOfRegisteredFunctionLabels()
+        {
+            var pipeline = new Pipeline();
+            pipeline.RegisterFunction(Noop, "fn");
+
+            pipeline.Add(Noop);
+
+            Assert.Equal(new[] { "fn" }, pipeline.Save());
+        }
+
+        [Fact]
+        public void RegisterFunctionAddsToTheRegistry()
+        {
+            var pipeline = new Pipeline();
+            pipeline.RegisterFunction(Noop, "fn");
+
+            pipeline.Add(Noop);
+
+            Assert.Equal(Noop, pipeline.RegisteredFunctions["fn"]);
+        }
+
+        [Fact]
+        public void LoadWithRegisteredFunctions()
+        {
+            var pipeline = new Pipeline();
+            pipeline.RegisterFunction(Noop, "fn1");
+            pipeline.RegisterFunction(NopNop, "fn2");
+
+            string[] serializedPipeline = new[] { "fn1", "fn2", "fn1" };
+
+            pipeline.Load(serializedPipeline);
+
+            Assert.Equal(
+                new Pipeline.Function[] { Noop, NopNop, Noop },
+                pipeline.Process);
+        }
+
+        [Fact]
+        public void LoadWithUnRegisteredFunctions()
+        {
+            var pipeline = new Pipeline();
+
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                pipeline.Load(new[] { "nope" });
+            });
+        }
+
+        [Fact]
+        public void ResetEmptiesTheStack()
+        {
+            var pipeline = new Pipeline();
+            pipeline.Add(Noop);
+
+            Assert.Single(pipeline.Process);
+
+            pipeline.Reset();
+
+            Assert.Empty(pipeline.Process);
         }
 
         private bool _hasRun = false;
@@ -226,6 +382,30 @@ namespace LunrCoreTests
         {
             await Task.CompletedTask;
             yield break;
+        }
+
+        private async IAsyncEnumerable<Token> NullAndEmptyFun(
+            Token token,
+            int i,
+            IAsyncEnumerable<Token> tokens,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            if (i == 4) yield break;
+            else if (i == 5) yield return new Token("");
+            else if (i % 2 != 0) yield return token;
+            else yield break;
+        }
+
+        private async IAsyncEnumerable<Token> ExpandTokenFun(
+            Token token,
+            int i,
+            IAsyncEnumerable<Token> tokens,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await Task.CompletedTask;
+            yield return token;
+            yield return new Token(token.String.ToUpperInvariant());
         }
     }
 }
