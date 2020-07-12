@@ -20,15 +20,9 @@ namespace Lunr
     {
         private readonly IDictionary<string, Field> _fields = new Dictionary<string, Field>();
         private readonly IDictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly IDictionary<FieldReference, IDictionary<Token, int>> _fieldTermFrequencies
-            = new Dictionary<FieldReference, IDictionary<Token, int>>();
         private readonly IDictionary<FieldReference, int> _fieldLengths
             = new Dictionary<FieldReference, int>();
-        private IDictionary<string, int> _averageFieldLength
-            = new Dictionary<string, int>();
-        private IDictionary<string, Vector> _fieldVectors = new Dictionary<string, Vector>();
         private readonly ITokenizer _tokenizer;
-        private readonly IPipeline _indexingPipeline;
         private readonly IPipeline _searchPipeline;
         private int _termIndex = 0;
         private double _b = 0.75;
@@ -49,7 +43,7 @@ namespace Lunr
             InitializeFields(fields);
 
             _tokenizer = tokenizer;
-            _indexingPipeline = indexingPipeline;
+            IndexingPipeline = indexingPipeline;
             _searchPipeline = searchPipeline;
         }
 
@@ -62,9 +56,12 @@ namespace Lunr
             InitializeFields(fields);
 
             _tokenizer = new Tokenizer();
-            _indexingPipeline = new Pipeline();
+            IndexingPipeline = new Pipeline();
             _searchPipeline = new Pipeline();
         }
+
+        public IDictionary<FieldReference, IDictionary<Token, int>> FieldTermFrequencies { get; }
+            = new Dictionary<FieldReference, IDictionary<Token, int>>();
 
         /// <summary>
         /// The document field used as the document reference. Every document must have this field.
@@ -85,14 +82,35 @@ namespace Lunr
         public IEnumerable<Field> Fields => _fields.Values;
 
         /// <summary>
+        /// The set of all tokens in the index.
+        /// </summary>
+        public TokenSet TokenSet { get; set; } = new TokenSet();
+
+        /// <summary>
+        /// Average field lenghts.
+        /// </summary>
+        public IDictionary<string, int> AverageFieldLength { get; set; }
+            = new Dictionary<string, int>();
+
+        /// <summary>
         /// The inverted index.
         /// </summary>
         public InvertedIndex InvertedIndex { get; } = new InvertedIndex();
 
         /// <summary>
+        /// The vector space of the document fields.
+        /// </summary>
+        public IDictionary<string, Vector> FieldVectors { get; set; } = new Dictionary<string, Vector>();
+
+        /// <summary>
         /// A list of metadata keys that have been whitelisted for entry in the index.
         /// </summary>
         public IList<string> MetadataWhiteList { get; } = new List<string>();
+
+        /// <summary>
+        /// The indexing pipeline.
+        /// </summary>
+        public IPipeline IndexingPipeline { get; }
 
         /// <summary>
         /// The total number of documents indexed.
@@ -182,7 +200,8 @@ namespace Lunr
 
             foreach (Field field in Fields)
             {
-                object fieldValue = field.ExtractValue(doc);
+                object? fieldValue = await field.ExtractValue(doc);
+                if (fieldValue is null) continue;
                 var metadata = new Dictionary<string, object>
                 {
                     { "fieldName", field.Name }
@@ -191,12 +210,12 @@ namespace Lunr
                     fieldValue,
                     metadata,
                     culture ?? CultureInfo.CurrentCulture);
-                IAsyncEnumerable<Token> terms = _indexingPipeline.Run(
+                IAsyncEnumerable<Token> terms = IndexingPipeline.Run(
                     tokens.ToAsyncEnumerable(cancellationToken), cancellationToken);
                 var fieldReference = new FieldReference(docRef, field.Name);
                 var fieldTerms = new Dictionary<Token, int>();
 
-                _fieldTermFrequencies[fieldReference] = fieldTerms;
+                FieldTermFrequencies[fieldReference] = fieldTerms;
                 _fieldLengths[fieldReference] = 0;
 
                 int termsCount = 0;
@@ -320,14 +339,18 @@ namespace Lunr
         {
             CalculateAverageFieldLengths();
             CreateFieldVectors();
+            CreateTokenSet();
 
             return new Index(
                 InvertedIndex,
-                _fieldVectors,
-                CreateTokenSet(),
+                FieldVectors,
+                TokenSet,
                 Fields,
                 _searchPipeline);
         }
+
+        // Skipping plug-ins as they're not implemented and sort of pointless
+        // in this implementation.
 
         /// <summary>
         /// Calculates the average document length for this index.
@@ -353,7 +376,7 @@ namespace Lunr
                 accumulator[field.Name] /= documentsWithField[field.Name];
             }
 
-            _averageFieldLength = accumulator;
+            AverageFieldLength = accumulator;
         }
 
         /// <summary>
@@ -367,7 +390,7 @@ namespace Lunr
             foreach (FieldReference fieldRef in _fieldLengths.Keys)
             {
                 var fieldVector = new Vector();
-                IDictionary<Token, int> termFrequencies = _fieldTermFrequencies[fieldRef];
+                IDictionary<Token, int> termFrequencies = FieldTermFrequencies[fieldRef];
                 double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field field)
                     ? field.Boost : 1;
                 double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document doc)
@@ -384,7 +407,7 @@ namespace Lunr
                     }
 
                     double score = idf * (TermFrequencySaturationFactor + 1) * tf
-                        / (TermFrequencySaturationFactor * (1 - _b + _b * (_fieldLengths[fieldRef] / _averageFieldLength[field.Name])) + tf)
+                        / (TermFrequencySaturationFactor * (1 - _b + _b * (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])) + tf)
                         * fieldBoost
                         * docBoost;
                     double scoreWithPrecision = Math.Round(score * 1000) / 1000;
@@ -396,17 +419,17 @@ namespace Lunr
                     fieldVector.Insert(termIndex, scoreWithPrecision);
                 }
 
-                fieldVectors.Add(fieldRef.FieldName, fieldVector);
+                fieldVectors.Add(fieldRef.ToString(), fieldVector);
             }
 
-            _fieldVectors = fieldVectors;
+            FieldVectors = fieldVectors;
         }
 
         /// <summary>
         /// Creates a token set of all tokens in the index using TokenSet.
         /// </summary>
         private TokenSet CreateTokenSet()
-            =>TokenSet.FromArray(InvertedIndex
+            => TokenSet = TokenSet.FromArray(InvertedIndex
                 .Keys
                 .OrderBy(k => k));
 

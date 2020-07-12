@@ -68,5 +68,15 @@ namespace Lunr
         public override string ToString() => String;
 
         public static implicit operator string(Token token) => token.String;
+
+        public override bool Equals(object obj)
+            => obj switch
+            {
+                null => false,
+                Token t => String.Equals(t.String),
+                _ => false
+            };
+
+        public override int GetHashCode() => String.GetHashCode();
     }
 }
