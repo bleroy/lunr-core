@@ -24,7 +24,7 @@ namespace Lunr
 
             if (n == -1) throw new InvalidOperationException($"Malformed field reference string: \"{s}\".");
 
-            return new FieldReference(s.Substring(0, n), s.Substring(n + 1), s);
+            return new FieldReference(s.Substring(n + 1), s.Substring(0, n), s);
         }
 
         public override string ToString()
