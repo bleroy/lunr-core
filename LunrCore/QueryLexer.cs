@@ -139,7 +139,7 @@ namespace Lunr
                     return LexText;
                 }
 
-                if (char.IsWhiteSpace(ch) || char.IsPunctuation(ch) || char.IsSeparator(ch))
+                if (ch.IsLunrSeparator())
                 {
                     return LexTerm;
                 }

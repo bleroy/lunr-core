@@ -1,5 +1,8 @@
-﻿namespace Lunr
+﻿using System.Diagnostics;
+
+namespace Lunr
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Lexeme
     {
         public static readonly Lexeme Empty
@@ -17,5 +20,7 @@
         public string Value { get; }
         public int Start { get; }
         public int End { get; }
+
+        private string DebuggerDisplay => $"{Type}: {Value} ({Start}-{End})";
     }
 }

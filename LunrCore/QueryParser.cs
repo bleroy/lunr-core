@@ -19,11 +19,11 @@ namespace Lunr
         private int _lexemeIndex = 0;
         private IList<Lexeme> _lexemes = Array.Empty<Lexeme>();
 
-        public QueryParser(string str, Query query, CultureInfo culture)
+        public QueryParser(string str, Query query, CultureInfo? culture = null!)
         {
             _lexer = new QueryLexer(str);
             Query = query;
-            Culture = culture;
+            Culture = culture ?? CultureInfo.CurrentCulture;
         }
 
         public Query Query { get; }
@@ -49,7 +49,7 @@ namespace Lunr
             => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex] : Lexeme.Empty;
 
         private Lexeme ConsumeLexeme()
-            => _lexemeIndex + 1 < _lexemes.Count ? _lexemes[_lexemeIndex++] : Lexeme.Empty;
+            => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex++] : Lexeme.Empty;
 
         private void NextClause()
         {
@@ -85,12 +85,12 @@ namespace Lunr
 
             if (lexeme == Lexeme.Empty) return PastEOS;
 
-            parser._currentClause.Presence = lexeme.Value switch
+            parser._currentClause = parser._currentClause.WithPresence(lexeme.Value switch
             {
                 "-" => QueryPresence.Prohibited,
                 "+" => QueryPresence.Required,
                 _ => throw new QueryParserException($"Unrecognized presence operator '{lexeme.Value}' at [{lexeme.Start}, {lexeme.End}].", lexeme.Start, lexeme.End),
-            };
+            });
             Lexeme nextLexeme = parser.PeekLexeme();
 
             if (nextLexeme == Lexeme.Empty)
@@ -152,7 +152,7 @@ namespace Lunr
 
             if (lexeme.Value.IndexOf(Query.Wildcard) != -1)
             {
-                parser._currentClause.UsePipeline = false;
+                parser._currentClause = parser._currentClause.WithUsePipeline(false);
             }
 
             Lexeme nextLexeme = parser.PeekLexeme();
@@ -163,27 +163,7 @@ namespace Lunr
                 return PastEOS;
             }
 
-            switch (nextLexeme.Type)
-            {
-                case LexemeType.Term:
-                    parser.NextClause();
-                    return ParseTerm;
-                case LexemeType.Field:
-                    parser.NextClause();
-                    return ParseField;
-                case LexemeType.EditDistance:
-                    return ParseEditDistance;
-                case LexemeType.Boost:
-                    return ParseBoost;
-                case LexemeType.Presence:
-                    parser.NextClause();
-                    return ParsePresence;
-                default:
-                    throw new QueryParserException(
-                        $"Unexpected lexeme type '{nextLexeme.Type}'.",
-                        nextLexeme.Start,
-                        nextLexeme.End);
-            }
+            return NextState(parser, nextLexeme);
         }
 
         private static State ParseEditDistance(QueryParser parser)
@@ -199,7 +179,7 @@ namespace Lunr
                     lexeme.End);
             }
 
-            parser._currentClause.EditDistance = editDistance;
+            parser._currentClause = parser._currentClause.WithEditDistance(editDistance);
 
             Lexeme nextLexeme = parser.PeekLexeme();
 
@@ -209,27 +189,7 @@ namespace Lunr
                 return PastEOS;
             }
 
-            switch (nextLexeme.Type)
-            {
-                case LexemeType.Term:
-                    parser.NextClause();
-                    return ParseTerm;
-                case LexemeType.Field:
-                    parser.NextClause();
-                    return ParseField;
-                case LexemeType.EditDistance:
-                    return ParseEditDistance;
-                case LexemeType.Boost:
-                    return ParseBoost;
-                case LexemeType.Presence:
-                    parser.NextClause();
-                    return ParsePresence;
-                default:
-                    throw new QueryParserException(
-                        $"Unexpected lexeme type '{nextLexeme.Type}'.",
-                        nextLexeme.Start,
-                        nextLexeme.End);
-            }
+            return NextState(parser, nextLexeme);
         }
 
         private static State ParseBoost(QueryParser parser)
@@ -245,7 +205,7 @@ namespace Lunr
                     lexeme.End);
             }
 
-            parser._currentClause.Boost = boost;
+            parser._currentClause = parser._currentClause.WithBoost(boost);
 
             Lexeme nextLexeme = parser.PeekLexeme();
 
@@ -255,6 +215,11 @@ namespace Lunr
                 return PastEOS;
             }
 
+            return NextState(parser, nextLexeme);
+        }
+
+        private static State NextState(QueryParser parser, Lexeme nextLexeme)
+        {
             switch (nextLexeme.Type)
             {
                 case LexemeType.Term:

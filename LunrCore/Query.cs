@@ -16,7 +16,7 @@ namespace Lunr
         /// Builds a new query.
         /// </summary>
         /// <param name="allFields">An array of all available fields in a `Index`.</param>
-        internal Query(params Field[] allFields)
+        public Query(params Field[] allFields)
         {
             AllFields = allFields;
         }

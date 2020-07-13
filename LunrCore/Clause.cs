@@ -26,7 +26,7 @@ namespace Lunr
             IEnumerable<Field> fields,
             double boost = 1,
             int editDistance = 0,
-            bool usePipeline = false,
+            bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional)
         {
@@ -55,7 +55,7 @@ namespace Lunr
             string term,
             double boost = 1,
             int editDistance = 0,
-            bool usePipeline = false,
+            bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
             params Field[] fields)
@@ -69,17 +69,17 @@ namespace Lunr
         /// <summary>
         /// Any boost that should be applied when matching this clause.
         /// </summary>
-        public double Boost { get; set; }
+        public double Boost { get; }
 
         /// <summary>
         /// Whether the term should have fuzzy matching applied, and how fuzzy the match should be.
         /// </summary>
-        public int EditDistance { get; set; }
+        public int EditDistance { get; }
 
         /// <summary>
         /// Whether the term should be passed through the search pipeline.
         /// </summary>
-        public bool UsePipeline { get; set; }
+        public bool UsePipeline { get; }
 
         /// <summary>
         /// Whether the term should have wildcards appended or prepended.
@@ -89,7 +89,7 @@ namespace Lunr
         /// <summary>
         /// The terms presence in any matching documents.
         /// </summary>
-        public QueryPresence Presence { get; set; }
+        public QueryPresence Presence { get; }
 
         /// <summary>
         /// The term to search for.
@@ -103,6 +103,38 @@ namespace Lunr
         /// <returns>the new clause.</returns>
         public Clause WithTerm(string term)
             => new Clause(term, Fields, Boost, EditDistance, UsePipeline, Wildcard, Presence);
+
+        /// <summary>
+        /// Creates a clone of this clause with the specified presence.
+        /// </summary>
+        /// <param name="presence">The new presence.</param>
+        /// <returns>the new clause.</returns>
+        public Clause WithPresence(QueryPresence presence)
+            => new Clause(Term, Fields, Boost, EditDistance, UsePipeline, Wildcard, presence);
+
+        /// <summary>
+        /// Creates a clone of this clause with the specified edit distance.
+        /// </summary>
+        /// <param name="editDistance">The new edit distance.</param>
+        /// <returns>the new clause.</returns>
+        public Clause WithEditDistance(int editDistance)
+            => new Clause(Term, Fields, Boost, editDistance, UsePipeline, Wildcard, Presence);
+
+        /// <summary>
+        /// Creates a clone of this clause with the specified boost.
+        /// </summary>
+        /// <param name="boost">The new boost.</param>
+        /// <returns>the new clause.</returns>
+        public Clause WithBoost(double boost)
+            => new Clause(Term, Fields, boost, EditDistance, UsePipeline, Wildcard, Presence);
+
+        /// <summary>
+        /// Creates a clone of this clause with the specified pipeline usage.
+        /// </summary>
+        /// <param name="usePipeline">The new pipeline usage.</param>
+        /// <returns>the new clause.</returns>
+        public Clause WithUsePipeline(bool usePipeline)
+            => new Clause(Term, Fields, Boost, EditDistance, usePipeline, Wildcard, Presence);
 
         /// <summary>
         /// Creates a clone of this clause with the specified list of fields appended.

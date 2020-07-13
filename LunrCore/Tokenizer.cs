@@ -40,7 +40,7 @@ namespace Lunr
                 char ch = sliceEnd < str.Length ? str[sliceEnd] : char.MinValue;
                 int sliceLength = sliceEnd - sliceStart;
 
-                if (char.IsWhiteSpace(ch) || char.IsPunctuation(ch) || char.IsSeparator(ch) || sliceEnd == str.Length)
+                if (ch.IsLunrSeparator() || sliceEnd == str.Length)
                 {
                     if (sliceLength > 0)
                     {

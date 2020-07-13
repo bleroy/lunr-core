@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Lunr
 {
@@ -63,5 +64,15 @@ namespace Lunr
             string timeZoneString = dt.ToString("zzz");
             return dt.ToString("ddd MMM dd yyyy HH:mm:ss") + " GMT" + timeZoneString.Substring(0, 3) + timeZoneString.Substring(4);
         }
+
+        private static Regex _separatorExpression = new Regex(@"[\s\-]+");
+
+        /// <summary>
+        /// Tests if a character is whitespace or a hyphen.
+        /// </summary>
+        /// <param name="ch"></param>
+        /// <returns>True if ch is whitespace or a hyphen.</returns>
+        internal static bool IsLunrSeparator(this char ch)
+            => _separatorExpression.IsMatch(ch.ToString());
     }
 }
