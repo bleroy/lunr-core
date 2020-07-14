@@ -50,7 +50,7 @@ namespace Lunr
         public bool IsNegated => Clauses.All(clause => clause.Presence == QueryPresence.Prohibited);
 
         /// <summary>
-        /// Adds a`Clause` to this query.
+        /// Adds a `Clause` to this query.
         /// Unless the clause contains the fields to be matched all fields will be matched.
         /// In addition, a default boost of 1 is applied to the clause.
         /// </summary>
@@ -70,6 +70,23 @@ namespace Lunr
         }
 
         /// <summary>
+        /// Adds multiple terms using copies of a single clause to this query.
+        /// Unless the clause contains the fields to be matched all fields will be matched.
+        /// In addition, a default boost of 1 is applied to the clause.
+        /// </summary>
+        /// <param name="clause">The clause to copy with terms to add to this query.</param>
+        /// <param name="terms">The terms to add with common parameters defined by the clause.</param>
+        /// <returns>The query.</returns>
+        public Query AddTerms(Clause clause, params string[] terms)
+        {
+            foreach(string term in terms)
+            {
+                AddClause(clause.WithTerm(term));
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Adds a term to the current query, under the covers this will create a `Clause`
         /// to the list of clauses that make up this query.
         ///
@@ -79,5 +96,47 @@ namespace Lunr
         /// <param name="term">The term to add to the query.</param>
         /// <returns>The query.</returns>
         public Query AddTerm(string term) => AddClause(new Clause(term));
+
+        /// <summary>
+        /// Adds multiple terms to the current query, under the covers this will create a `Clause`
+        /// to the list of clauses that make up this query.
+        ///
+        /// The term is used as is, i.e.no tokenization will be performed by this method.
+        /// Instead, conversion to a token or token-like string should be done before calling this method.
+        /// </summary>
+        /// <param name="terms">The terms to add to the query.</param>
+        /// <returns>The query.</returns>
+        public Query AddTerms(params string[] terms)
+            => AddTerms((IEnumerable<string>)terms);
+
+        /// <summary>
+        /// Adds multiple terms to the current query, under the covers this will create a `Clause`
+        /// to the list of clauses that make up this query.
+        ///
+        /// The term is used as is, i.e.no tokenization will be performed by this method.
+        /// Instead, conversion to a token or token-like string should be done before calling this method.
+        /// </summary>
+        /// <param name="terms">The terms to add to the query.</param>
+        /// <returns>The query.</returns>
+        public Query AddTerms(IEnumerable<string> terms)
+        {
+            foreach (string term in terms)
+            {
+                AddTerm(term);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Adds multiple terms to the current query, under the covers this will create a `Clause`
+        /// to the list of clauses that make up this query.
+        ///
+        /// The term is used as is, i.e.no tokenization will be performed by this method.
+        /// Instead, conversion to a token or token-like string should be done before calling this method.
+        /// </summary>
+        /// <param name="terms">The terms to add to the query.</param>
+        /// <returns>The query.</returns>
+        public Query AddTerms(IEnumerable<Token> terms)
+            => AddTerms(terms.Select(t => t.String));
     }
 }
