@@ -2,7 +2,6 @@ using Lunr;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Index = Lunr.Index;
@@ -23,7 +22,7 @@ namespace LunrCoreTests
             {
                 { "id", "id" },
                 { "title", "constructor" }
-            }, new CancellationToken());
+            });
 
             Assert.Empty(builder.InvertedIndex["constructor"]["title"]["id"]);
             Assert.Equal(1,
@@ -42,7 +41,7 @@ namespace LunrCoreTests
             {
                 { "id", "id" },
                 { "constructor", "constructor" }
-            }, new CancellationToken());
+            });
 
             Assert.Empty(builder.InvertedIndex["constructor"]["constructor"]["id"]);
         }
@@ -57,7 +56,7 @@ namespace LunrCoreTests
             {
                 { "id", "constructor" },
                 { "title", "word" }
-            }, new CancellationToken());
+            });
 
             Assert.Empty(builder.InvertedIndex["word"]["title"]["constructor"]);
         }
@@ -83,7 +82,7 @@ namespace LunrCoreTests
             {
                 { "id", "id" },
                 { "title", "word" }
-            }, new CancellationToken());
+            });
 
             Assert.Equal(
                 new[] { "foo" },
@@ -106,7 +105,7 @@ namespace LunrCoreTests
                         { "name", "bob" }
                     }
                 }
-            }, new CancellationToken());
+            });
 
             Assert.Empty(builder.InvertedIndex["bob"]["name"]["id"]);
         }
@@ -180,13 +179,12 @@ namespace LunrCoreTests
         {
             var builder = new Builder();
             builder.AddField("title");
-            var cancellationToken = new CancellationToken();
             await builder.Add(new Document
             {
                 { "id", "id" },
                 { "title", "test" },
                 { "body", "missing" }
-            }, cancellationToken);
+            });
             Index index = builder.Build();
 
             Assert.Empty(builder.InvertedIndex["test"]["title"]["id"]);

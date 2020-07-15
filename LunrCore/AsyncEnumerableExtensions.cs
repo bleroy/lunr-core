@@ -128,12 +128,15 @@ namespace Lunr
         /// <returns></returns>
         public static async Task<IList<T>> ToList<T>(
             this IAsyncEnumerable<T> source,
-            CancellationToken cancellationToken)
+            CancellationToken? cancellationToken = null!)
         {
             var result = new List<T>();
             await foreach (T item in source)
             {
-                if (cancellationToken.IsCancellationRequested) return result;
+                if (cancellationToken?.IsCancellationRequested ?? false)
+                {
+                    return result;
+                }
                 result.Add(item);
             }
             return result;

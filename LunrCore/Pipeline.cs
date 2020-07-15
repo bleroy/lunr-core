@@ -298,8 +298,7 @@ namespace Lunr
             await foreach (Token token in tokens)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                IAsyncEnumerable<Token> processedTokens = step(token, i++, tokens, cancellationToken);
-                await foreach (Token processedToken in processedTokens)
+                await foreach (Token processedToken in step(token, i++, tokens, cancellationToken))
                 {
                     if (cancellationToken.IsCancellationRequested) yield break;
                     if (processedToken.String != "") yield return processedToken;

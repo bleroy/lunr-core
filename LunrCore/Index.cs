@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lunr
 {
@@ -38,6 +39,62 @@ namespace Lunr
             TokenSet = tokenSet;
             Fields = fields;
             Pipeline = pipeline;
+        }
+
+        /// <summary>
+        /// A convenience function for configuring and constructing
+        /// a new lunr Index.
+        ///
+        /// A `Builder` instance is created and the pipeline setup
+        /// with a trimmer, stop word filter and stemmer.
+        ///
+        /// This builder object is yielded to the configuration function
+        /// that is passed as a parameter, allowing the list of fields
+        /// and other builder parameters to be customized.
+        ///
+        /// All documents _must_ be added within the passed config function.
+        /// </summary>
+        /// <example>
+        /// var idx = Index.Build(config: async builder =>
+        /// {
+        ///      builder
+        ///         .AddField("title")
+        ///         .AddField("body");
+        ///
+        ///      builder.ReferenceField = "id";
+        ///
+        ///      foreach(Document doc in documents)
+        ///      {
+        ///          builder.add(doc);
+        ///      }
+        /// });
+        /// </example>
+        /// <param name="stopWordFilter">An optional stopword filter. Default is English.</param>
+        /// <param name="stemmer">An optional stemmer. Default is English.</param>
+        /// <param name="config">A Configuration function.</param>
+        /// <returns>The index.</returns>
+        public static async Task<Index> Build(
+            StopWordFilterBase? stopWordFilter = null!,
+            StemmerBase? stemmer = null!,
+            Func<Builder, Task>? config = null!)
+        {
+            var builder = new Builder();
+
+            Pipeline.Function filterFunction
+                = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
+            Pipeline.Function stemmerFunction
+                = (stemmer ?? new EnglishStemmer()).StemmerFunction;
+
+            builder.IndexingPipeline.Add(filterFunction, stemmerFunction);
+
+            builder.SearchPipeline.Add(stemmerFunction);
+
+            if (config != null)
+            {
+                await config(builder);
+            }
+
+            return builder.Build();
         }
 
         /// <summary>
@@ -84,10 +141,73 @@ namespace Lunr
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (Result result in Query(
-                query => new QueryParser(queryString, query, culture),
+                query => new QueryParser(queryString, query, culture).Parse(),
                 cancellationToken))
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
+                yield return result;
+            }
+        }
+
+        /// <summary>
+        /// Performs a search against the index using lunr query syntax.
+        ///
+        /// Results will be returned sorted by their score, the most relevant results
+        /// will be returned first.  For details on how the score is calculated, please see
+        /// the [scoring guide](https://lunrjs.com/guides/searching.html#scoring|guide).
+        ///
+        /// For more programmatic querying use `Index.Query`.
+        /// </summary>
+        /// <param name="queryString">A string containing a lunr query.</param>
+        /// <param name="cancellationToken">A cancellation token.</param>
+        /// <returns>The list of results.</returns>
+        public async IAsyncEnumerable<Result> Search(
+            string queryString,
+            [EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            await foreach (Result result in Search(queryString, CultureInfo.CurrentCulture, cancellationToken))
+            {
+                yield return result;
+            }
+        }
+
+        /// <summary>
+        /// Performs a search against the index using lunr query syntax.
+        ///
+        /// Results will be returned sorted by their score, the most relevant results
+        /// will be returned first.  For details on how the score is calculated, please see
+        /// the [scoring guide](https://lunrjs.com/guides/searching.html#scoring|guide).
+        ///
+        /// For more programmatic querying use `Index.Query`.
+        /// </summary>
+        /// <param name="queryString">A string containing a lunr query.</param>
+        /// <param name="culture">The culture to use to parse the query.</param>
+        /// <returns>The list of results.</returns>
+        public async IAsyncEnumerable<Result> Search(
+            string queryString,
+            CultureInfo culture)
+        {
+            await foreach (Result result in Search(queryString, culture, new CancellationToken()))
+            {
+                yield return result;
+            }
+        }
+
+        /// <summary>
+        /// Performs a search against the index using lunr query syntax.
+        ///
+        /// Results will be returned sorted by their score, the most relevant results
+        /// will be returned first.  For details on how the score is calculated, please see
+        /// the [scoring guide](https://lunrjs.com/guides/searching.html#scoring|guide).
+        ///
+        /// For more programmatic querying use `Index.Query`.
+        /// </summary>
+        /// <param name="queryString">A string containing a lunr query.</param>
+        /// <returns>The list of results.</returns>
+        public async IAsyncEnumerable<Result> Search(string queryString)
+        {
+            await foreach (Result result in Search(queryString, CultureInfo.CurrentCulture, new CancellationToken()))
+            {
                 yield return result;
             }
         }
@@ -129,14 +249,15 @@ namespace Lunr
 
             foreach (Clause clause in query.Clauses)
             {
+                ISet<string> clauseMatches = Set<string>.Complete;
+
                 // Unless the pipeline has been disabled for this term, which is
                 // the case for terms with wildcards, we need to pass the clause
                 // term through the search pipeline. A pipeline returns an array
                 // of processed terms. Pipeline functions may expand the passed
                 // term, which means we may end up performing multiple index lookups
                 // for a single query term.
-
-                IAsyncEnumerable<string> terms = clause.UsePipeline
+                await foreach (string term in clause.UsePipeline
                     ? Pipeline.RunString(
                         clause.Term,
                         new Dictionary<string, object>
@@ -144,11 +265,7 @@ namespace Lunr
                             { "fields", clause.Fields }
                         },
                         cancellationToken)
-                    : new[] { clause.Term }.ToAsyncEnumerable(cancellationToken);
-
-                ISet<string> clauseMatches = Set<string>.Complete;
-
-                await foreach (string term in terms)
+                    : new[] { clause.Term }.ToAsyncEnumerable(cancellationToken))
                 {
                     // Each term returned from the pipeline needs to use the same query
                     // clause object, e.g. the same boost and or edit distance. The
@@ -305,7 +422,7 @@ namespace Lunr
             }
 
             IEnumerable<string> matchingFieldRefs
-                = matchingFields.Keys.Select(k => k.FieldName);
+                = matchingFields.Keys.Select(k => k.ToString());
             var matches = new Dictionary<string, Result>();
 
             // If the query is negated (contains only prohibited terms)

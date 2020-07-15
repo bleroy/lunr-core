@@ -20,10 +20,8 @@ namespace Lunr
     {
         private readonly IDictionary<string, Field> _fields = new Dictionary<string, Field>();
         private readonly IDictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly IDictionary<FieldReference, int> _fieldLengths
-            = new Dictionary<FieldReference, int>();
+        private readonly IDictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
         private readonly ITokenizer _tokenizer;
-        private readonly IPipeline _searchPipeline;
         private int _termIndex = 0;
         private double _b = 0.75;
 
@@ -44,7 +42,7 @@ namespace Lunr
 
             _tokenizer = tokenizer;
             IndexingPipeline = indexingPipeline;
-            _searchPipeline = searchPipeline;
+            SearchPipeline = searchPipeline;
         }
 
         /// <summary>
@@ -57,7 +55,7 @@ namespace Lunr
 
             _tokenizer = new Tokenizer();
             IndexingPipeline = new Pipeline();
-            _searchPipeline = new Pipeline();
+            SearchPipeline = new Pipeline();
         }
 
         public IDictionary<FieldReference, IDictionary<Token, int>> FieldTermFrequencies { get; }
@@ -113,6 +111,11 @@ namespace Lunr
         public IPipeline IndexingPipeline { get; }
 
         /// <summary>
+        /// The search pipeline.
+        /// </summary>
+        public IPipeline SearchPipeline { get; }
+
+        /// <summary>
         /// The total number of documents indexed.
         /// </summary>
         public int DocumentCount { get; private set; } = 0;
@@ -148,11 +151,13 @@ namespace Lunr
         /// one field are more important than other fields.
         /// </summary>
         /// <param name="field">A field to index in all documents.</param>
-        public void AddField(Field field)
+        public Builder AddField(Field field)
         {
             if (field.Name.IndexOf('/') != -1) throw new ArgumentOutOfRangeException($"Field '{field.Name}' contains illegal character '/'");
 
             _fields.Add(field.Name, field);
+
+            return this;
         }
 
 
@@ -169,8 +174,10 @@ namespace Lunr
         /// one field are more important than other fields.
         /// </summary>
         /// <param name="fieldName">The name of a field to index in all documents.</param>
-        public void AddField(string fieldName)
-            => AddField(new Field<string>(fieldName));
+        /// <param name="boost">An optional boost for this field.</param>
+        /// <param name="extractor">An optional extraction function for this field's values.</param>
+        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null!)
+            => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
         /// Adds a document to the index.
@@ -189,29 +196,32 @@ namespace Lunr
         /// <param name="attributes">An optional set of attributes associated with this document.</param>
         public async Task Add(
             Document doc,
-            IDictionary<string, object> attributes,
-            CultureInfo culture,
-            CancellationToken cancellationToken)
+            IDictionary<string, object>? attributes = null!,
+            CultureInfo? culture = null!,
+            CancellationToken? cancellationToken = null!)
         {
             string docRef = doc[ReferenceField].ToString();
 
-            _documents[docRef] = new Document(attributes);
+            _documents[docRef]
+                = new Document(attributes ?? new Dictionary<string, object>());
+
             DocumentCount++;
 
             foreach (Field field in Fields)
             {
                 object? fieldValue = await field.ExtractValue(doc);
                 if (fieldValue is null) continue;
+                
                 var metadata = new Dictionary<string, object>
                 {
                     { "fieldName", field.Name }
                 };
+                
                 IEnumerable<Token> tokens = _tokenizer.Tokenize(
                     fieldValue,
                     metadata,
                     culture ?? CultureInfo.CurrentCulture);
-                IAsyncEnumerable<Token> terms = IndexingPipeline.Run(
-                    tokens.ToAsyncEnumerable(cancellationToken), cancellationToken);
+
                 var fieldReference = new FieldReference(docRef, field.Name);
                 var fieldTerms = new Dictionary<Token, int>();
 
@@ -219,7 +229,9 @@ namespace Lunr
                 _fieldLengths[fieldReference] = 0;
 
                 int termsCount = 0;
-                await foreach (Token term in terms)
+
+                CancellationToken cToken = cancellationToken ?? new CancellationToken();
+                await foreach (Token term in IndexingPipeline.Run(tokens.ToAsyncEnumerable(cToken), cToken))
                 {
                     termsCount++;
                     if (!fieldTerms.ContainsKey(term)) fieldTerms.Add(term, 0);
@@ -240,93 +252,33 @@ namespace Lunr
                                 new Dictionary<string, IDictionary<string, IList<object>>>());
                         }
                         InvertedIndex[term] = posting;
-
-                        // Add an entry for this term/fieldName/docRef to the invertedIndex.
-                        if (!InvertedIndex[term][field.Name].ContainsKey(docRef))
-                        {
-                            InvertedIndex[term][field.Name].Add(
-                                docRef,
-                                new Dictionary<string, IList<object>>());
-                        }
-
-                        // store all whitelisted metadata about this token in the inverted index.
-                        foreach (string metadataKey in MetadataWhiteList)
-                        {
-                            object termMetadata = term.Metadata[metadataKey];
-
-                            if (!InvertedIndex[term][field.Name][docRef].ContainsKey(metadataKey))
-                            {
-                                InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object>());
-                            }
-
-                            InvertedIndex[term][field.Name][docRef][metadataKey].Add(termMetadata);
-                        }
                     }
-                    // store the length of this field for this document
-                    _fieldLengths[fieldReference] = termsCount;
+
+                    // Add an entry for this term/fieldName/docRef to the invertedIndex.
+                    if (!InvertedIndex[term][field.Name].ContainsKey(docRef))
+                    {
+                        InvertedIndex[term][field.Name].Add(
+                            docRef,
+                            new Dictionary<string, IList<object>>());
+                    }
+
+                    // store all whitelisted metadata about this token in the inverted index.
+                    foreach (string metadataKey in MetadataWhiteList)
+                    {
+                        object termMetadata = term.Metadata[metadataKey];
+
+                        if (!InvertedIndex[term][field.Name][docRef].ContainsKey(metadataKey))
+                        {
+                            InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object>());
+                        }
+
+                        InvertedIndex[term][field.Name][docRef][metadataKey].Add(termMetadata);
+                    }
                 }
+                // store the length of this field for this document
+                _fieldLengths[fieldReference] = termsCount;
             }
         }
-
-        /// <summary>
-        /// Adds a document to the index.
-        ///
-        /// Before adding fields to the index the index should have been fully setup, with the document
-        /// ref and all fields to index already having been specified.
-        ///
-        /// The document must have a field name as specified by the ref (by default this is 'id') and
-        /// it should have all fields defined for indexing, though null or undefined values will not
-        /// cause errors.
-        ///
-        /// Entire documents can be boosted at build time. Applying a boost to a document indicates that
-        /// this document should rank higher in search results than other documents.
-        /// </summary>
-        /// <param name="doc">The document to index.</param>
-        public async Task Add(
-            Document doc,
-            CultureInfo culture,
-            CancellationToken cancellationToken)
-            => await Add(doc, new Dictionary<string, object>(), culture, cancellationToken);
-
-        /// <summary>
-        /// Adds a document to the index.
-        ///
-        /// Before adding fields to the index the index should have been fully setup, with the document
-        /// ref and all fields to index already having been specified.
-        ///
-        /// The document must have a field name as specified by the ref (by default this is 'id') and
-        /// it should have all fields defined for indexing, though null or undefined values will not
-        /// cause errors.
-        ///
-        /// Entire documents can be boosted at build time. Applying a boost to a document indicates that
-        /// this document should rank higher in search results than other documents.
-        /// </summary>
-        /// <param name="doc">The document to index.</param>
-        public async Task Add(
-            Document doc,
-            CancellationToken cancellationToken)
-            => await Add(doc, new Dictionary<string, object>(), CultureInfo.CurrentCulture, cancellationToken);
-
-        /// <summary>
-        /// Adds a document to the index.
-        ///
-        /// Before adding fields to the index the index should have been fully setup, with the document
-        /// ref and all fields to index already having been specified.
-        ///
-        /// The document must have a field name as specified by the ref (by default this is 'id') and
-        /// it should have all fields defined for indexing, though null or undefined values will not
-        /// cause errors.
-        ///
-        /// Entire documents can be boosted at build time. Applying a boost to a document indicates that
-        /// this document should rank higher in search results than other documents.
-        /// </summary>
-        /// <param name="doc">The document to index.</param>
-        /// <param name="attributes">An optional set of attributes associated with this document.</param>
-        public async Task Add(
-            Document doc,
-            IDictionary<string, object> attributes,
-            CancellationToken cancellationToken)
-            => await Add(doc, attributes, CultureInfo.CurrentCulture, cancellationToken);
 
         /// <summary>
         /// Builds the index, creating an instance of lunr.Index.
@@ -346,7 +298,7 @@ namespace Lunr
                 FieldVectors,
                 TokenSet,
                 Fields,
-                _searchPipeline);
+                SearchPipeline);
         }
 
         // Skipping plug-ins as they're not implemented and sort of pointless

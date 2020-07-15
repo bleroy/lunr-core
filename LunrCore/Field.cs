@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Lunr
 {
+    /// <summary>
+    /// A field of indeterminate type.
+    /// </summary>
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public abstract class Field
     {
         protected Field(string name, double boost = 1)
@@ -25,6 +30,8 @@ namespace Lunr
         public double Boost { get; }
 
         public abstract Task<object?> ExtractValue(Document doc);
+
+        private string DebuggerDisplay => Boost != 1 ? $"{Name} x{Boost}" : Name;
     }
 
     /// <summary>

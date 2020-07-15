@@ -8,7 +8,7 @@ namespace Lunr
 
         private string? _stringValue;
 
-        public FieldReference(string documentReference, string fieldName, string? stringValue = null)
+        public FieldReference(string documentReference, string fieldName, string? stringValue = null!)
         {
             DocumentReference = documentReference;
             FieldName = fieldName;
