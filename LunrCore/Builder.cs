@@ -203,7 +203,10 @@ namespace Lunr
             string docRef = doc[ReferenceField].ToString();
 
             _documents[docRef]
-                = new Document(attributes ?? new Dictionary<string, object>());
+                = new Document(attributes ?? new Dictionary<string, object>())
+                {
+                    Boost = doc.Boost
+                };
 
             DocumentCount++;
 

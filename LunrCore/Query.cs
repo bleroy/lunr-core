@@ -95,7 +95,15 @@ namespace Lunr
         /// </summary>
         /// <param name="term">The term to add to the query.</param>
         /// <returns>The query.</returns>
-        public Query AddTerm(string term) => AddClause(new Clause(term));
+        public Query AddTerm(
+            string term = "",
+            double boost = 1,
+            int editDistance = 0,
+            bool usePipeline = true,
+            QueryWildcard wildcard = QueryWildcard.None,
+            QueryPresence presence = QueryPresence.Optional,
+            IEnumerable<Field>? fields = null!)
+            => AddClause(new Clause(term, boost, editDistance, usePipeline, wildcard, presence, fields));
 
         /// <summary>
         /// Adds multiple terms to the current query, under the covers this will create a `Clause`

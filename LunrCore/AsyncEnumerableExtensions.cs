@@ -142,6 +142,33 @@ namespace Lunr
             return result;
         }
 
+        /// <summary>
+        /// Tests if an async enumerable has any elements satisfying a condition.
+        /// </summary>
+        /// <param name="source">The enumerable.</param>
+        /// <param name="predicate">
+        /// An optional predicate that an element of the enumerable must satisfy.
+        /// If this is not provided, any element will do.
+        /// </param>
+        /// <returns>True if any element satisfy the condition.</returns>
+        public static async Task<bool> Any<T>(
+            this IAsyncEnumerable<T> source,
+            Func<T, bool>? predicate = null!)
+        {
+            await foreach(T item in source)
+            {
+                if (predicate is null || predicate(item))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// An empty async enumerable.
+        /// </summary>
+        /// <returns>An empty async enumerable of the specified type.</returns>
         public static async IAsyncEnumerable<T> Empty<T>()
         {
             await Task.CompletedTask;

@@ -484,5 +484,26 @@ namespace Lunr
                 yield return match;
             }
         }
+
+        /// <summary>
+        /// Performs a query against the index using the `Query` object built
+        /// by the provided factory.
+        ///
+        /// If performing programmatic queries against the index, this method is preferred
+        /// over `Index.Search` so as to avoid the additional query parsing overhead.
+        ///
+        /// A query object is yielded to the supplied function which should be used to
+        /// express the query to be run against the index.
+        /// </summary>
+        /// <param name="queryFactory">A function that builds the query object that gets passed to it.</param>
+        /// <returns>The results of the query.</returns>
+        public async IAsyncEnumerable<Result> Query(Action<Query> queryFactory)
+        {
+            var cToken = new CancellationToken();
+            await foreach (Result result in Query(queryFactory, cToken))
+            {
+                yield return result;
+            }
+        }
     }
 }

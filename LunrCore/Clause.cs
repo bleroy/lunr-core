@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Lunr
@@ -8,6 +9,7 @@ namespace Lunr
     /// A single clause in a `Query` contains a term and details on how to
     /// match that term against an `Index`.
     /// </summary>
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Clause
     {
         public static readonly Clause Empty = new Clause("");
@@ -187,5 +189,14 @@ namespace Lunr
         /// <returns>the new clause.</returns>
         public Clause WithFields(params Field[] fields)
             => new Clause(Term, Boost, EditDistance, UsePipeline, Wildcard, Presence, Fields.Concat(fields).ToArray());
+
+        private string DebuggerDisplay => (Fields.Any() ? string.Join(", ", Fields.Select(f => f.Name)) + ":" : "") +
+            (Presence switch { QueryPresence.Required => "+", QueryPresence.Prohibited => "-", _ => "" }) +
+            ((Wildcard & QueryWildcard.Leading) == 0 ? "" : "*") +
+            Term +
+            (Boost == 1 ? "" : "^" + Boost) +
+            (EditDistance == 0 ? "" : "~" + EditDistance) +
+            ((Wildcard & QueryWildcard.Trailing) == 0 ? "" : "*") +
+            (UsePipeline ? " (use pipeline)" : "");
     }
 }
