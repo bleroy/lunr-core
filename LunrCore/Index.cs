@@ -74,20 +74,27 @@ namespace Lunr
         /// <param name="config">A Configuration function.</param>
         /// <returns>The index.</returns>
         public static async Task<Index> Build(
+            TrimmerBase? trimmer = null!,
             StopWordFilterBase? stopWordFilter = null!,
             StemmerBase? stemmer = null!,
             Func<Builder, Task>? config = null!)
         {
             var builder = new Builder();
 
+            Pipeline.Function trimmerFunction
+                = (trimmer ?? new Trimmer()).FilterFunction;
             Pipeline.Function filterFunction
                 = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
             Pipeline.Function stemmerFunction
                 = (stemmer ?? new EnglishStemmer()).StemmerFunction;
 
-            builder.IndexingPipeline.Add(filterFunction, stemmerFunction);
+            builder.IndexingPipeline.Add(
+                trimmerFunction,
+                filterFunction,
+                stemmerFunction);
 
-            builder.SearchPipeline.Add(stemmerFunction);
+            builder.SearchPipeline.Add(
+                stemmerFunction);
 
             if (config != null)
             {
