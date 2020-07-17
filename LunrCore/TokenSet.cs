@@ -73,8 +73,8 @@ namespace Lunr
         {
             idProvider ??= TokenSetIdProvider.Instance;
             return clause.EditDistance > 0
-                           ? FromFuzzyString(clause.Term, clause.EditDistance)
-                           : FromString(clause.Term);
+                           ? FromFuzzyString(clause.Term, clause.EditDistance, idProvider)
+                           : FromString(clause.Term, idProvider);
         }
 
         /// <summary>
@@ -354,7 +354,7 @@ namespace Lunr
                                 // no edge exists yet, must create one
                                 // set the finality bit and insert it
                                 // into the output
-                                next = new TokenSet { IsFinal = isFinal };
+                                next = new TokenSet(_idProvider) { IsFinal = isFinal };
                                 frameOutput.Edges.Add(nEdge, next);
                             }
 
