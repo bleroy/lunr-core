@@ -123,19 +123,19 @@ namespace LunrCoreTests
             Assert.False(results.Any());
         }
 
-        //[Fact]
-        //public async Task MultipleTermsAllTermsMatch()
-        //{
-        //    Index idx = await GetPlainIndex();
+        [Fact]
+        public async Task MultipleTermsAllTermsMatch()
+        {
+            Index idx = await GetPlainIndex();
 
-        //    IList<Result> results = await idx.Search("fellow candlestick").ToList();
+            IList<Result> results = await idx.Search("fellow candlestick").ToList();
 
-        //    Assert.Single(results);
-        //    Assert.Equal("a", results[0].DocumentReference);
-        //    Assert.Equal(new[] { "fellow", "candlestick" }, results[0].MatchData.Metadata.Keys);
-        //    Assert.Equal("body", results[0].MatchData.Metadata["fellow"].Keys.Single());
-        //    Assert.Equal("body", results[0].MatchData.Metadata["candlestick"].Keys.Single());
-        //}
+            Assert.Single(results);
+            Assert.Equal("a", results[0].DocumentReference);
+            Assert.Equal(new[] { "fellow", "candlestick" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal("body", results[0].MatchData.Metadata["fellow"].Keys.Single());
+            Assert.Equal("body", results[0].MatchData.Metadata["candlestick"].Keys.Single());
+        }
 
         private async Task<Index> GetPlainIndex()
         {
