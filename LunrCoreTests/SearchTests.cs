@@ -137,6 +137,347 @@ namespace LunrCoreTests
             Assert.Equal("body", results[0].MatchData.Metadata["candlestick"].Keys.Single());
         }
 
+        [Fact]
+        public async Task MultipleTermsOneTermsMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("week foo").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("c", results[0].DocumentReference);
+            Assert.Equal(new[] { "week" }, results[0].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task MultipleTermsDuplicateQueryTerms()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("fellow candlestick foo bar green plant fellow").ToList();
+
+            Assert.Equal(3, results.Count);
+        }
+
+        [Fact]
+        public async Task MultipleTermsDocumentsWithAllTermsScoreHigher()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("candlestick green").ToList();
+
+            Assert.Equal(3, results.Count);
+            Assert.Equal(new[] { "a", "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal("green", results[1].MatchData.Metadata.Keys.Single());
+            Assert.Equal("green", results[2].MatchData.Metadata.Keys.Single());
+        }
+
+        [Fact]
+        public async Task MultipleTermsNoTermsMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("foo bar").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task CorpusTermsAreStemmed()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("water").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }.ToHashSet(), results.Select(result => result.DocumentReference).ToHashSet());
+        }
+
+        [Fact]
+        public async Task FieldScopedTerm()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("title:plant").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal("plant", results[0].MatchData.Metadata.Keys.Single());
+            Assert.Equal("title", results[0].MatchData.Metadata["plant"].Keys.Single());
+        }
+
+        [Fact]
+        public async Task FieldScopedTermNoMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("title:candlestick").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TrailingWildcardNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("fo*").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TrailingWildcardOneMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("candle*").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("a", results[0].DocumentReference);
+            Assert.Equal("candlestick", results[0].MatchData.Metadata.Keys.Single());
+        }
+
+        [Fact]
+        public async Task TrailingWildcardMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("pl*").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task LeadingWildcardNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("*oo").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task LeadingWildcardMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("*ant").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task ContainedWildcardNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("f*o").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task ContainedWildcardMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("pl*nt").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task EditDistanceNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("foo~1").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task EditDistanceMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("plont~1").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task SearchByUnknownField()
+        {
+            Index idx = await GetPlainIndex();
+
+            await Assert.ThrowsAsync<QueryParserException>(async () =>
+            {
+                await idx.Search("unknown-field:plant").ToList();
+            });
+        }
+
+        [Fact]
+        public async Task SearchByFieldNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("title:candlestick").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task SearchByFieldOneMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("title:plant").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal("plant", results[0].MatchData.Metadata.Keys.Single());
+        }
+
+        [Fact]
+        public async Task BoostNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("foo^10").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task BoostMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("scarlett candlestick^5").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "a", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "candlestick" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "scarlett" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task TypeAheadStyleSearchNoResults()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Query(q => q
+                .AddTerm("xyz", boost: 100, usePipeline: true)
+                .AddTerm("xyz", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
+                .AddTerm("xyz", boost: 1, editDistance: 1)
+            ).ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TypeAheadStyleSearchMultipleResults()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Query(q => q
+                .AddTerm("pl", boost: 100, usePipeline: true)
+                .AddTerm("pl", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
+                .AddTerm("pl", boost: 1, editDistance: 1)
+            ).ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task ProhibitedTermNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("-green").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task ProhibitedTermMultipleMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("-candlestick green").ToList();
+
+            Assert.Equal(2, results.Count);
+            Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
+            Assert.Equal(new[] { "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "green" }, results[1].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task NegatedTermNoMatches()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("-qwertyuiop").ToList();
+
+            Assert.Equal(3, results.Count);
+            Assert.True(results.All(result => result.Score == 0));
+        }
+
+        [Fact]
+        public async Task NegatedTermSomeMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("-plant").ToList();
+
+            Assert.Single(results);
+            Assert.Equal(0, results[0].Score);
+            Assert.Equal("a", results[0].DocumentReference);
+        }
+
+        [Fact]
+        public async Task FieldMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("-title:plant plumb").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("c", results[0].DocumentReference);
+            Assert.Equal("plumb", results[0].MatchData.Metadata.Keys.Single());
+        }
+
+        //[Fact]
+        //public async Task RequiredTermMatch()
+        //{
+        //    Index idx = await GetPlainIndex();
+
+        //    IList<Result> results = await idx.Search("+candlestick green").ToList();
+
+        //    Assert.Single(results);
+        //    Assert.Equal("a", results[0].DocumentReference);
+        //    Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
+        //}
+
         private async Task<Index> GetPlainIndex()
         {
             return await Index.Build(config: async builder =>
