@@ -466,17 +466,95 @@ namespace LunrCoreTests
             Assert.Equal("plumb", results[0].MatchData.Metadata.Keys.Single());
         }
 
-        //[Fact]
-        //public async Task RequiredTermMatch()
-        //{
-        //    Index idx = await GetPlainIndex();
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task RequiredTermMatch()
+        {
+            Index idx = await GetPlainIndex();
 
-        //    IList<Result> results = await idx.Search("+candlestick green").ToList();
+            IList<Result> results = await idx.Search("+candlestick green").ToList();
 
-        //    Assert.Single(results);
-        //    Assert.Equal("a", results[0].DocumentReference);
-        //    Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
-        //}
+            Assert.Single(results);
+            Assert.Equal("a", results[0].DocumentReference);
+            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
+        }
+
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task RequiredTermsNoMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+mustard +plant").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task NoMatchingTerms()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+qwertyuiop green").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task RequiredFieldMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+title:plant green").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+        }
+
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task RequiredFieldAndTermMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+title:plant +green").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+        }
+
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task TwoRequiredFieldsMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+title:plant +body:study").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal(new[] { "studi", "plant" }, results[0].MatchData.Metadata.Keys);
+        }
+
+        [Fact]
+        public async Task TwoRequiredFieldsOnlyOneMatch()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+title:plant +body:qwertyuiop").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact(Skip = "required clauses currently failing")]
+        public async Task AllTogetherNow()
+        {
+            Index idx = await GetPlainIndex();
+
+            IList<Result> results = await idx.Search("+plant green -office").ToList();
+
+            Assert.Single(results);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+        }
 
         private async Task<Index> GetPlainIndex()
         {
