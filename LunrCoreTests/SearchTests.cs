@@ -466,7 +466,7 @@ namespace LunrCoreTests
             Assert.Equal("plumb", results[0].MatchData.Metadata.Keys.Single());
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task RequiredTermMatch()
         {
             Index idx = await GetPlainIndex();
@@ -478,7 +478,7 @@ namespace LunrCoreTests
             Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task RequiredTermsNoMatch()
         {
             Index idx = await GetPlainIndex();
@@ -498,7 +498,7 @@ namespace LunrCoreTests
             Assert.Empty(results);
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task RequiredFieldMatch()
         {
             Index idx = await GetPlainIndex();
@@ -510,7 +510,7 @@ namespace LunrCoreTests
             Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task RequiredFieldAndTermMatch()
         {
             Index idx = await GetPlainIndex();
@@ -522,7 +522,7 @@ namespace LunrCoreTests
             Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task TwoRequiredFieldsMatch()
         {
             Index idx = await GetPlainIndex();
@@ -531,7 +531,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal(new[] { "studi", "plant" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "studi", "plant" }.ToHashSet(), results[0].MatchData.Metadata.Keys.ToHashSet());
         }
 
         [Fact]
@@ -544,7 +544,7 @@ namespace LunrCoreTests
             Assert.Empty(results);
         }
 
-        [Fact(Skip = "required clauses currently failing")]
+        [Fact]
         public async Task AllTogetherNow()
         {
             Index idx = await GetPlainIndex();

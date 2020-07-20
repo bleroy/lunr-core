@@ -254,9 +254,10 @@ namespace Lunr
 
             queryFactory(query);
 
-            foreach (Clause clause in query.Clauses)
+            for (int i = 0; i < query.Clauses.Count; i++)
             {
-                ISet<string> clauseMatches = Set<string>.Complete;
+                Clause clause = query.Clauses[i];
+                ISet<string> clauseMatches = Set<string>.Empty;
 
                 // Unless the pipeline has been disabled for this term, which is
                 // the case for terms with wildcards, we need to pass the clause
@@ -278,12 +279,12 @@ namespace Lunr
                     // clause object, e.g. the same boost and or edit distance. The
                     // simplest way to do this is to re-use the clause object but mutate
                     // its term property.
-                    Clause newClause = clause.WithTerm(term);
+                    clause = clause.WithTerm(term);
 
                     // From the term in the clause we create a token set which will then
                     // be used to intersect the indexes token set to get a list of terms
                     // to lookup in the inverted index.
-                    var termTokenSet = TokenSet.FromClause(newClause);
+                    var termTokenSet = TokenSet.FromClause(clause);
                     IEnumerable<string> expandedTerms = TokenSet.Intersect(termTokenSet).ToEnumeration();
 
                     // If a term marked as required does not exist in the tokenSet it is
