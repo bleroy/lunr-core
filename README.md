@@ -1,5 +1,5 @@
 # lunr-core
-An attempt to port [lunr.js](https://lunrjs.com/guides/getting_started.html) to .NET Core.
+A port of [lunr.js](https://lunrjs.com/guides/getting_started.html) to .NET Core.
 Lunr is a bit like Solr, but much smaller and not as bright.
 
 ![.NET Core](https://github.com/bleroy/lunr-core/workflows/.NET%20Core/badge.svg)
@@ -17,25 +17,23 @@ var index = await Index.Build(config: async builder =>
         .AddField("title")
         .AddField("body")
 
-        .Add(new Document
-        {
-            { "title", "Twelfth-Night" },
-            { "body", "If music be the food of love, play on: Give me excess of it…" },
-            { "author", "William Shakespeare" }
-            { "id", "1" },
-        });
-
-    foreach (Document doc in _documents)
+    await builder.Add(new Document
     {
-        await builder.Add(doc);
-    }
+        { "title", "Twelfth-Night" },
+        { "body", "If music be the food of love, play on: Give me excess of it…" },
+        { "author", "William Shakespeare" }
+        { "id", "1" },
+    });
 });
 ```
 
 Then searching is as simple as:
 
 ```csharp
-IList<Result> results = await idx.Search("love").ToList();
+await foreach (Result result in idx.Search("love"))
+{
+    // do something with that result
+}
 ```
 
 This returns a list of matching documents with a score of how closely they match the search query as well as any associated metadata about the match:
