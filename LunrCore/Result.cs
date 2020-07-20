@@ -1,8 +1,12 @@
-﻿namespace Lunr
+﻿using System;
+using System.Diagnostics;
+
+namespace Lunr
 {
     /// <summary>
     /// A result contains details of a document matching a search query.
     /// </summary>
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class Result
     {
         /// <summary>
@@ -32,5 +36,7 @@
         /// Contains metadata about this match including which term(s) caused the match.
         /// </summary>
         public MatchData MatchData { get; }
+
+        private string DebuggerDisplay => $"{DocumentReference} ({Math.Round(Score, 1)})";
     }
 }
