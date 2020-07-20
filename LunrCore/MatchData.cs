@@ -37,10 +37,7 @@ namespace Lunr
                     term,
                     new Dictionary<string, IDictionary<string, IList<object>>>
                     {
-                        {
-                            field,
-                            clonedMetadata
-                        }
+                        { field, clonedMetadata }
                     }
                 }
             };

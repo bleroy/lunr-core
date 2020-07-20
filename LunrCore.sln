@@ -5,7 +5,14 @@ VisualStudioVersion = 16.0.30223.230
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCore", "LunrCore\LunrCore.csproj", "{35E0C04E-9508-408D-B1EB-61402BEAECBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LunrCoreTests", "LunrCoreTests\LunrCoreTests.csproj", "{7BA2CEE1-BE48-48EF-910C-A78A24F6D9C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreTests", "LunrCoreTests\LunrCoreTests.csproj", "{7BA2CEE1-BE48-48EF-910C-A78A24F6D9C5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata", "Metadata", "{333885CB-3ADF-4462-8910-27A16B6C5F55}"
+	ProjectSection(SolutionItems) = preProject
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
