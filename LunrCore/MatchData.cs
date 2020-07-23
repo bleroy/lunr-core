@@ -12,30 +12,30 @@ namespace Lunr
     /// <param name="metadata">The metadata recorded about this term in this field.</param>
     public class MatchData
     {
-        public static readonly MatchData Empty = new MatchData("", "", new Dictionary<string, IList<object>>());
+        public static readonly MatchData Empty = new MatchData("", "", new Metadata());
 
         public MatchData(
             string term,
             string field,
-            IDictionary<string, IList<object>> metadata)
+            Metadata metadata)
         {
             Term = term;
             Field = field;
 
             // Cloning the metadata to prevent the original being mutated during match data combination.
             // Metadata is kept in an array within the inverted index.
-            var clonedMetadata = new Dictionary<string, IList<object>>(capacity: metadata.Count);
+            var clonedMetadata = new Metadata(capacity: metadata.Count);
 
             foreach((string key, IEnumerable<object> value) in metadata)
             {
                 clonedMetadata.Add(key, new List<object>(value));
             }
 
-            Metadata = new Dictionary<string, IDictionary<string, IDictionary<string, IList<object>>>>
+            Posting = new InvertedIndexEntry
             {
                 {
                     term,
-                    new Dictionary<string, IDictionary<string, IList<object>>>
+                    new FieldOccurrences
                     {
                         { field, clonedMetadata }
                     }
@@ -56,7 +56,7 @@ namespace Lunr
         /// <summary>
         /// A cloned collection of metadata associated with this document.
         /// </summary>
-        public IDictionary<string, IDictionary<string, IDictionary<string, IList<object>>>> Metadata { get; }
+        public InvertedIndexEntry Posting { get; }
 
         /// <summary>
         /// An instance of `MatchData` will be created for every term that matches a
@@ -67,27 +67,27 @@ namespace Lunr
         /// <param name="otherMatchData">Another instance of match data to merge with this one.</param>
         public void Combine(MatchData otherMatchData)
         {
-            IEnumerable<string> terms = otherMatchData.Metadata.Keys;
+            IEnumerable<string> terms = otherMatchData.Posting.Keys;
 
             foreach(string term in terms)
             {
-                IEnumerable<string> fields = otherMatchData.Metadata[term].Keys;
-                if (!Metadata.ContainsKey(term))
+                IEnumerable<string> fields = otherMatchData.Posting[term].Keys;
+                if (!Posting.ContainsKey(term))
                 {
-                    Metadata.Add(term, new Dictionary<string, IDictionary<string, IList<object>>>());
+                    Posting.Add(term, new FieldOccurrences());
                 }
-                IDictionary<string, IDictionary<string, IList<object>>> thisTermEntry = Metadata[term];
+                IDictionary<string, Metadata> thisTermEntry = Posting[term];
                 foreach (string field in fields)
                 {
-                    IEnumerable<string> keys = otherMatchData.Metadata[term][field].Keys;
+                    IEnumerable<string> keys = otherMatchData.Posting[term][field].Keys;
                     if (!thisTermEntry.ContainsKey(field))
                     {
-                        thisTermEntry.Add(field, new Dictionary<string, IList<object>>(capacity: otherMatchData.Metadata[term][field].Keys.Count));
+                        thisTermEntry.Add(field, new Metadata(capacity: otherMatchData.Posting[term][field].Keys.Count));
                     }
-                    IDictionary<string, IList<object>> thisFieldEntry = thisTermEntry[field];
+                    Metadata thisFieldEntry = thisTermEntry[field];
                     foreach(string key in keys)
                     {
-                        IList<object> otherData = otherMatchData.Metadata[term][field][key];
+                        IList<object> otherData = otherMatchData.Posting[term][field][key];
                         if (!thisFieldEntry.ContainsKey(key))
                         {
                             thisFieldEntry.Add(key, new List<object>(otherData));
@@ -107,11 +107,11 @@ namespace Lunr
         /// <param name="term">The term this match data is associated with.</param>
         /// <param name="field">The field in which the term was found.</param>
         /// <param name="metadata">The metadata recorded about this term in this field.</param>
-        public void Add(string term, string field, IDictionary<string, IList<object>> metadata)
+        public void Add(string term, string field, Metadata metadata)
         {
-            if (!Metadata.ContainsKey(term))
+            if (!Posting.ContainsKey(term))
             {
-                Metadata.Add(term, new Dictionary<string, IDictionary<string, IList<object>>>
+                Posting.Add(term, new FieldOccurrences
                 {
                     {
                         field,
@@ -121,7 +121,7 @@ namespace Lunr
                 return;
             }
 
-            IDictionary<string, IDictionary<string, IList<object>>> termMetadata = Metadata[term];
+            FieldOccurrences termMetadata = Posting[term];
             if (!termMetadata.ContainsKey(field))
             {
                 termMetadata.Add(field, metadata);
@@ -130,7 +130,7 @@ namespace Lunr
 
             foreach(string key in metadata.Keys)
             {
-                IDictionary<string, IList<object>> fieldMetadata = termMetadata[field];
+                Metadata fieldMetadata = termMetadata[field];
                 if (fieldMetadata.ContainsKey(key))
                 {
                     fieldMetadata[key] = fieldMetadata[key].Concat(metadata[key]).ToList();

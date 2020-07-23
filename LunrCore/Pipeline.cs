@@ -33,7 +33,7 @@ namespace Lunr
     /// If not planning on serializing the pipeline then registering pipeline functions
     /// is not necessary.
     /// </summary>
-    public class Pipeline : IPipeline
+    public class Pipeline
     {
         /// <summary>
         /// A pipeline function maps Token to Token. A Token contains the token

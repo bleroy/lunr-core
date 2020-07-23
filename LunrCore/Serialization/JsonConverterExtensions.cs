@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Lunr
+namespace Lunr.Serialization
 {
     public static class JsonConverterExtensions
     {

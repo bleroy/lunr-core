@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lunr.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -32,7 +33,7 @@ namespace Lunr
             IDictionary<string, Vector> fieldVectors,
             TokenSet tokenSet,
             IEnumerable<Field> fields,
-            IPipeline pipeline)
+            Pipeline pipeline)
         {
             InvertedIndex = invertedIndex;
             FieldVectors = fieldVectors;
@@ -55,7 +56,7 @@ namespace Lunr
         /// All documents _must_ be added within the passed config function.
         /// </summary>
         /// <example>
-        /// var idx = Index.Build(config: async builder =>
+        /// var idx = Index.Build(async builder =>
         /// {
         ///      builder
         ///         .AddField("title")
@@ -74,13 +75,14 @@ namespace Lunr
         /// <param name="config">A Configuration function.</param>
         /// <returns>The index.</returns>
         public static async Task<Index> Build(
+            Func<Builder, Task>? config = null!,
             TrimmerBase? trimmer = null!,
             StopWordFilterBase? stopWordFilter = null!,
             StemmerBase? stemmer = null!,
-            Func<Builder, Task>? config = null!)
+            Tokenizer? tokenizer = null!,
+            IDictionary<string, Pipeline.Function>? registry = null!,
+            params Field[] fields)
         {
-            var builder = new Builder();
-
             Pipeline.Function trimmerFunction
                 = (trimmer ?? new Trimmer()).FilterFunction;
             Pipeline.Function filterFunction
@@ -88,13 +90,21 @@ namespace Lunr
             Pipeline.Function stemmerFunction
                 = (stemmer ?? new EnglishStemmer()).StemmerFunction;
 
-            builder.IndexingPipeline.Add(
-                trimmerFunction,
-                filterFunction,
-                stemmerFunction);
+            registry ??= new Dictionary<string, Pipeline.Function>
+            {
+                { "trimmer", trimmerFunction },
+                { "stopWordFilter", filterFunction },
+                { "stemmer", stemmerFunction }
+            };
 
-            builder.SearchPipeline.Add(
-                stemmerFunction);
+            var indexingPipeline = new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction);
+            var searchPipeline = new Pipeline(registry, stemmerFunction);
+
+            var builder = new Builder(
+                indexingPipeline: indexingPipeline,
+                searchPipeline: searchPipeline,
+                tokenizer: tokenizer ?? new Tokenizer(),
+                fields: fields);
 
             if (config != null)
             {
@@ -127,7 +137,7 @@ namespace Lunr
         /// <summary>
         /// The pipeline to use for search terms.
         /// </summary>
-        public IPipeline Pipeline { get; }
+        public Pipeline Pipeline { get; }
 
         /// <summary>
         /// Performs a search against the index using lunr query syntax.
@@ -304,7 +314,7 @@ namespace Lunr
                     foreach (string expandedTerm in expandedTerms)
                     {
                         // For each term get the posting and termIndex, this is required for building the query vector.
-                        Posting posting = InvertedIndex[expandedTerm];
+                        InvertedIndexEntry posting = InvertedIndex[expandedTerm];
                         int termIndex = posting.Index;
 
                         foreach (Field field in clause.Fields)
@@ -321,8 +331,7 @@ namespace Lunr
                             //
                             // The posting is the entry in the invertedIndex for the matching
                             // term from above.
-                            IDictionary<string, IDictionary<string, IList<object>>> fieldPosting
-                                = posting[field.Name];
+                            FieldOccurrences fieldPosting = posting[field.Name];
                             ICollection<string> matchingDocumentRefs = fieldPosting.Keys;
                             string termField = expandedTerm + '/' + field.Name;
                             var matchingDocumentSet = new Set<string>(matchingDocumentRefs);
@@ -378,7 +387,7 @@ namespace Lunr
                                 // of lunr.MatchData ready to be returned in the query
                                 // results.
                                 var matchingFieldRef = new FieldReference(matchingDocumentRef, field.Name);
-                                IDictionary<string, IList<object>> metadata = fieldPosting[matchingDocumentRef];
+                                Metadata metadata = fieldPosting[matchingDocumentRef];
                                 
                                 if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData fieldMatch))
                                 {

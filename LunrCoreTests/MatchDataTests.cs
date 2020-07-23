@@ -12,47 +12,47 @@ namespace LunrCoreTests
             var match = new MatchData(
                 "foo",
                 "title",
-                new Dictionary<string, IList<object>>{
+                new Metadata {
                     { "position", new List<object> { 1 } }
                 });
             match.Combine(new MatchData(
                 "bar",
                 "title",
-                new Dictionary<string, IList<object>>{
+                new Metadata {
                     { "position", new List<object> { 2 } }
                 }));
             match.Combine(new MatchData(
                 "baz",
                 "body",
-                new Dictionary<string, IList<object>>{
+                new Metadata {
                     { "position", new List<object> { 3 } }
                 }));
             match.Combine(new MatchData(
                 "baz",
                 "body",
-                new Dictionary<string, IList<object>>{
+                new Metadata {
                     { "position", new List<object> { 4 } }
                 }));
 
             Assert.Equal(
                 new[] { "foo", "bar", "baz" },
-                match.Metadata.Keys);
+                match.Posting.Keys);
 
             Assert.Equal(
                 new object[] { 1 },
-                match.Metadata["foo"]["title"]["position"]);
+                match.Posting["foo"]["title"]["position"]);
             Assert.Equal(
                 new object[] { 2 },
-                match.Metadata["bar"]["title"]["position"]);
+                match.Posting["bar"]["title"]["position"]);
             Assert.Equal(
                 new object[] { 3, 4 },
-                match.Metadata["baz"]["body"]["position"]);
+                match.Posting["baz"]["body"]["position"]);
         }
 
         [Fact]
         public void CombineDoesntMutateDataSource()
         {
-            var metadata = new Dictionary<string, IList<object>>
+            var metadata = new Metadata
             {
                 { "foo", new object[] { 1 } }
             };

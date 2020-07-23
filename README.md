@@ -11,7 +11,7 @@ Lunr is a bit like Solr, but much smaller and not as bright.
 A very simple search index can be created using the following:
 
 ```csharp
-var index = await Index.Build(config: async builder =>
+var index = await Index.Build(async builder =>
 {
     builder
         .AddField("title")
@@ -73,10 +73,11 @@ Lunr-core supports all .NET Standard 2.0 platforms, including .NET Core and .NET
 
 ## Features
 
-* Full text search support for 14 languages
+* Soon: Full text search support for 14 languages
 * Boost terms at query time or boost entire documents at index time
 * Scope searches to specific fields
 * Fuzzy term matching with wildcards or edit distance
+* No runtime dependencies beyond SDK, BCL AsyncInterfaces and System.Text.Json
 
 <!--## Contributing
 

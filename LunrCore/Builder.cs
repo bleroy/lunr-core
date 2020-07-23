@@ -28,14 +28,14 @@ namespace Lunr
         /// <summary>
         /// Creates a builder with a list of fields.
         /// </summary>
-        /// <param name="tokenizer">Function for splitting strings into tokens for indexing.</param>
         /// <param name="indexingPipeline">The pipeline performs text processing on tokens before indexing.</param>
         /// <param name="searchPipeline">A pipeline for processing search terms before querying the index.</param>
+        /// <param name="tokenizer">Function for splitting strings into tokens for indexing.</param>
         /// <param name="fields">The fields for this builder.</param>
         public Builder(
+            Pipeline indexingPipeline,
+            Pipeline searchPipeline,
             ITokenizer tokenizer,
-            IPipeline indexingPipeline,
-            IPipeline searchPipeline,
             params Field[] fields) : this(fields)
         {
             InitializeFields(fields);
@@ -58,8 +58,8 @@ namespace Lunr
             SearchPipeline = new Pipeline();
         }
 
-        public IDictionary<FieldReference, IDictionary<Token, int>> FieldTermFrequencies { get; }
-            = new Dictionary<FieldReference, IDictionary<Token, int>>();
+        public FieldTermFrequencies FieldTermFrequencies { get; }
+            = new FieldTermFrequencies();
 
         /// <summary>
         /// The document field used as the document reference. Every document must have this field.
@@ -87,8 +87,8 @@ namespace Lunr
         /// <summary>
         /// Average field lenghts.
         /// </summary>
-        public IDictionary<string, int> AverageFieldLength { get; set; }
-            = new Dictionary<string, int>();
+        public IDictionary<string, double> AverageFieldLength { get; set; }
+            = new Dictionary<string, double>();
 
         /// <summary>
         /// The inverted index.
@@ -108,12 +108,12 @@ namespace Lunr
         /// <summary>
         /// The indexing pipeline.
         /// </summary>
-        public IPipeline IndexingPipeline { get; }
+        public Pipeline IndexingPipeline { get; }
 
         /// <summary>
         /// The search pipeline.
         /// </summary>
-        public IPipeline SearchPipeline { get; }
+        public Pipeline SearchPipeline { get; }
 
         /// <summary>
         /// The total number of documents indexed.
@@ -226,7 +226,7 @@ namespace Lunr
                     culture ?? CultureInfo.CurrentCulture);
 
                 var fieldReference = new FieldReference(docRef, field.Name);
-                var fieldTerms = new Dictionary<Token, int>();
+                var fieldTerms = new TermFrequencies();
 
                 FieldTermFrequencies[fieldReference] = fieldTerms;
                 _fieldLengths[fieldReference] = 0;
@@ -244,7 +244,7 @@ namespace Lunr
                     // create an initial posting if one doesn't exist
                     if (!InvertedIndex.ContainsKey(term))
                     {
-                        var posting = new Posting
+                        var posting = new InvertedIndexEntry
                         {
                             Index = _termIndex++
                         };
@@ -252,7 +252,7 @@ namespace Lunr
                         {
                             posting.Add(
                                 postingField.Name,
-                                new Dictionary<string, IDictionary<string, IList<object>>>());
+                                new FieldOccurrences());
                         }
                         InvertedIndex[term] = posting;
                     }
@@ -262,7 +262,7 @@ namespace Lunr
                     {
                         InvertedIndex[term][field.Name].Add(
                             docRef,
-                            new Dictionary<string, IList<object>>());
+                            new Metadata());
                     }
 
                     // store all whitelisted metadata about this token in the inverted index.
@@ -313,7 +313,7 @@ namespace Lunr
         private void CalculateAverageFieldLengths()
         {
             var documentsWithField = new Dictionary<string, int>();
-            var accumulator = new Dictionary<string, int>();
+            var accumulator = new Dictionary<string, double>();
 
             foreach (FieldReference fieldRef in _fieldLengths.Keys)
             {
@@ -361,15 +361,20 @@ namespace Lunr
                         termIdfCache.Add(term, idf);
                     }
 
-                    double score = idf * (TermFrequencySaturationFactor + 1) * tf
-                        / (TermFrequencySaturationFactor * (1 - _b + _b * (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])) + tf)
+                    double score = idf * (TermFrequencySaturationFactor + 1) * tf /
+                        (TermFrequencySaturationFactor *
+                            (1 - FieldLengthNormalizationFactor +
+                                FieldLengthNormalizationFactor *
+                                    (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])
+                             ) + tf
+                        )
                         * fieldBoost
                         * docBoost;
                     double scoreWithPrecision = Math.Round(score * 1000) / 1000;
                     // Converts 1.23456789 to 1.234.
                     // Reducing the precision so that the vectors take up less
-                    // space when serialised. Doing it now so that they behave
-                    // the same before and after serialisation.
+                    // space when serialized. Doing it now so that they behave
+                    // the same before and after serialization.
 
                     fieldVector.Insert(termIndex, scoreWithPrecision);
                 }

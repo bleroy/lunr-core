@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Lunr
+namespace Lunr.Serialization
 {
     internal class IndexJsonConverter : JsonConverter<Index>
     {
+        private static readonly Version _version = typeof(Index).Assembly.GetName().Version;
+        private static readonly string _versionString = $"{_version.Major}.{_version.Minor}.{_version.Build}";
+
         public override Index Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             InvertedIndex? invertedIndex = null;
@@ -39,19 +42,23 @@ namespace Lunr
                     switch(propertyName)
                     {
                         case "version":
-                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{typeof(Index).Assembly.GetName().Version}' does not match serialized index '{reader.ReadValue<string>(options)}'");
+                            string version = reader.ReadValue<string>(options);
+                            if (version != _versionString)
+                            {
+                                System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_version}' does not match serialized index '{version}'");
+                            }
                             break;
                         case "invertedIndex":
                             invertedIndex = reader.ReadValue<InvertedIndex>(options);
                             break;
                         case "fieldVectors":
-                            fieldVectors = reader.ReadValue<IDictionary<string, Vector>>(options);
+                            fieldVectors = reader.ReadValue<Dictionary<string, Vector>>(options);
                             break;
                         case "pipeline":
-                            pipeline = new Pipeline(reader.ReadValue<IEnumerable<string>>(options));
+                            pipeline = new Pipeline(reader.ReadValue<string[]>(options));
                             break;
                         case "fields":
-                            fields = reader.ReadValue<IEnumerable<Field>>(options);
+                            fields = reader.ReadValue<Field[]>(options);
                             break;
                     }
                 }
@@ -62,11 +69,37 @@ namespace Lunr
         public override void Write(Utf8JsonWriter writer, Index value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteProperty("version", typeof(Index).Assembly.GetName().Version, options);
+            writer.WriteString("version", _versionString);
+            writer.WritePropertyName("fields");
+            writer.WriteStartArray();
+            foreach (Field field in value.Fields)
+            {
+                writer.WriteStringValue(field.Name);
+            }
+            writer.WriteEndArray();
+            writer.WritePropertyName("fieldVectors");
+            writer.WriteStartArray();
+            foreach ((string field, Vector vector) in value.FieldVectors)
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue(field);
+                writer.WriteStartArray();
+                foreach (double component in vector.Save())
+                {
+                    writer.WriteNumberValue(component);
+                }
+                writer.WriteEndArray();
+                writer.WriteEndArray();
+            }
+            writer.WriteEndArray();
             writer.WriteProperty("invertedIndex", value.InvertedIndex, options);
-            writer.WriteProperty("fieldVectors", value.FieldVectors, options);
-            writer.WriteProperty("pipeline", value.Pipeline, options);
-            writer.WriteProperty("fields", value.Fields, options);
+            writer.WritePropertyName("pipeline");
+            writer.WriteStartArray();
+            foreach (string fun in value.Pipeline.Save())
+            {
+                writer.WriteStringValue(fun);
+            }
+            writer.WriteEndArray();
             writer.WriteEndObject();
         }
     }

@@ -87,7 +87,7 @@ namespace Lunr
         {
             foreach((int index, double value) in _elements)
             {
-                yield return (double)index;
+                yield return index;
                 yield return value;
             }
         }
@@ -145,29 +145,29 @@ namespace Lunr
         /// <summary>
         /// Inserts or updates an existing index within the vector.
         /// </summary>
-        /// <param name="index">The index at which the element should be inserted.</param>
+        /// <param name="insertIdx">The index at which the element should be inserted.</param>
         /// <param name="value">The value to be inserted into the vector.</param>
-        /// <param name="fn">
+        /// <param name="conflictResolutionFunction">
         /// A function that is called for updates, the existing value and the
-        /// requested value are passed as arguments.
+        /// requested value are passed as arguments. It returns the new resolved value.
         /// </param>
-        public void Upsert(int index, double value, Func<double, double, double> fn)
+        public void Upsert(int insertIdx, double value, Func<double, double, double> conflictResolutionFunction)
         {
             _magnitude = 0;
 
-            int position = PositionForIndex(index);
+            int position = PositionForIndex(insertIdx);
 
             if (position == _elements.Count)
             {
-                _elements.Add((index, value));
+                _elements.Add((insertIdx, value));
             }
-            else if (_elements[position].index == index)
+            else if (_elements[position].index == insertIdx)
             {
-                _elements[position] = (index, fn(_elements[position].value, value));
+                _elements[position] = (insertIdx, conflictResolutionFunction(_elements[position].value, value));
             }
             else
             {
-                _elements.Insert(position, (index, value));
+                _elements.Insert(position, (insertIdx, value));
             }
         }
 

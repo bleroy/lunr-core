@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Lunr
+namespace Lunr.Serialization
 {
     internal class InvertedIndexJsonConverter : JsonConverter<InvertedIndex>
     {
@@ -14,7 +14,7 @@ namespace Lunr
             {
                 throw new JsonException("An inverted index can only be deserialized from an array.");
             }
-            var serializedVectors = new List<(string term, Posting posting)>();
+            var serializedVectors = new List<(string term, InvertedIndexEntry posting)>();
             reader.Read();
             while (reader.Read())
             {
@@ -26,7 +26,7 @@ namespace Lunr
                 {
                     serializedVectors.Add((
                         reader.ReadValue<string>(options),
-                        reader.ReadValue<Posting>(options)));
+                        reader.ReadValue<InvertedIndexEntry>(options)));
                     reader.Read();
                 }
                 else throw new JsonException("Unexpected token.");
@@ -37,11 +37,11 @@ namespace Lunr
         public override void Write(Utf8JsonWriter writer, InvertedIndex value, JsonSerializerOptions options)
         {
             writer.WriteStartArray();
-            foreach((string term, Posting posting) in value.OrderBy(kvp => kvp.Key))
+            foreach((string term, InvertedIndexEntry entry) in value.OrderBy(kvp => kvp.Key))
             {
                 writer.WriteStartArray();
                 writer.WriteValue(term, options);
-                writer.WriteValue(posting, options);
+                writer.WriteValue(entry, options);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();

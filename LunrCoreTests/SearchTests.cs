@@ -132,9 +132,9 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
-            Assert.Equal(new[] { "fellow", "candlestick" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal("body", results[0].MatchData.Metadata["fellow"].Keys.Single());
-            Assert.Equal("body", results[0].MatchData.Metadata["candlestick"].Keys.Single());
+            Assert.Equal(new[] { "fellow", "candlestick" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal("body", results[0].MatchData.Posting["fellow"].Keys.Single());
+            Assert.Equal("body", results[0].MatchData.Posting["candlestick"].Keys.Single());
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("c", results[0].DocumentReference);
-            Assert.Equal(new[] { "week" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "week" }, results[0].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -168,9 +168,9 @@ namespace LunrCoreTests
 
             Assert.Equal(3, results.Count);
             Assert.Equal(new[] { "a", "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal("green", results[1].MatchData.Metadata.Keys.Single());
-            Assert.Equal("green", results[2].MatchData.Metadata.Keys.Single());
+            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal("green", results[1].MatchData.Posting.Keys.Single());
+            Assert.Equal("green", results[2].MatchData.Posting.Keys.Single());
         }
 
         [Fact]
@@ -203,8 +203,8 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal("plant", results[0].MatchData.Metadata.Keys.Single());
-            Assert.Equal("title", results[0].MatchData.Metadata["plant"].Keys.Single());
+            Assert.Equal("plant", results[0].MatchData.Posting.Keys.Single());
+            Assert.Equal("title", results[0].MatchData.Posting["plant"].Keys.Single());
         }
 
         [Fact]
@@ -236,7 +236,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
-            Assert.Equal("candlestick", results[0].MatchData.Metadata.Keys.Single());
+            Assert.Equal("candlestick", results[0].MatchData.Posting.Keys.Single());
         }
 
         [Fact]
@@ -248,8 +248,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -271,8 +271,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -294,8 +294,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -317,8 +317,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "plant" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "plant" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "plant" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -351,7 +351,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal("plant", results[0].MatchData.Metadata.Keys.Single());
+            Assert.Equal("plant", results[0].MatchData.Posting.Keys.Single());
         }
 
         [Fact]
@@ -373,8 +373,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "a", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "candlestick" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "scarlett" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "candlestick" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "scarlett" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -404,8 +404,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "plumb", "plant" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -427,8 +427,8 @@ namespace LunrCoreTests
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
-            Assert.Equal(new[] { "green" }, results[0].MatchData.Metadata.Keys);
-            Assert.Equal(new[] { "green" }, results[1].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "green" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal(new[] { "green" }, results[1].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -463,7 +463,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("c", results[0].DocumentReference);
-            Assert.Equal("plumb", results[0].MatchData.Metadata.Keys.Single());
+            Assert.Equal("plumb", results[0].MatchData.Posting.Keys.Single());
         }
 
         [Fact]
@@ -475,7 +475,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
-            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -507,7 +507,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -519,7 +519,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Posting.Keys);
         }
 
         [Fact]
@@ -531,7 +531,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal(new[] { "studi", "plant" }.ToHashSet(), results[0].MatchData.Metadata.Keys.ToHashSet());
+            Assert.Equal(new[] { "studi", "plant" }.ToHashSet(), results[0].MatchData.Posting.Keys.ToHashSet());
         }
 
         [Fact]
@@ -553,7 +553,7 @@ namespace LunrCoreTests
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
-            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Metadata.Keys);
+            Assert.Equal(new[] { "plant", "green" }, results[0].MatchData.Posting.Keys);
         }
 
         private async Task<Index> GetPlainIndex()

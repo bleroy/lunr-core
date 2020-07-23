@@ -16,14 +16,11 @@ namespace Lunr
         /// <param name="posting">The posting for a given term.</param>
         /// <param name="documentCount">The total number of documents.</param>
         /// <returns>The inverse document frequency.</returns>
-        public static double InverseDocumentFrequency(Posting posting, int documentCount)
+        public static double InverseDocumentFrequency(InvertedIndexEntry posting, int documentCount)
         {
             int documentsWithTerm = 0;
 
-            foreach ((
-                string fieldName,
-                IDictionary<string, IDictionary<string, IList<object>>> value)
-                in posting)
+            foreach ((string fieldName, FieldOccurrences value) in posting)
             {
                 if (fieldName == "_index") continue; // Ignore the term index, its not a field
                 documentsWithTerm += value.Count;
