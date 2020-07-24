@@ -16,7 +16,7 @@ namespace Lunr
         /// Builds a new query.
         /// </summary>
         /// <param name="allFields">An array of all available fields in a `Index`.</param>
-        public Query(params Field[] allFields)
+        public Query(params string[] allFields)
         {
             AllFields = allFields;
         }
@@ -25,9 +25,9 @@ namespace Lunr
         /// Builds a new query.
         /// </summary>
         /// <param name="allFields">An array of all available fields in a `Index`.</param>
-        internal Query(IEnumerable<Field> allFields)
+        internal Query(IEnumerable<string> allFields)
         {
-            AllFields = new List<Field>(allFields);
+            AllFields = new List<string>(allFields);
         }
 
         public static readonly char Wildcard = '*';
@@ -35,7 +35,7 @@ namespace Lunr
         /// <summary>
         /// An array of all available fields.
         /// </summary>
-        public IList<Field> AllFields { get; }
+        public IList<string> AllFields { get; }
 
         /// <summary>
         /// An list of query clauses.
@@ -102,7 +102,7 @@ namespace Lunr
             bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
-            IEnumerable<Field>? fields = null!)
+            IEnumerable<string>? fields = null!)
             => AddClause(new Clause(term, boost, editDistance, usePipeline, wildcard, presence, fields));
 
         /// <summary>

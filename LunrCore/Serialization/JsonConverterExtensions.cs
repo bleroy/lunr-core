@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Lunr.Serialization
@@ -12,6 +13,23 @@ namespace Lunr.Serialization
         {
             JsonConverter<T> converter = options.GetConverter<T>();
             return converter.Read(ref reader, typeof(T), options);
+        }
+
+        public static IList<T> ReadArray<T>(this ref Utf8JsonReader reader, JsonSerializerOptions options)
+        {
+            while (reader.TokenType != JsonTokenType.StartArray)
+            {
+                if (!reader.Read())
+                {
+                    throw new JsonException("Unexpected end of stream");
+                }
+            }
+            var result = new List<T>();
+            while (reader.TokenType != JsonTokenType.EndArray)
+            {
+                result.Add(ReadValue<T>(ref reader, options));
+            }
+            return result;
         }
 
         public static void WriteProperty<T>(this Utf8JsonWriter writer, string propertyName, T value, JsonSerializerOptions options)

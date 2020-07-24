@@ -300,7 +300,7 @@ namespace Lunr
                 InvertedIndex,
                 FieldVectors,
                 TokenSet,
-                Fields,
+                Fields.Select(f => f.Name),
                 SearchPipeline);
         }
 

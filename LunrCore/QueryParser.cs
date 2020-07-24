@@ -110,16 +110,16 @@ namespace Lunr
 
             if (lexeme == Lexeme.Empty) return PastEOS;
 
-            if (!parser.Query.AllFields.Any(field => field.Name == lexeme.Value))
+            if (!parser.Query.AllFields.Any(field => field == lexeme.Value))
             {
                 throw new QueryParserException(
-                    $"Unrecognized field '{lexeme.Value}'. Available fields are: [{String.Join(", ", parser.Query.AllFields.Select(f => $"'{f.Name}'"))}].",
+                    $"Unrecognized field '{lexeme.Value}'. Available fields are: [{String.Join(", ", parser.Query.AllFields.Select(f => $"'{f}'"))}].",
                     lexeme.Start,
                     lexeme.End);
             }
 
             parser._currentClause = parser._currentClause
-                .WithFields(parser.Query.AllFields.First(f => f.Name == lexeme.Value));
+                .WithFields(parser.Query.AllFields.First(f => f == lexeme.Value));
 
             Lexeme nextLexeme = parser.PeekLexeme();
 

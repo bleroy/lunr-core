@@ -136,14 +136,14 @@ namespace LunrCoreTests
             IList<Clause> clauses = Parse("title:foo");
 
             Assert.Single(clauses);
-            Assert.Equal(new[] { "title" }, clauses[0].Fields.Select(f => f.Name));
+            Assert.Equal(new[] { "title" }, clauses[0].Fields);
             Assert.Equal("foo", clauses[0].Term);
         }
 
         [Fact]
         public void UppercaseFieldWithUppercaseTerm()
         {
-            var query = new Query(new Field<string>("TITLE"));
+            var query = new Query("TITLE");
             var parser = new QueryParser("TITLE:FOO", query);
 
             parser.Parse();
@@ -152,7 +152,7 @@ namespace LunrCoreTests
 
             Assert.Single(clauses);
             Assert.Equal("foo", clauses[0].Term);
-            Assert.Equal("TITLE", clauses[0].Fields.Single().Name);
+            Assert.Equal("TITLE", clauses[0].Fields.Single());
         }
 
         [Fact]
@@ -164,11 +164,11 @@ namespace LunrCoreTests
 
             Clause fooClause = clauses[0];
             Assert.Equal("foo", fooClause.Term);
-            Assert.Equal("title", fooClause.Fields.Single().Name);
+            Assert.Equal("title", fooClause.Fields.Single());
 
             Clause barClause = clauses[1];
             Assert.Equal("bar", barClause.Term);
-            Assert.Equal("body", barClause.Fields.Single().Name);
+            Assert.Equal("body", barClause.Fields.Single());
         }
 
         [Fact]
@@ -212,7 +212,7 @@ namespace LunrCoreTests
             Clause clause = clauses.First();
             Assert.Equal("foo", clause.Term);
             Assert.Equal(2, clause.EditDistance);
-            Assert.Equal("title", clause.Fields.Single().Name);
+            Assert.Equal("title", clause.Fields.Single());
         }
 
         [Fact]
@@ -292,7 +292,7 @@ namespace LunrCoreTests
             Clause clause = clauses.First();
             Assert.Equal("foo", clause.Term);
             Assert.Equal(2, clause.Boost);
-            Assert.Equal("title", clause.Fields.Single().Name);
+            Assert.Equal("title", clause.Fields.Single());
         }
 
         [Fact]
@@ -334,7 +334,7 @@ namespace LunrCoreTests
             Assert.Equal("foo", clause.Term);
             Assert.Equal(QueryPresence.Required, clause.Presence);
             Assert.Equal(1, clause.Boost);
-            Assert.Equal("title", clause.Fields.Single().Name);
+            Assert.Equal("title", clause.Fields.Single());
         }
 
         [Fact]
@@ -348,7 +348,7 @@ namespace LunrCoreTests
             Assert.Equal("foo", clause.Term);
             Assert.Equal(QueryPresence.Prohibited, clause.Presence);
             Assert.Equal(1, clause.Boost);
-            Assert.Equal("title", clause.Fields.Single().Name);
+            Assert.Equal("title", clause.Fields.Single());
         }
 
         [Fact]
@@ -367,9 +367,7 @@ namespace LunrCoreTests
 
         private static IList<Clause> Parse(string q)
         {
-            var query = new Query(
-                new Field<string>("title"),
-                new Field<string>("body"));
+            var query = new Query("title", "body");
             var parser = new QueryParser(q, query);
             
             parser.Parse();
@@ -381,7 +379,7 @@ namespace LunrCoreTests
         {
             Assert.Equal(
                 new[] { "title", "body" },
-                clause.Fields.Select(f => f.Name));
+                clause.Fields);
         }
     }
 }

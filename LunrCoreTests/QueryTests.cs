@@ -6,11 +6,7 @@ namespace LunrCoreTests
 {
     public class QueryTests
     {
-        private static readonly Field[] _allFields = new Field[]
-            {
-                new Field<string>("title"),
-                new Field<string>("body")
-            };
+        private static readonly string[] _allFields = new[] { "title", "body" };
 
         [Fact]
         public void SingleStringTerm()
@@ -89,7 +85,7 @@ namespace LunrCoreTests
             Clause clause = query.Clauses.Single();
 
             Assert.Equal("foo", clause.Term);
-            Assert.Equal("title", clause.Fields.Single().Name);
+            Assert.Equal("title", clause.Fields.Single());
             Assert.Equal(10, clause.Boost);
             Assert.False(clause.UsePipeline);
         }

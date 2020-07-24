@@ -32,7 +32,7 @@ namespace Lunr
             InvertedIndex invertedIndex,
             IDictionary<string, Vector> fieldVectors,
             TokenSet tokenSet,
-            IEnumerable<Field> fields,
+            IEnumerable<string> fields,
             Pipeline pipeline)
         {
             InvertedIndex = invertedIndex;
@@ -132,7 +132,7 @@ namespace Lunr
         /// <summary>
         /// The names of indexed document fields.
         /// </summary>
-        public IEnumerable<Field> Fields { get; }
+        public IEnumerable<string> Fields { get; }
 
         /// <summary>
         /// The pipeline to use for search terms.
@@ -250,16 +250,16 @@ namespace Lunr
             var query = new Query(Fields);
             var matchingFields = new Dictionary<FieldReference, MatchData>();
             var termFieldCache = new HashSet<string>();
-            var requiredMatches = new Dictionary<Field, ISet<string>>();
-            var prohibitedMatches = new Dictionary<Field, ISet<string>>();
+            var requiredMatches = new Dictionary<string, ISet<string>>();
+            var prohibitedMatches = new Dictionary<string, ISet<string>>();
 
             // To support field level boosts a query vector is created per
             // field. An empty vector is eagerly created to support negated
             // queries.
             var queryVectors = new Dictionary<string, Vector>();
-            foreach (Field field in Fields)
+            foreach (string field in Fields)
             {
-                queryVectors[field.Name] = new Vector();
+                queryVectors[field] = new Vector();
             }
 
             queryFactory(query);
@@ -303,7 +303,7 @@ namespace Lunr
                     // clauses.
                     if (!expandedTerms.Any() && clause.Presence == QueryPresence.Required)
                     {
-                        foreach (Field field in clause.Fields)
+                        foreach (string field in clause.Fields)
                         {
                             requiredMatches.Add(field, Set<string>.Empty);
                         }
@@ -317,7 +317,7 @@ namespace Lunr
                         InvertedIndexEntry posting = InvertedIndex[expandedTerm];
                         int termIndex = posting.Index;
 
-                        foreach (Field field in clause.Fields)
+                        foreach (string field in clause.Fields)
                         {
                             // For each field that this query term is scoped by (by default
                             // all fields are in scope) we need to get all the document refs
@@ -331,9 +331,9 @@ namespace Lunr
                             //
                             // The posting is the entry in the invertedIndex for the matching
                             // term from above.
-                            FieldOccurrences fieldPosting = posting[field.Name];
+                            FieldOccurrences fieldPosting = posting[field];
                             ICollection<string> matchingDocumentRefs = fieldPosting.Keys;
-                            string termField = expandedTerm + '/' + field.Name;
+                            string termField = expandedTerm + '/' + field;
                             var matchingDocumentSet = new Set<string>(matchingDocumentRefs);
 
                             // if the presence of this term is required ensure that the matching
@@ -371,7 +371,7 @@ namespace Lunr
                             // Using upsert because there could already be an entry in the vector
                             // for the term we are working with.In that case we just add the scores
                             // together.
-                            queryVectors[field.Name].Upsert(
+                            queryVectors[field].Upsert(
                                 termIndex,
                                 clause.Boost,
                                 (a, b) => a + b);
@@ -386,18 +386,18 @@ namespace Lunr
                                 // are then extracted and collected into an instance
                                 // of lunr.MatchData ready to be returned in the query
                                 // results.
-                                var matchingFieldRef = new FieldReference(matchingDocumentRef, field.Name);
+                                var matchingFieldRef = new FieldReference(matchingDocumentRef, field);
                                 Metadata metadata = fieldPosting[matchingDocumentRef];
                                 
                                 if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData fieldMatch))
                                 {
                                     matchingFields.Add(
                                         matchingFieldRef,
-                                        new MatchData(expandedTerm, field.Name, metadata));
+                                        new MatchData(expandedTerm, field, metadata));
                                 }
                                 else
                                 {
-                                    fieldMatch.Add(expandedTerm, field.Name, metadata);
+                                    fieldMatch.Add(expandedTerm, field, metadata);
                                 }
                             }
 
@@ -412,7 +412,7 @@ namespace Lunr
                 // fields.
                 if (clause.Presence == QueryPresence.Required)
                 {
-                    foreach (Field field in clause.Fields)
+                    foreach (string field in clause.Fields)
                     {
                         requiredMatches[field] = requiredMatches[field].Intersect(clauseMatches);
                     }
@@ -425,7 +425,7 @@ namespace Lunr
             ISet<string> allRequiredMatches = Set<string>.Complete;
             ISet<string> allProhibitedMatches = Set<string>.Empty;
 
-            foreach (Field field in Fields)
+            foreach (string field in Fields)
             {
                 if (requiredMatches.ContainsKey(field))
                 {

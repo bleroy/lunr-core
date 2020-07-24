@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -15,7 +16,7 @@ namespace Lunr.Serialization
             InvertedIndex? invertedIndex = null;
             IDictionary<string, Vector>? fieldVectors = null;
             Pipeline? pipeline = null;
-            IEnumerable<Field>? fields = null;
+            IEnumerable<string>? fields = null;
 
             var tokenSetBuilder = new TokenSet.Builder();
 
@@ -58,7 +59,7 @@ namespace Lunr.Serialization
                             pipeline = new Pipeline(reader.ReadValue<string[]>(options));
                             break;
                         case "fields":
-                            fields = reader.ReadValue<Field[]>(options);
+                            fields = reader.ReadArray<string>(options);
                             break;
                     }
                 }
@@ -72,9 +73,9 @@ namespace Lunr.Serialization
             writer.WriteString("version", _versionString);
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
-            foreach (Field field in value.Fields)
+            foreach (string field in value.Fields)
             {
-                writer.WriteStringValue(field.Name);
+                writer.WriteStringValue(field);
             }
             writer.WriteEndArray();
             writer.WritePropertyName("fieldVectors");

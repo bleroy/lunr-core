@@ -31,9 +31,9 @@ namespace Lunr
             bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
-            IEnumerable<Field>? fields = null!)
+            IEnumerable<string>? fields = null!)
         {
-            Fields = fields ?? Array.Empty<Field>();
+            Fields = fields ?? Array.Empty<string>();
             Boost = boost;
             EditDistance = editDistance;
             UsePipeline = usePipeline;
@@ -61,33 +61,6 @@ namespace Lunr
             bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
-            params Field[] fields)
-            : this(
-                  term,
-                  boost,
-                  editDistance,
-                  usePipeline,
-                  wildcard,
-                  presence,
-                  (IEnumerable<Field>)fields) { }
-
-        /// <summary>
-        /// Builds a new clause.
-        /// </summary>
-        /// <param name="term">The term to search for.</param>
-        /// <param name="fields">The fields in an index this clause should be matched against.</param>
-        /// <param name="boost">Any boost that should be applied when matching this clause.</param>
-        /// <param name="editDistance">Whether the term should have fuzzy matching applied, and how fuzzy the match should be.</param>
-        /// <param name="usePipeline">Whether the term should be passed through the search pipeline.</param>
-        /// <param name="wildcard">Whether the term should have wildcards appended or prepended.</param>
-        /// <param name="presence">The terms presence in any matching documents.</param>
-        public Clause(
-            string term = "",
-            double boost = 1,
-            int editDistance = 0,
-            bool usePipeline = true,
-            QueryWildcard wildcard = QueryWildcard.None,
-            QueryPresence presence = QueryPresence.Optional,
             params string[] fields)
             : this(
                   term,
@@ -96,13 +69,12 @@ namespace Lunr
                   usePipeline,
                   wildcard,
                   presence,
-                  fields.Select(s => new Field<string>(s)))
-        { }
+                  (IEnumerable<string>)fields) { }
 
         /// <summary>
         /// The fields in an index this clause should be matched against.
         /// </summary>
-        public IEnumerable<Field> Fields { get; }
+        public IEnumerable<string> Fields { get; }
 
         /// <summary>
         /// Any boost that should be applied when matching this clause.
@@ -179,7 +151,7 @@ namespace Lunr
         /// </summary>
         /// <param name="fields">The list of fields to append.</param>
         /// <returns>the new clause.</returns>
-        public Clause WithFields(IEnumerable<Field> fields)
+        public Clause WithFields(IEnumerable<string> fields)
             => new Clause(Term, Boost, EditDistance, UsePipeline, Wildcard, Presence, Fields.Concat(fields).ToArray());
 
         /// <summary>
@@ -187,10 +159,10 @@ namespace Lunr
         /// </summary>
         /// <param name="fields">The list of fields to append.</param>
         /// <returns>the new clause.</returns>
-        public Clause WithFields(params Field[] fields)
+        public Clause WithFields(params string[] fields)
             => new Clause(Term, Boost, EditDistance, UsePipeline, Wildcard, Presence, Fields.Concat(fields).ToArray());
 
-        private string DebuggerDisplay => (Fields.Any() ? string.Join(", ", Fields.Select(f => f.Name)) + ":" : "") +
+        private string DebuggerDisplay => (Fields.Any() ? string.Join(", ", Fields) + ":" : "") +
             (Presence switch { QueryPresence.Required => "+", QueryPresence.Prohibited => "-", _ => "" }) +
             ((Wildcard & QueryWildcard.Leading) == 0 ? "" : "*") +
             Term +
