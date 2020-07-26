@@ -101,9 +101,9 @@ namespace Lunr
         public IDictionary<string, Vector> FieldVectors { get; set; } = new Dictionary<string, Vector>();
 
         /// <summary>
-        /// A list of metadata keys that have been whitelisted for entry in the index.
+        /// A list of metadata keys that have been allowed for entry in the index.
         /// </summary>
-        public IList<string> MetadataWhiteList { get; } = new List<string>();
+        public IList<string> MetadataAllowList { get; } = new List<string>();
 
         /// <summary>
         /// The indexing pipeline.
@@ -265,17 +265,18 @@ namespace Lunr
                             new Metadata());
                     }
 
-                    // store all whitelisted metadata about this token in the inverted index.
-                    foreach (string metadataKey in MetadataWhiteList)
+                    // store all allowed metadata about this token in the inverted index.
+                    foreach (string metadataKey in MetadataAllowList)
                     {
-                        object termMetadata = term.Metadata[metadataKey];
-
-                        if (!InvertedIndex[term][field.Name][docRef].ContainsKey(metadataKey))
+                        if (term.Metadata.TryGetValue(metadataKey, out object termMetadata))
                         {
-                            InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object>());
-                        }
+                            if (!InvertedIndex[term][field.Name][docRef].ContainsKey(metadataKey))
+                            {
+                                InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object>());
+                            }
 
-                        InvertedIndex[term][field.Name][docRef][metadataKey].Add(termMetadata);
+                            InvertedIndex[term][field.Name][docRef][metadataKey].Add(termMetadata);
+                        }
                     }
                 }
                 // store the length of this field for this document
