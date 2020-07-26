@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Lunr.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Lunr
 {
@@ -14,6 +16,7 @@ namespace Lunr
     /// 
     /// For performance with large numbers of dimensions, this is implemented as a list of index and value.
     /// </summary>
+    [JsonConverter(typeof(VectorJsonConverter))]
     public class Vector
     {
         private readonly IList<(int index, double value)> _elements;

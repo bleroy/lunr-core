@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,46 +24,38 @@ namespace Lunr.Serialization
                 throw new JsonException("An index can only be deserialized from an object.");
             }
             reader.Read();
-            while (reader.Read())
+            while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
             {
-                if (reader.TokenType == JsonTokenType.EndObject)
+                string propertyName = reader.ReadValue<string>(options);
+                switch (propertyName)
                 {
-                    if (invertedIndex is null) throw new JsonException("Serialized index is missing invertedIndex.");
-                    if (fieldVectors is null) throw new JsonException("Serialized index is missing fieldVectors.");
-                    if (pipeline is null) throw new JsonException("Serialized index is missing a pipeline.");
-                    if (fields is null) throw new JsonException("Serialized index is missing a list of fields.");
-
-                    return new Index(invertedIndex, fieldVectors, tokenSetBuilder.Root, fields, pipeline);
-                }
-
-                if (reader.TokenType == JsonTokenType.PropertyName)
-                {
-                    string propertyName = reader.GetString();
-                    switch(propertyName)
-                    {
-                        case "version":
-                            string version = reader.ReadValue<string>(options);
-                            if (version != _versionString)
-                            {
-                                System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_version}' does not match serialized index '{version}'");
-                            }
-                            break;
-                        case "invertedIndex":
-                            invertedIndex = reader.ReadValue<InvertedIndex>(options);
-                            break;
-                        case "fieldVectors":
-                            fieldVectors = reader.ReadValue<Dictionary<string, Vector>>(options);
-                            break;
-                        case "pipeline":
-                            pipeline = new Pipeline(reader.ReadValue<string[]>(options));
-                            break;
-                        case "fields":
-                            fields = reader.ReadArray<string>(options);
-                            break;
-                    }
+                    case "version":
+                        string version = reader.ReadValue<string>(options);
+                        if (version != _versionString)
+                        {
+                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_version}' does not match serialized index '{version}'");
+                        }
+                        break;
+                    case "invertedIndex":
+                        invertedIndex = reader.ReadValue<InvertedIndex>(options);
+                        break;
+                    case "fieldVectors":
+                        fieldVectors = reader.ReadDictionaryFromKeyValueSequence<Vector>(options);
+                        break;
+                    case "pipeline":
+                        pipeline = new Pipeline(reader.ReadArray<string>(options));
+                        break;
+                    case "fields":
+                        fields = reader.ReadArray<string>(options);
+                        break;
                 }
             }
-            throw new JsonException("Unexpectedly reached the end of the stream.");
+            if (invertedIndex is null) throw new JsonException("Serialized index is missing invertedIndex.");
+            if (fieldVectors is null) throw new JsonException("Serialized index is missing fieldVectors.");
+            if (pipeline is null) throw new JsonException("Serialized index is missing a pipeline.");
+            if (fields is null) throw new JsonException("Serialized index is missing a list of fields.");
+
+            return new Index(invertedIndex, fieldVectors, tokenSetBuilder.Root, fields, pipeline);
         }
 
         public override void Write(Utf8JsonWriter writer, Index value, JsonSerializerOptions options)
@@ -84,12 +75,7 @@ namespace Lunr.Serialization
             {
                 writer.WriteStartArray();
                 writer.WriteStringValue(field);
-                writer.WriteStartArray();
-                foreach (double component in vector.Save())
-                {
-                    writer.WriteNumberValue(component);
-                }
-                writer.WriteEndArray();
+                writer.WriteValue(vector, options);
                 writer.WriteEndArray();
             }
             writer.WriteEndArray();

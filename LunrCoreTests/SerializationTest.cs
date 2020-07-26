@@ -59,25 +59,19 @@ namespace LunrCoreTests
                 }
             });
 
-            string serializedIndex = JsonSerializer.Serialize(idx);
+            string serializedIndex = idx.ToJson();
 
             // We want strict compatibility of index serialization with lunr.js
             Assert.Equal(_lunrJsSerializedIndex, serializedIndex);
 
         }
 
-        //[Fact]
-        //public async Task CanDeserializeIndex()
-        //{
-        //    Index deserializedIndex = JsonSerializer.Deserialize<Index>(_lunrJsSerializedIndex);
+        [Fact]
+        public void CanDeserializeIndex()
+        {
+            var deserializedIndex = Index.LoadFromJson(_lunrJsSerializedIndex);
 
-            //string serializedResults = JsonSerializer.Serialize(
-            //    await idx.Search("green").ToList());
-            //string serializedResultsFromSerializedAndDeserializedIndex
-            //    = JsonSerializer.Serialize(
-            //        await deserializedIndex.Search("green").ToList());
-
-            //Assert.Equal(serializedResults, serializedResultsFromSerializedAndDeserializedIndex);
-        //}
+            Assert.Equal(_lunrJsSerializedIndex, deserializedIndex.ToJson());
+        }
     }
 }

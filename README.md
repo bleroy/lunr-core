@@ -4,7 +4,11 @@ Lunr is a bit like Solr, but much smaller and not as bright.
 
 ![.NET Core](https://github.com/bleroy/lunr-core/workflows/.NET%20Core/badge.svg)
 
-**Status**: All code has been ported except for serialization. Performance benchmarks have not yet been ported.
+## TODO / up for grabs
+
+* Multilingual support (lunr has optional support that remains to be ported)
+* Performance benchmarks (lunr has some benchmarks that can be ported)
+* Documentation (adapted from [lunr docs](https://lunrjs.com/guides/getting_started.html))
 
 ## Example
 

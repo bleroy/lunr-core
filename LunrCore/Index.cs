@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,26 +85,17 @@ namespace Lunr
             IDictionary<string, Pipeline.Function>? registry = null!,
             params Field[] fields)
         {
-            Pipeline.Function trimmerFunction
-                = (trimmer ?? new Trimmer()).FilterFunction;
-            Pipeline.Function filterFunction
-                = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
-            Pipeline.Function stemmerFunction
-                = (stemmer ?? new EnglishStemmer()).StemmerFunction;
-
-            registry ??= new Dictionary<string, Pipeline.Function>
-            {
-                { "trimmer", trimmerFunction },
-                { "stopWordFilter", filterFunction },
-                { "stemmer", stemmerFunction }
-            };
-
-            var indexingPipeline = new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction);
-            var searchPipeline = new Pipeline(registry, stemmerFunction);
+            Pipeline.Function trimmerFunction = (trimmer ?? new Trimmer()).FilterFunction;
+            Pipeline.Function filterFunction = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
+            Pipeline.Function stemmerFunction = (stemmer ?? new EnglishStemmer()).StemmerFunction;
+            registry ??= new Dictionary<string, Pipeline.Function>();
+            registry.Add("trimmer", trimmerFunction);
+            registry.Add("stopWordFilter", filterFunction);
+            registry.Add("stemmer", stemmerFunction);
 
             var builder = new Builder(
-                indexingPipeline: indexingPipeline,
-                searchPipeline: searchPipeline,
+                indexingPipeline: new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction),
+                searchPipeline: new Pipeline(registry, stemmerFunction),
                 tokenizer: tokenizer ?? new Tokenizer(),
                 fields: fields);
 
@@ -521,6 +514,72 @@ namespace Lunr
             {
                 yield return result;
             }
+        }
+
+        /// <summary>
+        /// Load an index from a JSON stream.
+        /// </summary>
+        /// <param name="utf8json">The JSON stream</param>
+        /// <param name="stemmer">An optional stemmer. English is used if none is provided.</param>
+        /// <param name="registry">An optional registry of pipeline functions to use to resolve the persisted pipeline.</param>
+        /// <returns>The index.</returns>
+        public static async Task<Index> LoadFromJsonStream(
+            Stream utf8json,
+            StemmerBase? stemmer = null!,
+            IDictionary<string, Pipeline.Function>? registry = null!)
+        {
+            Index index = await JsonSerializer.DeserializeAsync<Index>(utf8json);
+            return ProcessDeserializedIndex(stemmer, registry, index);
+        }
+
+        /// <summary>
+        /// Load an index from a JSON string.
+        /// </summary>
+        /// <param name="json">The JSON string</param>
+        /// <param name="stemmer">An optional stemmer. English is used if none is provided.</param>
+        /// <param name="registry">An optional registry of pipeline functions to use to resolve the persisted pipeline.</param>
+        /// <returns>The index.</returns>
+        public static Index LoadFromJson(
+            string json,
+            StemmerBase? stemmer = null!,
+            IDictionary<string, Pipeline.Function>? registry = null!)
+        {
+            Index index = JsonSerializer.Deserialize<Index>(json);
+            return ProcessDeserializedIndex(stemmer, registry, index);
+        }
+
+        /// <summary>
+        /// Persists an index to a stream as JSON.
+        /// </summary>
+        /// <param name="utf8json">The stream to persist to.</param>
+        /// <param name="options">Optional serializer options.</param>
+        public async Task SaveToJsonStream(Stream utf8json, JsonSerializerOptions? options = null!)
+            => await JsonSerializer.SerializeAsync(utf8json, this, options);
+
+        /// <summary>
+        /// Persists an index to a stream as JSON.
+        /// </summary>
+        /// <param name="utf8json">The stream to persist to.</param>
+        /// <param name="options">Optional serializer options.</param>
+        public string ToJson(JsonSerializerOptions? options = null!)
+            => JsonSerializer.Serialize(this, options);
+
+        private static Index ProcessDeserializedIndex(
+            StemmerBase? stemmer,
+            IDictionary<string, Pipeline.Function>? registry,
+            Index index)
+        {
+            registry ??= new Dictionary<string, Pipeline.Function>();
+            if (!registry.ContainsKey("stemmer"))
+            {
+                Pipeline.Function stemmerFunction = (stemmer ?? new EnglishStemmer()).StemmerFunction;
+                registry.Add("stemmer", stemmerFunction);
+            }
+            foreach ((string functionName, Pipeline.Function function) in registry)
+            {
+                index.Pipeline.RegisterFunction(function, functionName);
+            }
+            return index;
         }
     }
 }

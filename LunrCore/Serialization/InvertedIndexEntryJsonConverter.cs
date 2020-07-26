@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,26 +11,48 @@ namespace Lunr.Serialization
         {
             if (reader.TokenType != JsonTokenType.StartObject)
             {
-                throw new JsonException("An inverted index can only be deserialized from an array.");
+                throw new JsonException("An inverted index entry can only be deserialized from an object.");
             }
             var result = new InvertedIndexEntry();
-            reader.Read();
-            while (reader.Read())
+            reader.ReadOrThrow();
+            while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
             {
-                if (reader.TokenType == JsonTokenType.EndObject)
+                string propertyName = reader.ReadValue<string>(options);
+                if (propertyName == "_index")
                 {
-                    return result;
+                    result.Index = reader.ReadValue<int>(options);
                 }
-                else if (reader.TokenType == JsonTokenType.PropertyName)
+                else
                 {
-                    string propertyName = reader.GetString();
-                    result.Add(
-                        propertyName,
-                        reader.ReadValue<FieldOccurrences>(options));
+                    var occurrences = new FieldOccurrences();
+                    reader.AdvanceTo(JsonTokenType.StartObject);
+                    while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
+                    {
+                        string field = reader.ReadValue<string>(options);
+                        var metadata = new Metadata();
+                        reader.AdvanceTo(JsonTokenType.StartObject);
+                        while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
+                        {
+                            string doc = reader.ReadValue<string>(options);
+                            reader.AdvanceTo(JsonTokenType.StartArray);
+                            reader.ReadOrThrow();
+                            var data = new List<object>();
+                            while (reader.TokenType != JsonTokenType.EndArray)
+                            {
+                                data.Add(JsonSerializer.Deserialize(ref reader, typeof(object), options));
+                            }
+                            reader.ReadOrThrow();
+                            metadata.Add(doc, data);
+                        }
+                        reader.ReadOrThrow();
+                        occurrences.Add(field, metadata);
+                    }
+                    reader.ReadOrThrow();
+                    result.Add(propertyName, occurrences);
                 }
-                else throw new JsonException("Unexpected token.");
             }
-            throw new JsonException("Unexpected end of stream.");
+            reader.ReadOrThrow();
+            return result;
         }
 
         public override void Write(Utf8JsonWriter writer, InvertedIndexEntry value, JsonSerializerOptions options)
@@ -44,9 +67,15 @@ namespace Lunr.Serialization
                 {
                     writer.WritePropertyName(doc);
                     writer.WriteStartObject();
-                    foreach((string key, object data) in metadata)
+                    foreach((string key, IList<object> data) in metadata)
                     {
-                        writer.WriteProperty(key, data, options);
+                        writer.WritePropertyName(key);
+                        writer.WriteStartArray();
+                        foreach (object datum in data)
+                        {
+                            JsonSerializer.Serialize(writer, datum, options);
+                        }
+                        writer.WriteEndArray();
                     }
                     writer.WriteEndObject();
                 }

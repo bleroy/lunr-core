@@ -15,23 +15,15 @@ namespace Lunr.Serialization
                 throw new JsonException("An inverted index can only be deserialized from an array.");
             }
             var serializedVectors = new List<(string term, InvertedIndexEntry posting)>();
-            reader.Read();
-            while (reader.Read())
+            reader.ReadOrThrow();
+            while (reader.AdvanceTo(JsonTokenType.StartArray, JsonTokenType.EndArray) != JsonTokenType.EndArray)
             {
-                if (reader.TokenType == JsonTokenType.EndArray)
-                {
-                    return new InvertedIndex(serializedVectors);
-                }
-                else if (reader.TokenType == JsonTokenType.StartArray)
-                {
-                    serializedVectors.Add((
-                        reader.ReadValue<string>(options),
-                        reader.ReadValue<InvertedIndexEntry>(options)));
-                    reader.Read();
-                }
-                else throw new JsonException("Unexpected token.");
+                reader.AdvanceTo(JsonTokenType.String);
+                serializedVectors.Add((
+                    reader.ReadValue<string>(options),
+                    reader.ReadValue<InvertedIndexEntry>(options)));
             }
-            throw new JsonException("Unexpected end of stream.");
+            return new InvertedIndex(serializedVectors);
         }
 
         public override void Write(Utf8JsonWriter writer, InvertedIndex value, JsonSerializerOptions options)
