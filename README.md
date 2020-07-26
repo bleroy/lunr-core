@@ -19,13 +19,13 @@ var index = await Index.Build(async builder =>
 {
     builder
         .AddField("title")
-        .AddField("body")
+        .AddField("body");
 
     await builder.Add(new Document
     {
         { "title", "Twelfth-Night" },
-        { "body", "If music be the food of love, play on: Give me excess of it…" },
-        { "author", "William Shakespeare" }
+        { "body", "If music be the food of love, play on: Give me excess of itâ€¦" },
+        { "author", "William Shakespeare" },
         { "id", "1" },
     });
 });
