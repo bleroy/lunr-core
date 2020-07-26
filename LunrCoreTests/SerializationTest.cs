@@ -63,7 +63,6 @@ namespace LunrCoreTests
 
             // We want strict compatibility of index serialization with lunr.js
             Assert.Equal(_lunrJsSerializedIndex, serializedIndex);
-
         }
 
         [Fact]
@@ -72,6 +71,41 @@ namespace LunrCoreTests
             var deserializedIndex = Index.LoadFromJson(_lunrJsSerializedIndex);
 
             Assert.Equal(_lunrJsSerializedIndex, deserializedIndex.ToJson());
+        }
+
+        [Fact]
+        public async Task CanSerializeIndexInOrderWithUnderscoresAndDigits()
+        {
+            Index idx = await Index.Build(async builder =>
+            {
+                builder.ReferenceField = "id";
+
+                builder.AddField("title");
+
+                await builder.Add(new Document
+                {
+                    { "id", "underscore" },
+                    { "title", "_" }
+                });
+
+                await builder.Add(new Document
+                {
+                    { "id", "zero" },
+                    { "title", "0" }
+                });
+
+                await builder.Add(new Document
+                {
+                    { "id", "all the things" },
+                    { "title", "0 _" }
+                });
+            });
+
+            string serializedIndex = idx.ToJson();
+
+            // We want strict compatibility of index serialization with lunr.js
+            Assert.Equal("{\"version\":\"2.3.8\",\"fields\":[\"title\"],\"fieldVectors\":[[\"title/underscore\",[0,0.524]],[\"title/zero\",[1,0.524]],[\"title/all the things\",[0,0.39,1,0.39]]],\"invertedIndex\":[[\"0\",{\"_index\":1,\"title\":{\"zero\":{},\"all the things\":{}}}],[\"_\",{\"_index\":0,\"title\":{\"underscore\":{},\"all the things\":{}}}]],\"pipeline\":[\"stemmer\"]}",
+                serializedIndex);
         }
     }
 }

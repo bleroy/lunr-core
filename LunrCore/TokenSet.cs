@@ -382,7 +382,7 @@ namespace Lunr
 
             var str = new StringBuilder(IsFinal ? "1" : "0");
 
-            foreach ((char label, TokenSet node) in Edges.OrderBy(k => k.Key))
+            foreach ((char label, TokenSet node) in Edges.OrderBy(k => k.Key.ToString(), StringComparer.Ordinal))
             {
                 str.Append(label);
                 str.Append(node.Id);
@@ -412,7 +412,7 @@ namespace Lunr
             {
                 int commonPrefix = 0;
 
-                if (word.CompareTo(_previousWord) == -1)
+                if (StringComparer.Ordinal.Compare(word, _previousWord) < 0)
                     throw new InvalidOperationException("Out of order word insertion.");
 
                 for (int i = 0; i < word.Length && i < _previousWord.Length; i ++)
