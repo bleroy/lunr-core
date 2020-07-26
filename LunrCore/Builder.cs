@@ -391,7 +391,7 @@ namespace Lunr
         private TokenSet CreateTokenSet()
             => TokenSet = TokenSet.FromArray(InvertedIndex
                 .Keys
-                .OrderBy(k => k));
+                .OrderBy(k => k, StringComparer.Ordinal));
 
         private void InitializeFields(params Field[] fields)
         {

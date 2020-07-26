@@ -29,7 +29,7 @@ namespace Lunr.Serialization
         public override void Write(Utf8JsonWriter writer, InvertedIndex value, JsonSerializerOptions options)
         {
             writer.WriteStartArray();
-            foreach((string term, InvertedIndexEntry entry) in value.OrderBy(kvp => kvp.Key))
+            foreach((string term, InvertedIndexEntry entry) in value.OrderBy(kvp => kvp.Key, StringComparer.Ordinal))
             {
                 writer.WriteStartArray();
                 writer.WriteValue(term, options);
