@@ -74,7 +74,7 @@ namespace LunrCoreTests
             var builder = new Builder();
             builder.IndexingPipeline.RegisterFunction(pipelineFunction, "test");
             builder.IndexingPipeline.Add(pipelineFunction);
-            builder.MetadataWhiteList.Add("constructor");
+            builder.MetadataAllowList.Add("constructor");
 
             builder.AddField("title");
 
@@ -201,6 +201,29 @@ namespace LunrCoreTests
             Assert.Equal(1, builder.AverageFieldLength["title"]);
 
             Assert.NotNull(index);
+        }
+
+        [Fact]
+        public async Task BuilderCanIncludeTokenPositions()
+        {
+            Index index = await Index.Build(async builder =>
+            {
+                builder.MetadataAllowList.Add("position");
+                builder.AddField("href", 3);
+                builder.AddField("title", 2);
+                builder.AddField("body", 1);
+
+                await builder.Add(new Document
+                {
+                    {"id", "me"},
+                    {"href", "http://bertrandleroy.net"},
+                    {"title", "Bertrand"},
+                    {"body", "I am developer."}
+                });
+            });
+
+            Result developer = (await index.Search("developer").ToList()).Single();
+            Assert.Equal((5, 10), ((int, int))developer.MatchData.Posting["develop"]["body"]["position"].Single());
         }
     }
 }

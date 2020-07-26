@@ -14,7 +14,7 @@ namespace Lunr
             tokens,
             CancellationToken cancellationToken)
         {
-            return new Token[] { new Token(Stem(token.String)) }.ToAsyncEnumerable(cancellationToken);
+            return new Token[] { token.Clone(Stem) }.ToAsyncEnumerable(cancellationToken);
         }
 
         public Pipeline.Function StemmerFunction => StemWrapper;
