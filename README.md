@@ -87,3 +87,8 @@ Lunr-core supports all .NET Standard 2.0 platforms, including .NET Core and .NET
 
 See the [`CONTRIBUTING.md` file](CONTRIBUTING.md).
 -->
+
+## Credits
+
+* Original code by [Oliver Nightingale](https://github.com/olivernn) and contributors, ported to .NET Core by [Bertrand Le Roy](https://github.com/bleroy).
+* Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International

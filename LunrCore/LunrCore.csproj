@@ -6,9 +6,11 @@
     <Version>2.3.8</Version>
     <Authors>Bertrand Le Roy</Authors>
     <Company>Decent Consulting</Company>
-    <Description>A .NET Core port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright."</Description>
+    <Description>A .NET Core port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright." Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International</Description>
     <Copyright>2020 Bertrand Le Roy</Copyright>
     <PackageProjectUrl>https://github.com/bleroy/lunr-core</PackageProjectUrl>
+    <PackageIcon>LunrCore.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <RepositoryUrl>https://github.com/bleroy/lunr-core</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <LangVersion>8.0</LangVersion>
@@ -18,6 +20,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.1" />
     <PackageReference Include="System.Text.Json" Version="4.7.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Assets/LunrCore.png" Pack="true" PackagePath=""/>
+    <None Include="../LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>
