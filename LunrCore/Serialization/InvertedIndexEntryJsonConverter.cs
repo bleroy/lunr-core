@@ -17,38 +17,46 @@ namespace Lunr.Serialization
             reader.ReadOrThrow();
             while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
             {
-                string propertyName = reader.ReadValue<string>(options);
-                if (propertyName == "_index")
+                string fieldName = reader.ReadValue<string>(options);
+                if (fieldName == "_index")
                 {
                     result.Index = reader.ReadValue<int>(options);
                 }
                 else
                 {
-                    var occurrences = new FieldOccurrences();
+                    var fieldMatches = new FieldMatches();
                     reader.AdvanceTo(JsonTokenType.StartObject);
                     while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
                     {
-                        string field = reader.ReadValue<string>(options);
-                        var metadata = new Metadata();
+                        string token = reader.ReadValue<string>(options);
+                        var metadata = new FieldMatchMetadata();
                         reader.AdvanceTo(JsonTokenType.StartObject);
                         while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
                         {
-                            string doc = reader.ReadValue<string>(options);
+                            string metadataName = reader.ReadValue<string>(options);
                             reader.AdvanceTo(JsonTokenType.StartArray);
                             reader.ReadOrThrow();
-                            var data = new List<object>();
+                            var data = new List<object?>();
                             while (reader.TokenType != JsonTokenType.EndArray)
                             {
-                                data.Add(JsonSerializer.Deserialize(ref reader, typeof(object), options));
+                                // Special-case known metadata
+                                if (metadataName == "position")
+                                {
+                                    data.Add(JsonSerializer.Deserialize<Slice>(ref reader, options));
+                                }
+                                else
+                                {
+                                    data.Add(reader.ReadObject(options));
+                                }
                             }
                             reader.ReadOrThrow();
-                            metadata.Add(doc, data);
+                            metadata.Add(metadataName, data);
                         }
                         reader.ReadOrThrow();
-                        occurrences.Add(field, metadata);
+                        fieldMatches.Add(token, metadata);
                     }
                     reader.ReadOrThrow();
-                    result.Add(propertyName, occurrences);
+                    result.Add(fieldName, fieldMatches);
                 }
             }
             reader.ReadOrThrow();
@@ -59,19 +67,19 @@ namespace Lunr.Serialization
         {
             writer.WriteStartObject();
             writer.WriteNumber("_index", value.Index);
-            foreach((string field, FieldOccurrences occurrences) in value)
+            foreach((string field, FieldMatches occurrences) in value)
             {
                 writer.WritePropertyName(field);
                 writer.WriteStartObject();
-                foreach ((string doc, Metadata metadata) in occurrences)
+                foreach ((string doc, FieldMatchMetadata metadata) in occurrences)
                 {
                     writer.WritePropertyName(doc);
                     writer.WriteStartObject();
-                    foreach((string key, IList<object> data) in metadata)
+                    foreach((string key, IList<object?> data) in metadata)
                     {
                         writer.WritePropertyName(key);
                         writer.WriteStartArray();
-                        foreach (object datum in data)
+                        foreach (object? datum in data)
                         {
                             JsonSerializer.Serialize(writer, datum, options);
                         }

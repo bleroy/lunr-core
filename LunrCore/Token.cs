@@ -11,10 +11,10 @@ namespace Lunr
         /// </summary>
         /// <param name="tokenString">The token string.</param>
         /// <param name="metadata">Metadata associated with this token.</param>
-        public Token(string tokenString, IDictionary<string, object>? metadata = null!)
+        public Token(string tokenString, TokenMetadata? metadata = null!)
         {
             String = tokenString ?? "";
-            Metadata = metadata ?? new Dictionary<string, object>();
+            Metadata = metadata ?? new TokenMetadata();
         }
 
         /// <summary>
@@ -22,8 +22,8 @@ namespace Lunr
         /// </summary>
         /// <param name="tokenString">The token string.</param>
         /// <param name="metadata">Metadata associated with this token.</param>
-        public Token(string tokenString, params (string key, object value)[] metadata)
-            : this(tokenString, metadata.ToDictionary(kvp => kvp.key, kvp => kvp.value)) { }
+        public Token(string tokenString, params (string key, object? value)[] metadata)
+            : this(tokenString, new TokenMetadata(metadata)) { }
 
         /// <summary>
         /// The string token being wrapped.
@@ -33,7 +33,7 @@ namespace Lunr
         /// <summary>
         /// Metadata associated with this token.
         /// </summary>
-        public IDictionary<string, object> Metadata { get; }
+        public TokenMetadata Metadata { get; }
 
         /// <summary>
         /// Applies the given function to the wrapped string token.
@@ -51,7 +51,7 @@ namespace Lunr
         /// </summary>
         /// <param name="transformation">A transformation on the token string.</param>
         /// <returns>The same token (not a clone), but its string has been mutated.</returns>
-        public Token Update(Func<string, IDictionary<string, object>, string> transformation)
+        public Token Update(Func<string, TokenMetadata, string> transformation)
         {
             String = transformation(String, Metadata);
             return this;
@@ -63,7 +63,7 @@ namespace Lunr
         /// <param name="transformation">An optional transformation to apply to the token string.</param>
         /// <returns>A clone of the token.</returns>
         public Token Clone(Func<string, string>? transformation = null)
-            => new Token(transformation is null ? String : transformation(String), new Dictionary<string, object>(Metadata));
+            => new Token(transformation is null ? String : transformation(String), new TokenMetadata(Metadata));
 
         public override string ToString() => String;
 

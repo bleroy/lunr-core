@@ -20,7 +20,7 @@ namespace Lunr
         {
             int documentsWithTerm = 0;
 
-            foreach ((string fieldName, FieldOccurrences value) in posting)
+            foreach ((string fieldName, FieldMatches value) in posting)
             {
                 if (fieldName == "_index") continue; // Ignore the term index, its not a field
                 documentsWithTerm += value.Count;

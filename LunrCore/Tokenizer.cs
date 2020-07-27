@@ -19,7 +19,7 @@ namespace Lunr
         /// <returns>The list of tokens extracted from the string.</returns>
         public IEnumerable<Token> Tokenize(
             object obj,
-            IDictionary<string, object> metadata,
+            TokenMetadata metadata,
             CultureInfo culture)
         {
             if (obj is null)
@@ -44,9 +44,9 @@ namespace Lunr
                 {
                     if (sliceLength > 0)
                     {
-                        Dictionary<string, object>? tokenMetadata
-                            = metadata is null ? new Dictionary<string, object>() : new Dictionary<string, object>(metadata);
-                        tokenMetadata["position"] = (sliceStart, sliceLength);
+                        TokenMetadata? tokenMetadata
+                            = metadata is null ? new TokenMetadata() : new TokenMetadata(metadata);
+                        tokenMetadata["position"] = new Slice(sliceStart, sliceLength);
                         tokenMetadata["index"] = tokenCount++;
 
                         yield return new Token(
@@ -69,7 +69,7 @@ namespace Lunr
         /// <param name="obj">The object to tokenize.</param>
         /// <returns>The list of tokens extracted from the string.</returns>
         public IEnumerable<Token> Tokenize(object obj)
-            => Tokenize(obj, new Dictionary<string, object>(), CultureInfo.CurrentCulture);
+            => Tokenize(obj, new TokenMetadata(), CultureInfo.CurrentCulture);
 
         /// <summary>
         /// A function for splitting a string into tokens ready to be inserted into
@@ -84,13 +84,13 @@ namespace Lunr
         /// <returns>The list of tokens extracted from the string.</returns>
         public IEnumerable<Token> Tokenize(
             IEnumerable<object> enumerable,
-            IDictionary<string, object> metadata)
+            TokenMetadata metadata)
         {
             foreach (object single in enumerable)
             {
                 yield return new Token(
                     single is null ? "" : single.ToString(),
-                    metadata is null ? new Dictionary<string, object>() : new Dictionary<string, object>(metadata));
+                    metadata is null ? new TokenMetadata() : new TokenMetadata(metadata));
             }
         }
 
@@ -112,7 +112,7 @@ namespace Lunr
             {
                 yield return new Token(
                     single ?? "",
-                    new Dictionary<string, object>());
+                    new TokenMetadata());
             }
         }
 
@@ -129,7 +129,7 @@ namespace Lunr
         /// <returns>The list of tokens extracted from the string.</returns>
         public IEnumerable<Token> Tokenize(
             string str,
-            IDictionary<string, object> metadata,
+            TokenMetadata metadata,
             CultureInfo culture)
             => Tokenize((object)str, metadata, culture);
 
@@ -146,7 +146,7 @@ namespace Lunr
         /// <returns>The list of tokens extracted from the string.</returns>
         public IEnumerable<Token> Tokenize(
             string str,
-            IDictionary<string, object> metadata)
+            TokenMetadata metadata)
             => Tokenize((object)str, metadata, CultureInfo.CurrentCulture);
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace Lunr
         public IEnumerable<Token> Tokenize(
             string str,
             CultureInfo culture)
-            => Tokenize(str, new Dictionary<string, object>(), culture);
+            => Tokenize(str, new TokenMetadata(), culture);
 
         /// <summary>
         /// A function for splitting a string into tokens ready to be inserted into

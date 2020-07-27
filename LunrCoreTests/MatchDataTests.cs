@@ -12,26 +12,26 @@ namespace LunrCoreTests
             var match = new MatchData(
                 "foo",
                 "title",
-                new Metadata {
-                    { "position", new List<object> { 1 } }
+                new FieldMatchMetadata {
+                    { "position", new List<object?> { 1 } }
                 });
             match.Combine(new MatchData(
                 "bar",
                 "title",
-                new Metadata {
-                    { "position", new List<object> { 2 } }
+                new FieldMatchMetadata {
+                    { "position", new List<object?> { 2 } }
                 }));
             match.Combine(new MatchData(
                 "baz",
                 "body",
-                new Metadata {
-                    { "position", new List<object> { 3 } }
+                new FieldMatchMetadata {
+                    { "position", new List<object?> { 3 } }
                 }));
             match.Combine(new MatchData(
                 "baz",
                 "body",
-                new Metadata {
-                    { "position", new List<object> { 4 } }
+                new FieldMatchMetadata {
+                    { "position", new List<object?> { 4 } }
                 }));
 
             Assert.Equal(
@@ -52,7 +52,7 @@ namespace LunrCoreTests
         [Fact]
         public void CombineDoesntMutateDataSource()
         {
-            var metadata = new Metadata
+            var metadata = new FieldMatchMetadata
             {
                 { "foo", new object[] { 1 } }
             };

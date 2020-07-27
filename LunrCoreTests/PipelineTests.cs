@@ -212,7 +212,7 @@ namespace LunrCoreTests
             var cancellationToken = new CancellationToken();
             await foreach (string resultToken in pipeline.RunString(
                 "foo",
-                new Dictionary<string, object>(),
+                new TokenMetadata(),
                 cancellationToken))
             {
                 Assert.Equal("FOOFOO", resultToken);

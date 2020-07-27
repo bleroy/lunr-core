@@ -134,7 +134,7 @@ namespace LunrCoreTests
             IEnumerable<Token> tokens = new Tokenizer().Tokenize("foo bar");
             Assert.Equal(
                 new[] { 0, 1 },
-                tokens.Select(t => (int)t.Metadata["index"]));
+                tokens.Select(t => (int)(t.Metadata["index"]??-1)));
         }
 
         [Fact]
@@ -142,8 +142,8 @@ namespace LunrCoreTests
         {
             IEnumerable<Token> tokens = new Tokenizer().Tokenize("foo bar");
             Assert.Equal(
-                new[] { (0, 3), (4, 3) },
-                tokens.Select(t => ((int, int))t.Metadata["position"]));
+                new[] { new Slice(0, 3), new Slice(4, 3) },
+                tokens.Select(t => (Slice?)t.Metadata["position"]));
         }
 
         [Fact]
@@ -151,8 +151,8 @@ namespace LunrCoreTests
         {
             IEnumerable<Token> tokens = new Tokenizer().Tokenize(" foo bar");
             Assert.Equal(
-                new[] { (1, 3), (5, 3) },
-                tokens.Select(t => ((int, int))t.Metadata["position"]));
+                new[] { new Slice(1, 3), new Slice(5, 3) },
+                tokens.Select(t => (Slice?)t.Metadata["position"]));
         }
 
         [Fact]
@@ -160,8 +160,8 @@ namespace LunrCoreTests
         {
             IEnumerable<Token> tokens = new Tokenizer().Tokenize("foo bar ");
             Assert.Equal(
-                new[] { (0, 3), (4, 3) },
-                tokens.Select(t => ((int, int))t.Metadata["position"]));
+                new[] { new Slice(0, 3), new Slice(4, 3) },
+                tokens.Select(t => (Slice?)t.Metadata["position"]));
         }
 
         [Fact]
@@ -169,10 +169,10 @@ namespace LunrCoreTests
         {
             IEnumerable<Token> tokens = new Tokenizer().Tokenize(
                 "foo bar",
-                new Dictionary<string, object> { { "hurp", "durp" } });
+                new TokenMetadata { { "hurp", "durp" } });
             Assert.Equal(
                 new[] { "durp", "durp" },
-                tokens.Select(t => (string)t.Metadata["hurp"]));
+                tokens.Select(t => (string?)t.Metadata["hurp"]));
         }
     }
 }

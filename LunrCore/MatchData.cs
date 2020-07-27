@@ -12,30 +12,30 @@ namespace Lunr
     /// <param name="metadata">The metadata recorded about this term in this field.</param>
     public class MatchData
     {
-        public static readonly MatchData Empty = new MatchData("", "", new Metadata());
+        public static readonly MatchData Empty = new MatchData("", "", new FieldMatchMetadata());
 
         public MatchData(
             string term,
             string field,
-            Metadata metadata)
+            FieldMatchMetadata metadata)
         {
             Term = term;
             Field = field;
 
             // Cloning the metadata to prevent the original being mutated during match data combination.
             // Metadata is kept in an array within the inverted index.
-            var clonedMetadata = new Metadata(capacity: metadata.Count);
+            var clonedMetadata = new FieldMatchMetadata(capacity: metadata.Count);
 
-            foreach((string key, IEnumerable<object> value) in metadata)
+            foreach((string key, IEnumerable<object?> value) in metadata)
             {
-                clonedMetadata.Add(key, new List<object>(value));
+                clonedMetadata.Add(key, new List<object?>(value));
             }
 
             Posting = new InvertedIndexEntry
             {
                 {
                     term,
-                    new FieldOccurrences
+                    new FieldMatches
                     {
                         { field, clonedMetadata }
                     }
@@ -74,23 +74,23 @@ namespace Lunr
                 IEnumerable<string> fields = otherMatchData.Posting[term].Keys;
                 if (!Posting.ContainsKey(term))
                 {
-                    Posting.Add(term, new FieldOccurrences());
+                    Posting.Add(term, new FieldMatches());
                 }
-                IDictionary<string, Metadata> thisTermEntry = Posting[term];
+                IDictionary<string, FieldMatchMetadata> thisTermEntry = Posting[term];
                 foreach (string field in fields)
                 {
                     IEnumerable<string> keys = otherMatchData.Posting[term][field].Keys;
                     if (!thisTermEntry.ContainsKey(field))
                     {
-                        thisTermEntry.Add(field, new Metadata(capacity: otherMatchData.Posting[term][field].Keys.Count));
+                        thisTermEntry.Add(field, new FieldMatchMetadata(capacity: otherMatchData.Posting[term][field].Keys.Count));
                     }
-                    Metadata thisFieldEntry = thisTermEntry[field];
+                    FieldMatchMetadata thisFieldEntry = thisTermEntry[field];
                     foreach(string key in keys)
                     {
-                        IList<object> otherData = otherMatchData.Posting[term][field][key];
+                        IList<object?> otherData = otherMatchData.Posting[term][field][key];
                         if (!thisFieldEntry.ContainsKey(key))
                         {
-                            thisFieldEntry.Add(key, new List<object>(otherData));
+                            thisFieldEntry.Add(key, new List<object?>(otherData));
                         }
                         else
                         {
@@ -107,11 +107,11 @@ namespace Lunr
         /// <param name="term">The term this match data is associated with.</param>
         /// <param name="field">The field in which the term was found.</param>
         /// <param name="metadata">The metadata recorded about this term in this field.</param>
-        public void Add(string term, string field, Metadata metadata)
+        public void Add(string term, string field, FieldMatchMetadata metadata)
         {
             if (!Posting.ContainsKey(term))
             {
-                Posting.Add(term, new FieldOccurrences
+                Posting.Add(term, new FieldMatches
                 {
                     {
                         field,
@@ -121,7 +121,7 @@ namespace Lunr
                 return;
             }
 
-            FieldOccurrences termMetadata = Posting[term];
+            FieldMatches termMetadata = Posting[term];
             if (!termMetadata.ContainsKey(field))
             {
                 termMetadata.Add(field, metadata);
@@ -130,7 +130,7 @@ namespace Lunr
 
             foreach(string key in metadata.Keys)
             {
-                Metadata fieldMetadata = termMetadata[field];
+                FieldMatchMetadata fieldMetadata = termMetadata[field];
                 if (fieldMetadata.ContainsKey(key))
                 {
                     fieldMetadata[key] = fieldMetadata[key].Concat(metadata[key]).ToList();

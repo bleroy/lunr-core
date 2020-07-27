@@ -82,20 +82,29 @@ namespace Lunr
             StopWordFilterBase? stopWordFilter = null!,
             StemmerBase? stemmer = null!,
             Tokenizer? tokenizer = null!,
-            IDictionary<string, Pipeline.Function>? registry = null!,
+            PipelineFunctionRegistry? registry = null!,
+            IEnumerable<string>? indexingPipeline = null!,
+            IEnumerable<string>? searchPipeline = null!,
             params Field[] fields)
         {
             Pipeline.Function trimmerFunction = (trimmer ?? new Trimmer()).FilterFunction;
             Pipeline.Function filterFunction = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
             Pipeline.Function stemmerFunction = (stemmer ?? new EnglishStemmer()).StemmerFunction;
-            registry ??= new Dictionary<string, Pipeline.Function>();
+            registry ??= new PipelineFunctionRegistry();
             registry.Add("trimmer", trimmerFunction);
             registry.Add("stopWordFilter", filterFunction);
             registry.Add("stemmer", stemmerFunction);
 
+            Pipeline idxPipeline = indexingPipeline is null ?
+                new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction) :
+                new Pipeline(registry, indexingPipeline.Select(function => registry[function]).ToArray());
+            Pipeline srchPipeline = searchPipeline is null ?
+                new Pipeline(registry, stemmerFunction) :
+                new Pipeline(registry, searchPipeline.Select(function => registry[function]).ToArray());
+
             var builder = new Builder(
-                indexingPipeline: new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction),
-                searchPipeline: new Pipeline(registry, stemmerFunction),
+                indexingPipeline: idxPipeline,
+                searchPipeline: srchPipeline,
                 tokenizer: tokenizer ?? new Tokenizer(),
                 fields: fields);
 
@@ -271,7 +280,7 @@ namespace Lunr
                 await foreach (string term in clause.UsePipeline
                     ? Pipeline.RunString(
                         clause.Term,
-                        new Dictionary<string, object>
+                        new TokenMetadata
                         {
                             { "fields", clause.Fields }
                         },
@@ -324,7 +333,7 @@ namespace Lunr
                             //
                             // The posting is the entry in the invertedIndex for the matching
                             // term from above.
-                            FieldOccurrences fieldPosting = posting[field];
+                            FieldMatches fieldPosting = posting[field];
                             ICollection<string> matchingDocumentRefs = fieldPosting.Keys;
                             string termField = expandedTerm + '/' + field;
                             var matchingDocumentSet = new Set<string>(matchingDocumentRefs);
@@ -380,7 +389,7 @@ namespace Lunr
                                 // of lunr.MatchData ready to be returned in the query
                                 // results.
                                 var matchingFieldRef = new FieldReference(matchingDocumentRef, field);
-                                Metadata metadata = fieldPosting[matchingDocumentRef];
+                                FieldMatchMetadata metadata = fieldPosting[matchingDocumentRef];
                                 
                                 if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData fieldMatch))
                                 {
@@ -526,7 +535,7 @@ namespace Lunr
         public static async Task<Index> LoadFromJsonStream(
             Stream utf8json,
             StemmerBase? stemmer = null!,
-            IDictionary<string, Pipeline.Function>? registry = null!)
+            PipelineFunctionRegistry? registry = null!)
         {
             Index index = await JsonSerializer.DeserializeAsync<Index>(utf8json);
             return ProcessDeserializedIndex(stemmer, registry, index);
@@ -542,7 +551,7 @@ namespace Lunr
         public static Index LoadFromJson(
             string json,
             StemmerBase? stemmer = null!,
-            IDictionary<string, Pipeline.Function>? registry = null!)
+            PipelineFunctionRegistry? registry = null!)
         {
             Index index = JsonSerializer.Deserialize<Index>(json);
             return ProcessDeserializedIndex(stemmer, registry, index);
@@ -566,10 +575,10 @@ namespace Lunr
 
         private static Index ProcessDeserializedIndex(
             StemmerBase? stemmer,
-            IDictionary<string, Pipeline.Function>? registry,
+            PipelineFunctionRegistry? registry,
             Index index)
         {
-            registry ??= new Dictionary<string, Pipeline.Function>();
+            registry ??= new PipelineFunctionRegistry();
             if (!registry.ContainsKey("stemmer"))
             {
                 Pipeline.Function stemmerFunction = (stemmer ?? new EnglishStemmer()).StemmerFunction;
