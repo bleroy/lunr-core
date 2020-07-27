@@ -60,6 +60,20 @@ namespace Lunr
             IAsyncEnumerable<Token> tokens,
             CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Builds a `Pipeline.Function` from a simple `Action&lt;Token&gt;`.
+        /// </summary>
+        /// <param name="fun">The function to wrap as a `Pipeline.Function`.</param>
+        /// <returns>The `Pipeline.Function`.</returns>
+        public static Function BuildFunction(Action<Token> fun)
+        {
+            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
+            {
+                fun(token);
+                return (new[] { token }).ToAsyncEnumerable(cancellationToken);
+            };
+        }
+
         private readonly IList<Function> _process;
         private readonly IList<string> _processFunctionNames = Array.Empty<string>();
 
@@ -250,7 +264,7 @@ namespace Lunr
         /// <returns>The processed list of string tokens.</returns>
         public async IAsyncEnumerable<string> RunString(
             string str,
-            IDictionary<string, object> metadata,
+            TokenMetadata metadata,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (string s in Run(
@@ -271,7 +285,7 @@ namespace Lunr
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The processed list of string tokens.</returns>
         public IAsyncEnumerable<string> RunString(string str, CancellationToken cancellationToken)
-            => RunString(str, new Dictionary<string, object>(), cancellationToken);
+            => RunString(str, new TokenMetadata(), cancellationToken);
 
         /// <summary>
         /// Resets the pipeline by removing any existing processors.

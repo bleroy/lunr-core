@@ -18,7 +18,7 @@ namespace Lunr
         /// <returns>The list of tokens extracted from the string.</returns>
         IEnumerable<Token> Tokenize(
             object obj,
-            IDictionary<string, object> metadata,
+            TokenMetadata metadata,
             CultureInfo culture);
     }
 }

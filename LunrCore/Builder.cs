@@ -139,6 +139,20 @@ namespace Lunr
         public double TermFrequencySaturationFactor { get; set; } = 1.2;
 
         /// <summary>
+        /// Adds to the list of allowed metadata.
+        /// </summary>
+        /// <param name="allowedMetadata">The list to add.</param>
+        /// <returns>The builder.</returns>
+        public Builder AllowMetadata(params string[] allowedMetadata)
+        {
+            foreach(string allowedMetadatum in allowedMetadata)
+            {
+                MetadataAllowList.Add(allowedMetadatum);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Adds a field to the list of document fields that will be indexed. Every document being
         /// indexed should have this field.Null values for this field in indexed documents will
         /// not cause errors but will limit the chance of that document being retrieved by searches.
@@ -215,7 +229,7 @@ namespace Lunr
                 object? fieldValue = await field.ExtractValue(doc);
                 if (fieldValue is null) continue;
                 
-                var metadata = new Dictionary<string, object>
+                var metadata = new TokenMetadata
                 {
                     { "fieldName", field.Name }
                 };
@@ -252,7 +266,7 @@ namespace Lunr
                         {
                             posting.Add(
                                 postingField.Name,
-                                new FieldOccurrences());
+                                new FieldMatches());
                         }
                         InvertedIndex[term] = posting;
                     }
@@ -262,17 +276,17 @@ namespace Lunr
                     {
                         InvertedIndex[term][field.Name].Add(
                             docRef,
-                            new Metadata());
+                            new FieldMatchMetadata());
                     }
 
                     // store all allowed metadata about this token in the inverted index.
                     foreach (string metadataKey in MetadataAllowList)
                     {
-                        if (term.Metadata.TryGetValue(metadataKey, out object termMetadata))
+                        if (term.Metadata.TryGetValue(metadataKey, out object? termMetadata))
                         {
                             if (!InvertedIndex[term][field.Name][docRef].ContainsKey(metadataKey))
                             {
-                                InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object>());
+                                InvertedIndex[term][field.Name][docRef].Add(metadataKey, new List<object?>());
                             }
 
                             InvertedIndex[term][field.Name][docRef][metadataKey].Add(termMetadata);

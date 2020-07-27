@@ -223,7 +223,7 @@ namespace LunrCoreTests
             });
 
             Result developer = (await index.Search("developer").ToList()).Single();
-            Assert.Equal((5, 10), ((int, int))developer.MatchData.Posting["develop"]["body"]["position"].Single());
+            Assert.Equal(new Slice(5, 10), (Slice?)developer.MatchData.Posting["develop"]["body"]["position"].Single());
         }
     }
 }

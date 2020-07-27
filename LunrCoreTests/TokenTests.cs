@@ -35,9 +35,9 @@ namespace LunrCoreTests
         [Fact]
         public void MetadataIsYieldedWhenUpdating()
         {
-            var metadata = new Dictionary<string, object> { { "bar", true } };
+            var metadata = new TokenMetadata { { "bar", true } };
             var token = new Token("foo", metadata);
-            IDictionary<string, object>? yieldedMetadata = null;
+            TokenMetadata? yieldedMetadata = null;
 
             token.Update((s, md) =>
             {

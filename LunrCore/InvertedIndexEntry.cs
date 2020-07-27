@@ -10,10 +10,10 @@ namespace Lunr
     /// field -> document -> metadataKey -> metadataValue[]
     /// </summary>
     [JsonConverter(typeof(InvertedIndexEntryJsonConverter))]
-    public class InvertedIndexEntry : Dictionary<string, FieldOccurrences>
+    public class InvertedIndexEntry : Dictionary<string, FieldMatches>
     {
         public InvertedIndexEntry() : base() { }
-        public InvertedIndexEntry(IEnumerable<(string term, FieldOccurrences occurrences)> entries)
+        public InvertedIndexEntry(IEnumerable<(string term, FieldMatches occurrences)> entries)
             : base(entries.ToDictionary(e => e.term, e => e.occurrences)) { }
 
         public int Index { get; set; }

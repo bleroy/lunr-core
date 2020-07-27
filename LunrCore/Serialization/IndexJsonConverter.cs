@@ -7,8 +7,10 @@ namespace Lunr.Serialization
 {
     internal class IndexJsonConverter : JsonConverter<Index>
     {
-        private static readonly Version _version = typeof(Index).Assembly.GetName().Version;
-        private static readonly string _versionString = $"{_version.Major}.{_version.Minor}.{_version.Build}";
+        /// <summary>
+        /// The lunr.js version that this version of the library is designed to be compatible with.
+        /// </summary>
+        private static readonly string _versionString = $"2.3.8";
 
         public override Index Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -33,7 +35,7 @@ namespace Lunr.Serialization
                         string version = reader.ReadValue<string>(options);
                         if (version != _versionString)
                         {
-                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_version}' does not match serialized index '{version}'");
+                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_versionString}' does not match serialized index '{version}'");
                         }
                         break;
                     case "invertedIndex":
