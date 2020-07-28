@@ -234,7 +234,7 @@ namespace LunrCoreTests
             builder.AddField("title");
 
             var regex = new Regex(@"[^\w]");
-            builder.SeparatorFunc = c => regex.IsMatch(c.ToString());
+            builder.Separator = c => regex.IsMatch(c.ToString());
             
             await builder.Add(new Document
             {

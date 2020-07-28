@@ -7,6 +7,11 @@ namespace Lunr
     public class Tokenizer : ITokenizer
     {
         /// <summary>
+        /// Gets the default separator matching spaces and `-` used by the tokenizer.
+        /// </summary>
+        public static readonly Func<char, bool> DefaultSeparator = Util.IsLunrSeparatorFunc;
+        
+        /// <summary>
         /// A function for splitting a string into tokens ready to be inserted into
         /// the search index.
         ///
@@ -21,7 +26,7 @@ namespace Lunr
             object obj,
             TokenMetadata metadata,
             CultureInfo culture,
-            Func<char, bool>? separatorFunc = null)
+            Func<char, bool>? separator = null!)
         {
             if (obj is null)
             {
@@ -36,14 +41,14 @@ namespace Lunr
 
             int tokenCount = 0;
 
-            separatorFunc ??= Util.IsLunrSeparatorFunc;
+            separator ??= DefaultSeparator;
 
             for (int sliceEnd = 0, sliceStart = 0; sliceEnd <= str.Length; sliceEnd++)
             {
                 char ch = sliceEnd < str.Length ? str[sliceEnd] : char.MinValue;
                 int sliceLength = sliceEnd - sliceStart;
 
-                if (separatorFunc(ch) || sliceEnd == str.Length)
+                if (separator(ch) || sliceEnd == str.Length)
                 {
                     if (sliceLength > 0)
                     {

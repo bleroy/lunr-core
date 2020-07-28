@@ -21,6 +21,6 @@ namespace Lunr
             object obj,
             TokenMetadata metadata,
             CultureInfo culture,
-            Func<char, bool>? separatorFunc = null);
+            Func<char, bool>? separator = null!);
     }
 }

@@ -56,6 +56,7 @@ namespace Lunr
             _tokenizer = new Tokenizer();
             IndexingPipeline = new Pipeline();
             SearchPipeline = new Pipeline();
+            Separator = Tokenizer.DefaultSeparator;
         }
 
         public FieldTermFrequencies FieldTermFrequencies { get; }
@@ -123,7 +124,7 @@ namespace Lunr
         /// <summary>
         /// Gets or sets the separator function used to detect which character should not be part of tokens.
         /// </summary>
-        public Func<char, bool>? SeparatorFunc { get; set; }
+        public Func<char, bool> Separator { get; set; }
 
         /// <summary>
         /// A parameter to tune the amount of field length normalisation that is applied when calculating relevance scores.
@@ -243,7 +244,7 @@ namespace Lunr
                     fieldValue,
                     metadata,
                     culture ?? CultureInfo.CurrentCulture,
-                    SeparatorFunc ?? Util.IsLunrSeparatorFunc);
+                    Separator);
 
                 var fieldReference = new FieldReference(docRef, field.Name);
                 var fieldTerms = new TermFrequencies();
