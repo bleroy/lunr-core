@@ -20,7 +20,8 @@ namespace Lunr
         public IEnumerable<Token> Tokenize(
             object obj,
             TokenMetadata metadata,
-            CultureInfo culture)
+            CultureInfo culture,
+            Func<char, bool>? separatorFunc = null)
         {
             if (obj is null)
             {
@@ -35,12 +36,14 @@ namespace Lunr
 
             int tokenCount = 0;
 
+            separatorFunc ??= Util.IsLunrSeparatorFunc;
+
             for (int sliceEnd = 0, sliceStart = 0; sliceEnd <= str.Length; sliceEnd++)
             {
                 char ch = sliceEnd < str.Length ? str[sliceEnd] : char.MinValue;
                 int sliceLength = sliceEnd - sliceStart;
 
-                if (ch.IsLunrSeparator() || sliceEnd == str.Length)
+                if (separatorFunc(ch) || sliceEnd == str.Length)
                 {
                     if (sliceLength > 0)
                     {

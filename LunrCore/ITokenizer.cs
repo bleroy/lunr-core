@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace Lunr
@@ -19,6 +20,7 @@ namespace Lunr
         IEnumerable<Token> Tokenize(
             object obj,
             TokenMetadata metadata,
-            CultureInfo culture);
+            CultureInfo culture,
+            Func<char, bool>? separatorFunc = null);
     }
 }

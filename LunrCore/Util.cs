@@ -62,7 +62,9 @@ namespace Lunr
             return dt.ToString("ddd MMM dd yyyy HH:mm:ss") + " GMT" + timeZoneString.Substring(0, 3) + timeZoneString.Substring(4);
         }
 
-        private static Regex _separatorExpression = new Regex(@"[\s\-]+");
+        private static readonly Regex _separatorExpression = new Regex(@"[\s\-]+");
+
+        internal static readonly Func<char, bool> IsLunrSeparatorFunc = IsLunrSeparator;
 
         /// <summary>
         /// Tests if a character is whitespace or a hyphen.

@@ -2,6 +2,7 @@ using Lunr;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 using Index = Lunr.Index;
@@ -224,6 +225,32 @@ namespace LunrCoreTests
 
             Result developer = (await index.Search("developer").ToList()).Single();
             Assert.Equal(new Slice(5, 10), (Slice?)developer.MatchData.Posting["develop"]["body"]["position"].Single());
+        }
+        
+        [Fact]
+        public async Task BuilderWithCustomSeparator()
+        {
+            var builder = new Builder();
+            builder.AddField("title");
+
+            var regex = new Regex(@"[^\w]");
+            builder.SeparatorFunc = c => regex.IsMatch(c.ToString());
+            
+            await builder.Add(new Document
+            {
+                { "id", "id" },
+                { "title", "constructor(this,is,special)" }
+            });
+
+            Assert.Equal(4, builder.InvertedIndex.Count);
+            Assert.Empty(builder.InvertedIndex["constructor"]["title"]["id"]);
+            Assert.Empty(builder.InvertedIndex["this"]["title"]["id"]);
+            Assert.Empty(builder.InvertedIndex["is"]["title"]["id"]);
+            Assert.Empty(builder.InvertedIndex["special"]["title"]["id"]);
+            Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("constructor")]);
+            Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("this")]);
+            Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("is")]);
+            Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("special")]);
         }
     }
 }
