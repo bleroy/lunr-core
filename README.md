@@ -34,13 +34,13 @@ var index = await Index.Build(async builder =>
 Then searching is as simple as:
 
 ```csharp
-await foreach (Result result in idx.Search("love"))
+await foreach (Result result in index.Search("love"))
 {
     // do something with that result
 }
 ```
 
-This returns a list of matching documents with a score of how closely they match the search query as well as any associated metadata about the match:
+This returns a list of matching documents with a [score](https://lunrjs.com/guides/searching.html#scoring) of how closely they match, the search query as well as any associated metadata about the match:
 
 ```csharp
 new List<Result>
