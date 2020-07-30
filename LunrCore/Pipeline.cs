@@ -74,6 +74,32 @@ namespace Lunr
             };
         }
 
+        /// <summary>
+        /// Builds a `Pipeline.Function` from a simple `Func&lt;Token, Token&gt;`.
+        /// </summary>
+        /// <param name="fun">The function to wrap as a `Pipeline.Function`.</param>
+        /// <returns>The `Pipeline.Function`.</returns>
+        public static Function BuildFunction(Func<Token, Token> fun)
+        {
+            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
+            {
+                return (new[] { fun(token) }).ToAsyncEnumerable(cancellationToken);
+            };
+        }
+
+        /// <summary>
+        /// Builds a `Pipeline.Function` from a simple `Func&lt;Token, IEnumerable&lt;Token&gt;&gt;`.
+        /// </summary>
+        /// <param name="fun">The function to wrap as a `Pipeline.Function`.</param>
+        /// <returns>The `Pipeline.Function`.</returns>
+        public static Function BuildFunction(Func<Token, IEnumerable<Token>> fun)
+        {
+            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
+            {
+                return fun(token).ToAsyncEnumerable(cancellationToken);
+            };
+        }
+
         private readonly IList<Function> _process;
         private readonly IList<string> _processFunctionNames = Array.Empty<string>();
 
@@ -82,7 +108,7 @@ namespace Lunr
         /// </summary>
         /// <param name="functionRegistry">The function registry, necessary to load pipelines from their serialized form.</param>
         /// <param name="functions">A list of functions to build the pipeline process from.</param>
-        public Pipeline(IDictionary<string, Function> functionRegistry, params Function[] functions)
+        public Pipeline(PipelineFunctionRegistry functionRegistry, params Function[] functions)
         {
             RegisteredFunctions = functionRegistry;
             _process = new List<Function>(functions);
@@ -91,11 +117,8 @@ namespace Lunr
         /// <summary>
         /// Creates a new pipeline.
         /// </summary>
-        public Pipeline()
-        {
-            RegisteredFunctions = new Dictionary<string, Function>();
-            _process = new List<Function>();
-        }
+        /// <param name="functions">A list of functions to build the pipeline process from.</param>
+        public Pipeline(params Function[] functions) : this(new PipelineFunctionRegistry(), functions) { }
 
         /// <summary>
         /// Creates a new pipeline from function names, even if the function registry is not yet known.
@@ -105,7 +128,7 @@ namespace Lunr
         public Pipeline(IEnumerable<string> functionNames) : this()
             => _processFunctionNames = functionNames.ToList();
 
-        public IDictionary<string, Function> RegisteredFunctions { get; }
+        public PipelineFunctionRegistry RegisteredFunctions { get; }
 
         /// <summary>
         /// Gets the list of functions in the pipeline, rehydrating it from the registry if necessary.
