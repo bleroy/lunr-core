@@ -588,6 +588,9 @@ namespace Lunr
             {
                 index.Pipeline.RegisterFunction(function, functionName);
             }
+            
+            index.TokenSet = TokenSet.FromArray(index.InvertedIndex.Keys.OrderBy(k => k, StringComparer.Ordinal));
+            
             return index;
         }
     }
