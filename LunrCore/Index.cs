@@ -129,7 +129,7 @@ namespace Lunr
         /// <summary>
         /// A set of all corpus tokens.
         /// </summary>
-        public TokenSet TokenSet { get; }
+        public TokenSet TokenSet { get; internal set; }
 
         /// <summary>
         /// The names of indexed document fields.
