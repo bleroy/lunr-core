@@ -57,6 +57,12 @@ namespace Lunr.Serialization
             if (pipeline is null) throw new JsonException("Serialized index is missing a pipeline.");
             if (fields is null) throw new JsonException("Serialized index is missing a list of fields.");
 
+            foreach (string term in invertedIndex.Keys)
+            {
+                tokenSetBuilder.Insert(term);
+            }
+            tokenSetBuilder.Finish();
+
             return new Index(invertedIndex, fieldVectors, tokenSetBuilder.Root, fields, pipeline);
         }
 
