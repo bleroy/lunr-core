@@ -79,7 +79,7 @@ namespace Lunr
         private static readonly Regex re_5_1 = new Regex("ll$");
         private static readonly Regex re3_5 = new Regex("^" + C + v + "[^aeiouwxy]$");
 
-        protected override string Stem(string w)
+        public override string Stem(string w)
         {
             if (w.Length < 3) return w;
 

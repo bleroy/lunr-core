@@ -7,7 +7,6 @@ Lunr is a bit like Solr, but much smaller and not as bright.
 ## TODO / up for grabs
 
 * Multilingual support (lunr has optional support that remains to be ported)
-* Performance benchmarks (lunr has some benchmarks that can be ported)
 * Documentation (adapted from [lunr docs](https://lunrjs.com/guides/getting_started.html))
 
 ## Example
@@ -91,4 +90,5 @@ See the [`CONTRIBUTING.md` file](CONTRIBUTING.md).
 ## Credits
 
 * Original code by [Oliver Nightingale](https://github.com/olivernn) and contributors, ported to .NET Core by [Bertrand Le Roy](https://github.com/bleroy).
-* Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International
+* Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International.
+* Perf tests use a [word list by Sindre Sorhus](https://github.com/sindresorhus/word-list).

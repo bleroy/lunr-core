@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata", "Metadata", "{33
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LunrCorePerf", "LunrCorePerf\LunrCorePerf.csproj", "{863FDAF5-53CD-4D58-911C-B55AF19148BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{7BA2CEE1-BE48-48EF-910C-A78A24F6D9C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BA2CEE1-BE48-48EF-910C-A78A24F6D9C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BA2CEE1-BE48-48EF-910C-A78A24F6D9C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
