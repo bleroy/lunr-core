@@ -7,7 +7,6 @@ Lunr is a bit like Solr, but much smaller and not as bright.
 ## TODO / up for grabs
 
 * Multilingual support (lunr has optional support that remains to be ported)
-* Performance benchmarks (lunr has some benchmarks that can be ported)
 * Documentation (adapted from [lunr docs](https://lunrjs.com/guides/getting_started.html))
 
 ## Example

@@ -5,7 +5,7 @@ namespace Lunr
 {
     public abstract class StemmerBase
     {
-        protected abstract string Stem(string w);
+        public abstract string Stem(string w);
 
         private IAsyncEnumerable<Token> StemWrapper(
             Token token,
