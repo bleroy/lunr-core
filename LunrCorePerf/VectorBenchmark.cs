@@ -15,14 +15,14 @@ namespace LunrCorePerf
         {
             for (int i = 0; i < 1000; i++)
             {
-                int index = _rnd.Next(i, i + 100);
+                int index = _rnd.Next(i * 100, i * 100 + 100);
                 double val = _rnd.NextDouble() * 100;
                 _v1.Insert(index, val);
             }
 
             for (int i = 0; i < 1000; i++)
             {
-                int index = _rnd.Next(i, i + 100);
+                int index = _rnd.Next(i * 100, i * 100 + 100);
                 double val = _rnd.NextDouble() * 100;
                 _v2.Insert(index, val);
             }
