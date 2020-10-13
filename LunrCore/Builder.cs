@@ -77,7 +77,7 @@ namespace Lunr
         /// <summary>
         /// The list of fields for this builder.
         /// </summary>
-        public IEnumerable<Field> Fields => _fields.Values;
+        public ICollection<Field> Fields => _fields.Values;
 
         /// <summary>
         /// The set of all tokens in the index.
