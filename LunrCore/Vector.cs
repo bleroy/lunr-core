@@ -19,7 +19,7 @@ namespace Lunr
     [JsonConverter(typeof(VectorJsonConverter))]
     public class Vector
     {
-        private readonly IList<(int index, double value)> _elements;
+        private readonly List<(int index, double value)> _elements;
         private double _magnitude = 0;
 
         public Vector(params (int index, double value)[] elements)

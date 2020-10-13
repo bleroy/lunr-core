@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    public class QueryParserException : Exception
+    public sealed class QueryParserException : Exception
     {
         public QueryParserException(string message, int start, int end) : base(message)
         {

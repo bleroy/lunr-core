@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    public class Document : Dictionary<string, object>
+    public sealed class Document : Dictionary<string, object>
     {
         public Document() : base() { }
 

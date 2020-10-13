@@ -40,7 +40,7 @@ namespace Lunr
         /// <summary>
         /// An list of query clauses.
         /// </summary>
-        public IList<Clause> Clauses { get; } = new List<Clause>();
+        public List<Clause> Clauses { get; } = new();
 
         /// <summary>
         /// A negated query is one in which every clause has a presence of

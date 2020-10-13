@@ -38,8 +38,9 @@ namespace Lunr
         }
 
         public bool IsFinal { get; set; } = false;
-        public IDictionary<char, TokenSet> Edges { get; }
-            = new Dictionary<char, TokenSet>();
+
+        public Dictionary<char, TokenSet> Edges { get; } = new ();
+
         public int Id { get; }
 
         /// <summary>
@@ -394,10 +395,8 @@ namespace Lunr
         public class Builder
         {
             private string _previousWord = "";
-            private readonly IList<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes
-                = new List<(TokenSet, char, TokenSet)>();
-            private readonly IDictionary<string, TokenSet> _minimizedNodes
-                = new Dictionary<string, TokenSet>();
+            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes = new();
+            private readonly Dictionary<string, TokenSet> _minimizedNodes = new();
             private readonly TokenSetIdProvider _idProvider;
 
             public Builder(TokenSetIdProvider? idProvider = null!)

@@ -4,11 +4,11 @@ using System.Text.RegularExpressions;
 
 namespace Lunr
 {
-    public class EnglishStemmer : StemmerBase
+    public sealed class EnglishStemmer : StemmerBase
     {
         private static readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en");
 
-        private static readonly IDictionary<string, string> step2list = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> step2list = new ()
         {
             { "ational", "ate" },
             { "tional", "tion" },
@@ -33,7 +33,7 @@ namespace Lunr
             { "logi", "log" }
         };
 
-        private static readonly IDictionary<string, string> step3list = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> step3list = new ()
         {
             { "icate", "ic" },
             { "ative", "" },

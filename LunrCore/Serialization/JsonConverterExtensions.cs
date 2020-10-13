@@ -74,7 +74,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The list read from the reader.</returns>
-        public static IList<T> ReadArray<T>(this ref Utf8JsonReader reader, JsonSerializerOptions options)
+        public static List<T> ReadArray<T>(this ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             reader.AdvanceTo(JsonTokenType.StartArray);
             var result = new List<T>();
@@ -92,7 +92,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The list read from the reader.</returns>
-        public static IList<object?> ReadArrayOfObjects(this ref Utf8JsonReader reader, JsonSerializerOptions options)
+        public static List<object?> ReadArrayOfObjects(this ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             reader.AdvanceTo(JsonTokenType.StartArray);
             var result = new List<object?>();
@@ -112,7 +112,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The dictionary read from the reader.</returns>
-        public static IDictionary<string, TValue> ReadDictionaryFromKeyValueSequence<TValue>(
+        public static Dictionary<string, TValue> ReadDictionaryFromKeyValueSequence<TValue>(
             this ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
@@ -137,7 +137,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The dictionary read from the reader.</returns>
-        public static IDictionary<string, object?> ReadDictionary(
+        public static Dictionary<string, object?> ReadDictionary(
             this ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {

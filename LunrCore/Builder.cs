@@ -18,9 +18,9 @@ namespace Lunr
     /// </summary>
     public class Builder
     {
-        private readonly IDictionary<string, Field> _fields = new Dictionary<string, Field>();
-        private readonly IDictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly IDictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
+        private readonly Dictionary<string, Field> _fields = new ();
+        private readonly Dictionary<string, Document> _documents = new ();
+        private readonly Dictionary<FieldReference, int> _fieldLengths = new ();
         private readonly ITokenizer _tokenizer;
         private int _termIndex = 0;
         private double _b = 0.75;
@@ -59,8 +59,7 @@ namespace Lunr
             Separator = Tokenizer.DefaultSeparator;
         }
 
-        public FieldTermFrequencies FieldTermFrequencies { get; }
-            = new FieldTermFrequencies();
+        public FieldTermFrequencies FieldTermFrequencies { get; } = new ();
 
         /// <summary>
         /// The document field used as the document reference. Every document must have this field.
@@ -83,28 +82,27 @@ namespace Lunr
         /// <summary>
         /// The set of all tokens in the index.
         /// </summary>
-        public TokenSet TokenSet { get; set; } = new TokenSet();
+        public TokenSet TokenSet { get; set; } = new ();
 
         /// <summary>
         /// Average field lenghts.
         /// </summary>
-        public IDictionary<string, double> AverageFieldLength { get; set; }
-            = new Dictionary<string, double>();
+        public Dictionary<string, double> AverageFieldLength { get; set; } = new ();
 
         /// <summary>
         /// The inverted index.
         /// </summary>
-        public InvertedIndex InvertedIndex { get; } = new InvertedIndex();
+        public InvertedIndex InvertedIndex { get; } = new ();
 
         /// <summary>
         /// The vector space of the document fields.
         /// </summary>
-        public IDictionary<string, Vector> FieldVectors { get; set; } = new Dictionary<string, Vector>();
+        public Dictionary<string, Vector> FieldVectors { get; set; } = new ();
 
         /// <summary>
         /// A list of metadata keys that have been allowed for entry in the index.
         /// </summary>
-        public IList<string> MetadataAllowList { get; } = new List<string>();
+        public List<string> MetadataAllowList { get; } = new ();
 
         /// <summary>
         /// The indexing pipeline.

@@ -15,7 +15,7 @@ namespace Lunr
 
         private readonly string _str;
         private readonly int _length;
-        private readonly IList<int> _escapeCharPositions = new List<int>();
+        private readonly List<int> _escapeCharPositions = new();
         private int _pos = 0;
         private int _start = 0;
 
@@ -25,7 +25,7 @@ namespace Lunr
             _length = str.Length;
         }
 
-        public IList<Lexeme> Lexemes { get; } = new List<Lexeme>();
+        public List<Lexeme> Lexemes { get; } = new();
 
         private int Width => _pos - _start;
         private bool HasMore => _pos < _length;
