@@ -41,7 +41,7 @@
     /// <example>Term with a boost of 10: "hello^10"</example>
     /// <example>Term with an edit distance of 2: "hello~2"</example>
     /// <example>Terms with presence modifiers: "-foo +bar baz"</example>
-    public class QueryString
+    public readonly struct QueryString
     {
         /// <summary>
         /// Constructs a query string.
