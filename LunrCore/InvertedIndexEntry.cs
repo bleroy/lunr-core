@@ -10,7 +10,7 @@ namespace Lunr
     /// field -> document -> metadataKey -> metadataValue[]
     /// </summary>
     [JsonConverter(typeof(InvertedIndexEntryJsonConverter))]
-    public class InvertedIndexEntry : Dictionary<string, FieldMatches>
+    public sealed class InvertedIndexEntry : Dictionary<string, FieldMatches>
     {
         public InvertedIndexEntry() : base() { }
         public InvertedIndexEntry(IEnumerable<(string term, FieldMatches occurrences)> entries)

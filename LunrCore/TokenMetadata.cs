@@ -6,7 +6,7 @@ namespace Lunr
     /// <summary>
     /// Represents the metadata associated with a token.
     /// </summary>
-    public class TokenMetadata : Dictionary<string, object?>
+    public sealed class TokenMetadata : Dictionary<string, object?>
     {
         public TokenMetadata() : base() { }
         public TokenMetadata(int capacity) : base(capacity) { }

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Lunr.Serialization
 {
-    internal class VectorJsonConverter : JsonConverter<Vector>
+    internal sealed class VectorJsonConverter : JsonConverter<Vector>
     {
         public override Vector Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

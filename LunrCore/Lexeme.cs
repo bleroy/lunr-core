@@ -3,7 +3,7 @@
 namespace Lunr
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public class Lexeme
+    public sealed class Lexeme
     {
         public static readonly Lexeme Empty
             = new Lexeme(LexemeType.Empty, "", 0, 0);

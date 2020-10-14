@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Lunr
 {
-    public class EnglishStemmer : StemmerBase
+    public sealed class EnglishStemmer : StemmerBase
     {
         private static readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en");
 

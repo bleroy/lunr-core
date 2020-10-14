@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Lunr
 {
-    public class Tokenizer : ITokenizer
+    public sealed class Tokenizer : ITokenizer
     {
         /// <summary>
         /// Gets the default separator matching spaces and `-` used by the tokenizer.

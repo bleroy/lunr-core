@@ -1,6 +1,6 @@
 ﻿namespace Lunr
 {
-    public class EnglishStopWordFilter : StopWordFilterBase
+    public sealed class EnglishStopWordFilter : StopWordFilterBase
     {
         private static readonly Set<string> _stopWords = new Set<string>(new []
         {

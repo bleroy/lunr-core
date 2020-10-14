@@ -10,7 +10,7 @@ namespace Lunr
     /// match that term against an `Index`.
     /// </summary>
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    public class Clause
+    public sealed class Clause
     {
         public static readonly Clause Empty = new Clause("");
 

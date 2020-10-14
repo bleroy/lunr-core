@@ -24,7 +24,7 @@ namespace Lunr
         public Pipeline.Function FilterFunction => TrimImplementation;
     }
 
-    public class Trimmer : TrimmerBase
+    public sealed class Trimmer : TrimmerBase
     {
         private static readonly Regex _trimStartExpression = new Regex(@"^\W+");
         private static readonly Regex _trimEndExpression = new Regex(@"\W+$");

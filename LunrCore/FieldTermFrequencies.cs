@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    public class FieldTermFrequencies : Dictionary<FieldReference, TermFrequencies>
+    public sealed class FieldTermFrequencies : Dictionary<FieldReference, TermFrequencies>
     {
     }
 }

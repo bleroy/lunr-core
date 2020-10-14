@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Lunr.Serialization
 {
-    internal class IndexJsonConverter : JsonConverter<Index>
+    internal sealed class IndexJsonConverter : JsonConverter<Index>
     {
         /// <summary>
         /// The lunr.js version that this version of the library is designed to be compatible with.
