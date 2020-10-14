@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Lunr.Serialization
 {
-    public sealed class SliceConverter : JsonConverter<Slice>
+    internal sealed class SliceConverter : JsonConverter<Slice>
     {
         public override Slice Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
