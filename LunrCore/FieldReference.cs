@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    public class FieldReference
+    public sealed class FieldReference
     {
         public const char Joiner = '/';
 

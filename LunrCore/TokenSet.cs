@@ -394,9 +394,9 @@ namespace Lunr
         public class Builder
         {
             private string _previousWord = "";
-            private readonly IList<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes
+            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes
                 = new List<(TokenSet, char, TokenSet)>();
-            private readonly IDictionary<string, TokenSet> _minimizedNodes
+            private readonly Dictionary<string, TokenSet> _minimizedNodes
                 = new Dictionary<string, TokenSet>();
             private readonly TokenSetIdProvider _idProvider;
 

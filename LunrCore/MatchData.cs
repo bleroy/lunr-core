@@ -10,7 +10,7 @@ namespace Lunr
     /// <param name="term">The term this match data is associated with.</param>
     /// <param name="field">The field in which the term was found.</param>
     /// <param name="metadata">The metadata recorded about this term in this field.</param>
-    public class MatchData
+    public sealed class MatchData
     {
         public static readonly MatchData Empty = new MatchData("", "", new FieldMatchMetadata());
 
@@ -76,7 +76,7 @@ namespace Lunr
                 {
                     Posting.Add(term, new FieldMatches());
                 }
-                IDictionary<string, FieldMatchMetadata> thisTermEntry = Posting[term];
+                Dictionary<string, FieldMatchMetadata> thisTermEntry = Posting[term];
                 foreach (string field in fields)
                 {
                     IEnumerable<string> keys = otherMatchData.Posting[term][field].Keys;

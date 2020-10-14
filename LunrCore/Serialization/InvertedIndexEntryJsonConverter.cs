@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Lunr.Serialization
 {
-    internal class InvertedIndexEntryJsonConverter : JsonConverter<InvertedIndexEntry>
+    internal sealed class InvertedIndexEntryJsonConverter : JsonConverter<InvertedIndexEntry>
     {
         public override InvertedIndexEntry Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

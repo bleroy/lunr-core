@@ -6,7 +6,7 @@ namespace Lunr
     /// <summary>
     /// A registry of named pipeline functions.
     /// </summary>
-    public class PipelineFunctionRegistry : Dictionary<string, Pipeline.Function>
+    public sealed class PipelineFunctionRegistry : Dictionary<string, Pipeline.Function>
     {
         public PipelineFunctionRegistry() : base() { }
 

@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    public class TermFrequencies : Dictionary<Token, int>
+    public sealed class TermFrequencies : Dictionary<Token, int>
     {
     }
 }
