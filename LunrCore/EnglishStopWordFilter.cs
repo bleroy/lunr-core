@@ -2,7 +2,7 @@
 {
     public class EnglishStopWordFilter : StopWordFilterBase
     {
-        private static readonly ISet<string> _stopWords = new Set<string>(new []
+        private static readonly Set<string> _stopWords = new Set<string>(new []
         {
             "a",
             "able",

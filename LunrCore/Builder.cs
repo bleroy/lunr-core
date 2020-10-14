@@ -18,9 +18,9 @@ namespace Lunr
     /// </summary>
     public class Builder
     {
-        private readonly IDictionary<string, Field> _fields = new Dictionary<string, Field>();
-        private readonly IDictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly IDictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
+        private readonly Dictionary<string, Field> _fields = new Dictionary<string, Field>();
+        private readonly Dictionary<string, Document> _documents = new Dictionary<string, Document>();
+        private readonly Dictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
         private readonly ITokenizer _tokenizer;
         private int _termIndex = 0;
         private double _b = 0.75;
@@ -367,7 +367,7 @@ namespace Lunr
             foreach (FieldReference fieldRef in _fieldLengths.Keys)
             {
                 var fieldVector = new Vector();
-                IDictionary<Token, int> termFrequencies = FieldTermFrequencies[fieldRef];
+                Dictionary<Token, int> termFrequencies = FieldTermFrequencies[fieldRef];
                 double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field field)
                     ? field.Boost : 1;
                 double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document doc)

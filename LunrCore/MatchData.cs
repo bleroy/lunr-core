@@ -76,7 +76,7 @@ namespace Lunr
                 {
                     Posting.Add(term, new FieldMatches());
                 }
-                IDictionary<string, FieldMatchMetadata> thisTermEntry = Posting[term];
+                Dictionary<string, FieldMatchMetadata> thisTermEntry = Posting[term];
                 foreach (string field in fields)
                 {
                     IEnumerable<string> keys = otherMatchData.Posting[term][field].Keys;

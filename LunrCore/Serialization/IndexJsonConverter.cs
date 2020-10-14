@@ -15,7 +15,7 @@ namespace Lunr.Serialization
         public override Index Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             InvertedIndex? invertedIndex = null;
-            IDictionary<string, Vector>? fieldVectors = null;
+            Dictionary<string, Vector>? fieldVectors = null;
             Pipeline? pipeline = null;
             IEnumerable<string>? fields = null;
 

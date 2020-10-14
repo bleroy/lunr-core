@@ -8,7 +8,7 @@ namespace Lunr
     {
         private static readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en");
 
-        private static readonly IDictionary<string, string> step2list = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> step2list = new Dictionary<string, string>
         {
             { "ational", "ate" },
             { "tional", "tion" },
@@ -33,7 +33,7 @@ namespace Lunr
             { "logi", "log" }
         };
 
-        private static readonly IDictionary<string, string> step3list = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> step3list = new Dictionary<string, string>
         {
             { "icate", "ic" },
             { "ative", "" },
