@@ -8,7 +8,7 @@ namespace Lunr.Serialization
     /// <summary>
     /// A collection of useful helpers to write JSON converters.
     /// </summary>
-    public static class JsonConverterExtensions
+    internal static class JsonConverterExtensions
     {
         private static readonly JsonTokenType[] _ignorableTokenTypes = new JsonTokenType[]
         {
@@ -112,7 +112,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The dictionary read from the reader.</returns>
-        public static IDictionary<string, TValue> ReadDictionaryFromKeyValueSequence<TValue>(
+        public static Dictionary<string, TValue> ReadDictionaryFromKeyValueSequence<TValue>(
             this ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
@@ -137,7 +137,7 @@ namespace Lunr.Serialization
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The dictionary read from the reader.</returns>
-        public static IDictionary<string, object?> ReadDictionary(
+        public static Dictionary<string, object?> ReadDictionary(
             this ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
