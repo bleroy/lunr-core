@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lunr
 {
@@ -106,9 +107,7 @@ namespace Lunr
         /// <param name="queryString">A string containing a lunr query.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The list of results.</returns>
-        public async IAsyncEnumerable<Result> Search(
-            string queryString,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<Result> Search(string queryString, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             await foreach (Result result in Search(queryString, CultureInfo.CurrentCulture, cancellationToken))
             {
@@ -128,9 +127,7 @@ namespace Lunr
         /// <param name="queryString">A string containing a lunr query.</param>
         /// <param name="culture">The culture to use to parse the query.</param>
         /// <returns>The list of results.</returns>
-        public async IAsyncEnumerable<Result> Search(
-            string queryString,
-            CultureInfo culture)
+        public async IAsyncEnumerable<Result> Search(string queryString, CultureInfo culture)
         {
             await foreach (Result result in Search(queryString, culture, new CancellationToken()))
             {
@@ -170,9 +167,7 @@ namespace Lunr
         /// <param name="queryFactory">A function that builds the query object that gets passed to it.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>The results of the query.</returns>
-        public async IAsyncEnumerable<Result> Query(
-            Action<Query> queryFactory,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+        public async IAsyncEnumerable<Result> Query(Action<Query> queryFactory, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var results = new List<Result>();
             var query = new Query(GetFields());
@@ -203,7 +198,7 @@ namespace Lunr
                 // of processed terms. Pipeline functions may expand the passed
                 // term, which means we may end up performing multiple index lookups
                 // for a single query term.
-                await foreach (string term in clause.UsePipeline
+                await foreach (string term in (clause.UsePipeline
                     ? Pipeline.RunString(
                         clause.Term,
                         new TokenMetadata
@@ -211,7 +206,7 @@ namespace Lunr
                             { "fields", clause.Fields }
                         },
                         cancellationToken)
-                    : new[] { clause.Term }.ToAsyncEnumerable(cancellationToken))
+                    : new[] { clause.Term }.ToAsyncEnumerable(cancellationToken)).WithCancellation(cancellationToken))
                 {
                     // Each term returned from the pipeline needs to use the same query
                     // clause object, e.g. the same boost and or edit distance. The

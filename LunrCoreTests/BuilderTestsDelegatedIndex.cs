@@ -25,7 +25,9 @@ namespace LunrCoreTests
                 { "title", "constructor" }
             });
 
-            Assert.Empty(builder.InvertedIndex["constructor"]["title"]["id"]);
+            var index = builder.Build().AsDelegated();
+
+            Assert.Empty(index.GetInvertedIndexByKey("constructor")["title"]["id"]);
             Assert.Equal(1,
                 builder.FieldTermFrequencies
                     [FieldReference.FromString("title/id")]
@@ -44,7 +46,9 @@ namespace LunrCoreTests
                 { "constructor", "constructor" }
             });
 
-            Assert.Empty(builder.InvertedIndex["constructor"]["constructor"]["id"]);
+            var index = builder.Build().AsDelegated();
+
+            Assert.Empty(index.GetInvertedIndexByKey("constructor")["constructor"]["id"]);
         }
 
         [Fact]
@@ -59,7 +63,9 @@ namespace LunrCoreTests
                 { "title", "word" }
             });
 
-            Assert.Empty(builder.InvertedIndex["word"]["title"]["constructor"]);
+            var index = builder.Build().AsDelegated();
+
+            Assert.Empty(index.GetInvertedIndexByKey("word")["title"]["constructor"]);
         }
 
         [Fact]
@@ -85,9 +91,11 @@ namespace LunrCoreTests
                 { "title", "word" }
             });
 
+            var index = builder.Build().AsDelegated();
+
             Assert.Equal(
                 new[] { "foo" },
-                builder.InvertedIndex["word"]["title"]["id"]["constructor"]);
+                index.GetInvertedIndexByKey("word")["title"]["id"]["constructor"]);
         }
 
         [Fact]
@@ -107,8 +115,10 @@ namespace LunrCoreTests
                     }
                 }
             });
+            
+            var index = builder.Build().AsDelegated();
 
-            Assert.Empty(builder.InvertedIndex["bob"]["name"]["id"]);
+            Assert.Empty(index.GetInvertedIndexByKey("bob")["name"]["id"]);
         }
 
         private static async Task<string> ExtractName(Document doc)
@@ -243,11 +253,14 @@ namespace LunrCoreTests
                 { "title", "constructor(this,is,special)" }
             });
 
+            var index = builder.Build().AsDelegated();
+
+           
             Assert.Equal(4, builder.InvertedIndex.Count);
-            Assert.Empty(builder.InvertedIndex["constructor"]["title"]["id"]);
-            Assert.Empty(builder.InvertedIndex["this"]["title"]["id"]);
-            Assert.Empty(builder.InvertedIndex["is"]["title"]["id"]);
-            Assert.Empty(builder.InvertedIndex["special"]["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexByKey("constructor")["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexByKey("this")["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexByKey("is")["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexByKey("special")["title"]["id"]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("constructor")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("this")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("is")]);

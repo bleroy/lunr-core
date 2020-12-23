@@ -14,7 +14,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata", "Metadata", "{33
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LunrCorePerf", "LunrCorePerf\LunrCorePerf.csproj", "{863FDAF5-53CD-4D58-911C-B55AF19148BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCorePerf", "LunrCorePerf\LunrCorePerf.csproj", "{863FDAF5-53CD-4D58-911C-B55AF19148BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCore.Lmdb", "LunrCore.Lmdb\LunrCore.Lmdb.csproj", "{9FDD7142-053A-449B-A96E-10DD032D92AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LunrCore.Lmdb.Tests", "LunrCore.Lmdb.Tests\LunrCore.Lmdb.Tests.csproj", "{673CF0C2-4E9D-4132-A269-D07FE0C54463}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +38,14 @@ Global
 		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{863FDAF5-53CD-4D58-911C-B55AF19148BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9FDD7142-053A-449B-A96E-10DD032D92AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9FDD7142-053A-449B-A96E-10DD032D92AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9FDD7142-053A-449B-A96E-10DD032D92AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9FDD7142-053A-449B-A96E-10DD032D92AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{673CF0C2-4E9D-4132-A269-D07FE0C54463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{673CF0C2-4E9D-4132-A269-D07FE0C54463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{673CF0C2-4E9D-4132-A269-D07FE0C54463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{673CF0C2-4E9D-4132-A269-D07FE0C54463}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
