@@ -6,19 +6,20 @@ namespace LunrCore.Lmdb.Tests
 {
     public class LmdbIndexTests
     {
-        [Fact]
-        public void Can_add_and_retrieve_fields()
+        [Theory]
+        [InlineData("Field")]
+        public void Can_add_and_retrieve_fields(string field)
         {
             var index = new LmdbIndex($"{Guid.NewGuid()}");
 
             try
             {
-                var addedField = index.AddField("Field");
+                var addedField = index.AddField(field);
                 Assert.True(addedField);
 
                 var fields = index.GetFields();
                 Assert.NotNull(fields);
-                Assert.Equal("Field", fields.Single());
+                Assert.Equal(field, fields.Single());
             }
             finally
             {

@@ -16,6 +16,8 @@ namespace LunrCore.Lmdb
             Init(path);
         }
 
+		#region Fields 
+
         public bool AddField(string field, CancellationToken cancellationToken = default)
         {
 			cancellationToken.ThrowIfCancellationRequested();
@@ -23,7 +25,7 @@ namespace LunrCore.Lmdb
             using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
-            tx.Put(db, FieldKeyBuilder.BuildFieldKey(field), Encoding.UTF8.GetBytes(field), PutOptions.NoDuplicateData);
+            tx.Put(db, KeyBuilder.BuildFieldKey(field), Encoding.UTF8.GetBytes(field), PutOptions.NoDuplicateData);
             return tx.Commit() == MDBResultCode.Success;
         }
 
@@ -33,7 +35,7 @@ namespace LunrCore.Lmdb
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
-            var sr = cursor.SetRange(FieldKeyBuilder.BuildAllFieldsKey());
+            var sr = cursor.SetRange(KeyBuilder.BuildAllFieldsKey());
             if (sr != MDBResultCode.Success)
                 yield break;
 
@@ -47,7 +49,39 @@ namespace LunrCore.Lmdb
             }
         }
 
-		#region Management
+		#endregion
+
+		#region Vectors
+
+        public bool AddVector(string key, Vector vector, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+
+            tx.Put(db, KeyBuilder.BuildVectorKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
+            return tx.Commit() == MDBResultCode.Success;
+        }
+
+		#endregion
+
+		#region Inverted Indices
+
+        public bool AddInvertedIndex(string key, InvertedIndex invertedIndex, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+
+            tx.Put(db, KeyBuilder.BuildInvertedIndexKey(key), invertedIndex.Serialize(), PutOptions.NoDuplicateData);
+            return tx.Commit() == MDBResultCode.Success;
+        }
+
+		#endregion
+
+        #region Management
 
         private const ushort MaxKeySizeBytes = 511;
 
