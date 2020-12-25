@@ -11,9 +11,26 @@ namespace LunrCore.Lmdb
 {
     public sealed class LmdbIndex
     {
+        public Lazy<LightningEnvironment> Env { get; }
+
+        public string Path { get; }
+
         public LmdbIndex(string path)
         {
-            Init(path);
+            Env = new Lazy<LightningEnvironment>(() =>
+            {
+                var config = new EnvironmentConfiguration
+                {
+                    MaxDatabases = DefaultMaxDatabases,
+                    MaxReaders = DefaultMaxReaders,
+                    MapSize = DefaultMapSize
+                };
+                var environment = new LightningEnvironment(path, config);
+                environment.Open();
+                CreateIfNotExists(environment);
+                return environment;
+            });
+            Path = Env.Value.Path;
         }
 
 		#region Fields 
@@ -62,7 +79,7 @@ namespace LunrCore.Lmdb
 
 		#endregion
 
-		#region Vectors
+		#region Field Vectors
 
         public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken)
         {
@@ -124,7 +141,7 @@ namespace LunrCore.Lmdb
 
 		#endregion
 
-		#region Inverted Indices
+		#region Inverted Indexes
 
         public bool AddInvertedIndex(string key, InvertedIndex invertedIndex, CancellationToken cancellationToken = default)
         {
@@ -148,31 +165,7 @@ namespace LunrCore.Lmdb
         private const long DefaultMapSize = 10_485_760;
 
         private static readonly DatabaseConfiguration Config = new DatabaseConfiguration {Flags = DatabaseOpenFlags.None};
-
-        public Lazy<LightningEnvironment> Env;
-
-        public string Path { get; private set; }
-
-		public void Init(string path)
-		{
-			if (Env != default && Env.IsValueCreated)
-				return;
-			Env ??= new Lazy<LightningEnvironment>(() =>
-			{
-				var config = new EnvironmentConfiguration
-				{
-					MaxDatabases = DefaultMaxDatabases,
-					MaxReaders = DefaultMaxReaders,
-					MapSize = DefaultMapSize
-				};
-				var environment = new LightningEnvironment(path, config);
-				environment.Open();
-				CreateIfNotExists(environment);
-				return environment;
-			});
-			Path = Env.Value.Path;
-		}
-
+        
 		private static void CreateIfNotExists(LightningEnvironment environment)
 		{
 			using var tx = environment.BeginTransaction();
@@ -217,7 +210,7 @@ namespace LunrCore.Lmdb
 				tx.Commit();
 			}
 
-			if (Env != null && Env.IsValueCreated)
+			if (Env.IsValueCreated)
 				Env.Value.Dispose();
 
 			try
@@ -260,13 +253,14 @@ namespace LunrCore.Lmdb
             GC.SuppressFinalize(this);
         }
 
+        // ReSharper disable once EmptyDestructor
         ~LmdbIndex() { }
 
         public void Dispose(bool disposing)
         {
             if (!disposing)
                 return;
-            if (Env != null && Env.IsValueCreated)
+            if (Env.IsValueCreated)
                 Env.Value.Dispose();
         }
 
