@@ -27,7 +27,7 @@ namespace LunrCore.Lmdb
             return ms.GetBuffer();
         }
 
-        public static Vector DeserializeVector(this ReadOnlySpan<byte> buffer)
+        public static Vector DeserializeFieldVector(this ReadOnlySpan<byte> buffer)
         {
             unsafe
             {

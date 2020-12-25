@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Lunr;
 
 namespace LunrCore.Lmdb
@@ -18,14 +19,14 @@ namespace LunrCore.Lmdb
 
         #endregion
 
-        #region Vectors
+        #region Field Vectors
 
-        private const string VectorPrefix = "V:";
+        private const string FieldVectorKeyPrefix = "VK:";
+        public static byte[] BuildAllFieldVectorKeys() => Encoding.UTF8.GetBytes(FieldVectorKeyPrefix);
+        public static ReadOnlySpan<byte> BuildFieldVectorKeyKey(string key) => Encoding.UTF8.GetBytes($"{FieldVectorKeyPrefix}{key}");
 
-        public static byte[] BuildVectorKey(string key)
-        {
-            return Encoding.UTF8.GetBytes($"{VectorPrefix}{key}");
-        }
+        private const string FieldVectorValuePrefix = "V:";
+        public static byte[] BuildFieldVectorKey(string key) => Encoding.UTF8.GetBytes($"{FieldVectorValuePrefix}{key}");
 
         #endregion
 
@@ -39,5 +40,7 @@ namespace LunrCore.Lmdb
         }
 
         #endregion
+
+        
     }
 }

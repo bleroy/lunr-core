@@ -15,7 +15,7 @@ namespace LunrCore.Lmdb.Tests
             Assert.Equal(Math.Sqrt(77), original.Magnitude);
             
             var buffer = original.Serialize();
-            var deserialized = buffer.DeserializeVector();
+            var deserialized = buffer.DeserializeFieldVector();
 
             Assert.NotSame(original, deserialized);
             Assert.Equal(Math.Sqrt(77), deserialized.Magnitude);

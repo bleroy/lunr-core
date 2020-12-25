@@ -29,6 +29,17 @@ namespace LunrCore.Lmdb
             return tx.Commit() == MDBResultCode.Success;
         }
 
+        public bool RemoveField(string field, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+
+            tx.Delete(db, KeyBuilder.BuildFieldKey(field));
+            return tx.Commit() == MDBResultCode.Success;
+        }
+
         public IEnumerable<string> GetFields(CancellationToken cancellationToken)
         {
             using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
@@ -53,15 +64,62 @@ namespace LunrCore.Lmdb
 
 		#region Vectors
 
-        public bool AddVector(string key, Vector vector, CancellationToken cancellationToken = default)
+        public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
-            tx.Put(db, KeyBuilder.BuildVectorKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
+            // Key:
+            tx.Put(db, KeyBuilder.BuildFieldVectorKeyKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+
+            // Value:
+            tx.Put(db, KeyBuilder.BuildFieldVectorKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
+
             return tx.Commit() == MDBResultCode.Success;
+        }
+
+        public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+
+            var sr = cursor.Set(KeyBuilder.BuildFieldVectorKey(key));
+            if (sr != MDBResultCode.Success)
+                return default;
+
+            var (r, _, v) = cursor.GetCurrent();
+            if (r != MDBResultCode.Success)
+                return default;
+
+            return v.AsSpan().DeserializeFieldVector();
+        }
+
+        public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken)
+        {
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+
+            var sr = cursor.SetRange(KeyBuilder.BuildAllFieldVectorKeys());
+            if (sr != MDBResultCode.Success)
+                yield break;
+
+            var (r, _, v) = cursor.GetCurrent();
+			
+            while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
+            {
+                var key = v.AsSpan().ToArray();
+                yield return Encoding.UTF8.GetString(key);
+
+                r = cursor.Next();
+                if (r != MDBResultCode.Success)
+                    yield break;
+            }
         }
 
 		#endregion
@@ -183,15 +241,9 @@ namespace LunrCore.Lmdb
             throw new NotImplementedException();
         }
 
-        public Vector GetFieldVectorByKey(string key)
-        {
-            throw new NotImplementedException();
-        }
+        public Vector? GetFieldVectorByKey(string key) => GetFieldVectorByKey(key, CancellationToken.None);
 
-        public IEnumerable<string> GetFieldVectorKeys()
-        {
-            throw new NotImplementedException();
-        }
+        public IEnumerable<string> GetFieldVectorKeys() => GetFieldVectorKeys(CancellationToken.None);
 
         public InvertedIndexEntry GetInvertedIndexByKey(string key)
         {
