@@ -35,7 +35,7 @@ namespace Lunr.Serialization
                         string version = reader.ReadValue<string>(options);
                         if (version != _versionString)
                         {
-                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{_versionString}' does not match serialized index '{version}'");
+                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialized index. Current version of Lunr '{_versionString}' does not match serialized index '{version}'");
                         }
                         break;
                     case "invertedIndex":
