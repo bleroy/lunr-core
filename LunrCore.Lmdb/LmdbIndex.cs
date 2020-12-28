@@ -139,19 +139,54 @@ namespace LunrCore.Lmdb
             }
         }
 
-		#endregion
-
-		#region Inverted Indexes
-
-        public bool AddInvertedIndex(string key, InvertedIndex invertedIndex, CancellationToken cancellationToken = default)
+        public bool RemoveFieldVector(string key, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
-            tx.Put(db, KeyBuilder.BuildInvertedIndexKey(key), invertedIndex.Serialize(), PutOptions.NoDuplicateData);
+            tx.Delete(db, KeyBuilder.BuildFieldVectorKey(key));
+            tx.Delete(db, KeyBuilder.BuildFieldVectorKeyKey(key));
             return tx.Commit() == MDBResultCode.Success;
+        }
+
+		#endregion
+
+		#region Inverted Index Entries
+
+        /*
+          private TokenSet CreateTokenSet()
+            => TokenSet = TokenSet.FromArray(InvertedIndex
+                .Keys
+                .OrderBy(k => k, StringComparer.Ordinal));
+         */
+
+        public bool AddInvertedIndexEntry(string key, InvertedIndexEntry invertedIndexEntry, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+
+            tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
+            return tx.Commit() == MDBResultCode.Success;
+        }
+
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+
+            var sr = cursor.Set(KeyBuilder.BuildInvertedIndexEntryKey(key));
+            if (sr != MDBResultCode.Success)
+                return default;
+
+            var (r, _, v) = cursor.GetCurrent();
+            return r != MDBResultCode.Success ? default : v.AsSpan().DeserializeInvertedIndexEntry();
         }
 
 		#endregion
@@ -238,10 +273,7 @@ namespace LunrCore.Lmdb
 
         public IEnumerable<string> GetFieldVectorKeys() => GetFieldVectorKeys(CancellationToken.None);
 
-        public InvertedIndexEntry GetInvertedIndexByKey(string key)
-        {
-            throw new NotImplementedException();
-        }
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key) => GetInvertedIndexEntryByKey(key, CancellationToken.None);
 
         #endregion
 

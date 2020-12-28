@@ -191,6 +191,58 @@ namespace LunrCore.Lmdb
 
         #endregion
 
+        #region TokenSet
+
+        public static ReadOnlySpan<byte> Serialize(this TokenSet tokenSet)
+        {
+            var ms = new MemoryStream();
+            var bw = new BinaryWriter(ms);
+            var context = new SerializeContext(bw);
+
+            tokenSet.Serialize(context);
+
+            ms.Position = 0;
+            return ms.GetBuffer();  
+        }
+
+        public static void Serialize(this TokenSet tokenSet, SerializeContext context)
+        {
+            var words = tokenSet.ToEnumeration().ToList();
+            context.bw.Write(words.Count);
+            foreach (var word in words)
+            {
+                context.bw.Write(word);
+            }
+        }
+
+        public static TokenSet DeserializeTokenSet(this ReadOnlySpan<byte> buffer)
+        {
+            unsafe
+            {
+                fixed(byte* buf = &buffer.GetPinnableReference())
+                {
+                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    var br = new BinaryReader(ms);
+                    var context = new DeserializeContext(br);
+                    return context.DeserializeTokenSet();
+                }
+            }
+        }
+
+        public static TokenSet DeserializeTokenSet(this DeserializeContext context)
+        {
+            var builder = new TokenSet.Builder();
+            var count = context.br.ReadInt32();
+            for (var i = 0; i < count; i++)
+            {
+                var word = context.br.ReadString();
+                builder.Insert(word);
+            }
+            return builder.Root;
+        }
+
+        #endregion
+
         private static MemoryStream GetSerializationContext(out SerializeContext context)
         {
             var ms = new MemoryStream();

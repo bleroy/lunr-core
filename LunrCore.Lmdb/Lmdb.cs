@@ -9,7 +9,7 @@ namespace LunrCore.Lmdb
             var index = new LmdbIndex(path);
 
             return new DelegatedIndex(
-                index.GetInvertedIndexByKey, 
+                index.GetInvertedIndexEntryByKey, 
                 index.GetFieldVectorKeys, 
                 index.GetFieldVectorByKey,
                 index.IntersectTokenSets, 

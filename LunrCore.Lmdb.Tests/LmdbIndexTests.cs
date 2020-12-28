@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Lunr;
 using Xunit;
+using Index = Lunr.Index;
 
 namespace LunrCore.Lmdb.Tests
 {
@@ -60,6 +61,15 @@ namespace LunrCore.Lmdb.Tests
                 var getKeys = index.GetFieldVectorKeys().ToList();
                 Assert.Single(getKeys);
                 Assert.Equal(getKeys[0], key);
+
+                var removedVector = index.RemoveFieldVector(key, CancellationToken.None);
+                Assert.True(removedVector);
+
+                var noVector = index.GetFieldVectorByKey(key);
+                Assert.Null(noVector);
+
+                var noVectorKeys = index.GetFieldVectorKeys(CancellationToken.None);
+                Assert.Empty(noVectorKeys);
             }
             finally
             {
@@ -68,7 +78,38 @@ namespace LunrCore.Lmdb.Tests
             }
         }
 
+        [Fact]
+        public void Can_persist_inverted_index_entries()
+        {
+            var lmdb = new LmdbIndex($"{Guid.NewGuid()}");
 
+            try
+            {
+                var builder = new Builder();
+                builder.AddField("title");
+                builder.Add(new Document
+                {
+                    { "id", "id" },
+                    { "title", "test" },
+                    { "body", "missing" }
+                }).ConfigureAwait(false).GetAwaiter().GetResult();
+                Index index = builder.Build();
+
+                var firstKey = index.InvertedIndex.Keys.FirstOrDefault() ?? throw new InvalidOperationException();
+                Assert.NotNull(firstKey);
+
+                var added = lmdb.AddInvertedIndexEntry(firstKey, index.InvertedIndex[firstKey], CancellationToken.None);
+                Assert.True(added);
+                
+                var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey);
+                Assert.NotNull(getInvertedIndexEntry);
+            }
+            finally
+            {
+                lmdb.Destroy();
+                lmdb.Dispose();
+            }
+        }
 
         private static Vector VectorFrom(params double[] elements)
             => new Vector(elements.Select((el, i) => (i, el)).ToArray());

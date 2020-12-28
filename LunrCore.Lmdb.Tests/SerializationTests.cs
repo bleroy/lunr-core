@@ -59,8 +59,28 @@ namespace LunrCore.Lmdb.Tests
                 var buffer = original.Serialize();
                 var deserialized = buffer.DeserializeInvertedIndexEntry();
 
-                AssertInvertedIndexValue(original, deserialized);
+                AssertInvertedIndexEntry(original, deserialized);
             }
+        }
+
+        [Fact]
+        public void Can_round_trip_token_set()
+        {
+            var builder = new Builder();
+            builder.AddField("title");
+            builder.Add(new Document
+            {
+                { "id", "id" },
+                { "title", "test" },
+                { "body", "missing" }
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            Index index = builder.Build();
+
+            var original = index.TokenSet;
+            var deserialized = original.Serialize().DeserializeTokenSet();
+
+            Assert.NotSame(original, deserialized);
+            Assert.Equal(original.ToEnumeration(), deserialized.ToEnumeration());
         }
 
         private static void AssertInvertedIndex(InvertedIndex left, InvertedIndex right)
@@ -70,15 +90,14 @@ namespace LunrCore.Lmdb.Tests
             var all = left.Zip(right, (entriesLeft, entriesRight) =>
             {
                 Assert.Equal(entriesLeft.Key, entriesRight.Key);
-                AssertInvertedIndexValue(entriesLeft.Value, entriesRight.Value);
+                AssertInvertedIndexEntry(entriesLeft.Value, entriesRight.Value);
                 return true;
             }).ToList();
 
             Assert.All(all, Assert.True);
         }
 
-
-        private static void AssertInvertedIndexValue(InvertedIndexEntry left, InvertedIndexEntry right)
+        private static void AssertInvertedIndexEntry(InvertedIndexEntry left, InvertedIndexEntry right)
         {
             Assert.Equal(left.Index, right.Index);
             Assert.Equal(left.Count, right.Count);

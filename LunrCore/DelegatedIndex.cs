@@ -16,21 +16,21 @@ namespace Lunr
         /// <summary>
         /// Constructs a new index.
         /// </summary>
-        /// <param name="getInvertedIndexByKey">An index of term/field to document reference.</param>
+        /// <param name="getInvertedIndexEntryByKey">An index of term/field to document reference.</param>
         /// <param name="getFieldVectorKeys">Field vectors</param>
         /// <param name="getFieldVectorByKey">Field vectors</param>
         /// <param name="intersectTokenSets">A set of all corpus tokens.</param>
         /// <param name="getFields">The names of indexed document fields.</param>
         /// <param name="pipeline">The pipeline to use for search terms.</param>
         public DelegatedIndex(
-            Delegates.GetInvertedIndexByKey getInvertedIndexByKey,
+            Delegates.GetInvertedIndexEntryByKey getInvertedIndexEntryByKey,
             Delegates.GetFieldVectorKeys getFieldVectorKeys,
             Delegates.GetFieldVectorByKey getFieldVectorByKey,
             Delegates.IntersectTokenSets intersectTokenSets,
             Delegates.GetFields getFields,
             Pipeline pipeline)
         {
-            GetInvertedIndexByKey = getInvertedIndexByKey;
+            GetInvertedIndexEntryByKey = getInvertedIndexEntryByKey;
             GetFieldVectorKeys = getFieldVectorKeys;
             GetFieldVectorByKey = getFieldVectorByKey;
             IntersectTokenSets = intersectTokenSets;
@@ -41,7 +41,7 @@ namespace Lunr
         /// <summary>
         /// An index of term/field to document reference.
         /// </summary>
-        public Delegates.GetInvertedIndexByKey GetInvertedIndexByKey { get; }
+        public Delegates.GetInvertedIndexEntryByKey GetInvertedIndexEntryByKey { get; }
 
         /// <summary>
         /// Field vectors.
@@ -237,7 +237,7 @@ namespace Lunr
                     foreach (string expandedTerm in expandedTerms)
                     {
                         // For each term get the posting and termIndex, this is required for building the query vector.
-                        InvertedIndexEntry posting = GetInvertedIndexByKey(expandedTerm);
+                        InvertedIndexEntry posting = GetInvertedIndexEntryByKey(expandedTerm);
                         int termIndex = posting.Index;
 
                         foreach (string field in clause.Fields)

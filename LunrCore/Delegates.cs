@@ -5,11 +5,11 @@ namespace Lunr
 {
     public static class Delegates
     {
-        public delegate InvertedIndexEntry GetInvertedIndexByKey(string key);
+        public delegate InvertedIndexEntry? GetInvertedIndexEntryByKey(string key);
 
         public delegate IEnumerable<string> GetFieldVectorKeys();
 
-        public delegate Vector GetFieldVectorByKey(string key);
+        public delegate Vector? GetFieldVectorByKey(string key);
 
         public delegate TokenSet IntersectTokenSets(TokenSet other);
 

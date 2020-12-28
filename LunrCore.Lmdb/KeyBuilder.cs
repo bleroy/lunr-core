@@ -31,15 +31,16 @@ namespace LunrCore.Lmdb
         #endregion
 
         #region Inverted Indices
+        
+        private const string InvertedIndexEntryPrefix = "E:";
 
-        private const string InvertedIndexPrefix = "I:";
-
-        public static byte[] BuildInvertedIndexKey(string key)
+        public static byte[] BuildInvertedIndexEntryKey(string key)
         {
-            return Encoding.UTF8.GetBytes($"{InvertedIndexPrefix}{key}");
+            return Encoding.UTF8.GetBytes($"{InvertedIndexEntryPrefix}{key}");
         }
 
         #endregion
+
 
         
     }
