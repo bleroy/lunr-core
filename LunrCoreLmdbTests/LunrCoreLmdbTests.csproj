@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LunrCore.Lmdb\LunrCore.Lmdb.csproj" />
+    <ProjectReference Include="..\LunrCoreLmdb\LunrCoreLmdb.csproj" />
   </ItemGroup>
 
 </Project>
