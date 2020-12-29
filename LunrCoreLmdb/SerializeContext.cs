@@ -13,7 +13,7 @@ namespace LunrCoreLmdb
         {
             this.bw = bw;
             if (Version > FormatVersion)
-                throw new Exception("Tried to write and object with a version that is too new");
+                throw new Exception("Tried to write an object with a version that is too new");
             Version = version;
 
             bw.Write(Version);
