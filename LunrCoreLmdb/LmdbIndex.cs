@@ -237,10 +237,8 @@ namespace LunrCoreLmdb
 			using var tx = environment.BeginTransaction();
 			try
 			{
-				using (tx.OpenDatabase(null, Config))
-				{
-					tx.Commit();
-				}
+				using var db = tx.OpenDatabase(null, Config);
+                tx.Commit();
 			}
 			catch (LightningException)
 			{
@@ -271,7 +269,7 @@ namespace LunrCoreLmdb
 		{
 			using (var tx = Env.Value.BeginTransaction())
 			{
-				var db = tx.OpenDatabase(configuration: Config);
+				using var db = tx.OpenDatabase(configuration: Config);
 				tx.DropDatabase(db);
 				tx.Commit();
 			}
