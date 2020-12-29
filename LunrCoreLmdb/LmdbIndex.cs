@@ -9,28 +9,25 @@ using Lunr;
 
 namespace LunrCoreLmdb
 {
-    public sealed class LmdbIndex : IReadOnlyIndex
+    public sealed class LmdbIndex : IReadOnlyIndex, IDisposable
     {
-        public Lazy<LightningEnvironment> Env { get; }
+        public LightningEnvironment Env { get; }
 
         public string Path { get; }
 
         public LmdbIndex(string path)
         {
-            Env = new Lazy<LightningEnvironment>(() =>
+            var config = new EnvironmentConfiguration
             {
-                var config = new EnvironmentConfiguration
-                {
-                    MaxDatabases = DefaultMaxDatabases,
-                    MaxReaders = DefaultMaxReaders,
-                    MapSize = DefaultMapSize
-                };
-                var environment = new LightningEnvironment(path, config);
-                environment.Open();
-                CreateIfNotExists(environment);
-                return environment;
-            });
-            Path = Env.Value.Path;
+                MaxDatabases = DefaultMaxDatabases,
+                MaxReaders = DefaultMaxReaders,
+                MapSize = DefaultMapSize
+            };
+            var environment = new LightningEnvironment(path, config);
+            environment.Open();
+            CreateIfNotExists(environment);
+            Env = environment;
+            Path = Env.Path;
         }
 
         #region Fields 
@@ -39,7 +36,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
             tx.Put(db, KeyBuilder.BuildFieldKey(field), Encoding.UTF8.GetBytes(field), PutOptions.NoDuplicateData);
@@ -50,7 +47,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
             tx.Delete(db, KeyBuilder.BuildFieldKey(field));
@@ -59,7 +56,7 @@ namespace LunrCoreLmdb
 
         public IEnumerable<string> GetFields(CancellationToken cancellationToken)
         {
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -85,7 +82,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
             // Key:
@@ -101,7 +98,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -118,7 +115,7 @@ namespace LunrCoreLmdb
 
         public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken)
         {
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -143,7 +140,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
             tx.Delete(db, KeyBuilder.BuildFieldVectorKey(key));
@@ -159,7 +156,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
 
             tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
@@ -172,7 +169,7 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -196,7 +193,7 @@ namespace LunrCoreLmdb
 
             var builder = new TokenSet.Builder();
 
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
 
@@ -251,7 +248,7 @@ namespace LunrCoreLmdb
 
         public ulong GetLength()
         {
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             var count = tx.GetEntriesCount(db); // entries also contains handles to databases
             return (ulong) count;
@@ -259,7 +256,7 @@ namespace LunrCoreLmdb
 
         public void Clear()
         {
-            using var tx = Env.Value.BeginTransaction();
+            using var tx = Env.BeginTransaction();
             var db = tx.OpenDatabase(configuration: Config);
             tx.TruncateDatabase(db);
             tx.Commit();
@@ -267,15 +264,14 @@ namespace LunrCoreLmdb
 
         public void Destroy()
         {
-            using (var tx = Env.Value.BeginTransaction())
+            using (var tx = Env.BeginTransaction())
             {
                 using var db = tx.OpenDatabase(configuration: Config);
                 tx.DropDatabase(db);
                 tx.Commit();
             }
 
-            if (Env.IsValueCreated)
-                Env.Value.Dispose();
+            Env.Dispose();
 
             try
             {
@@ -308,7 +304,7 @@ namespace LunrCoreLmdb
         public void Dispose()
         {
             Dispose(true);
-            GC.SuppressFinalize(this);
+            // GC.SuppressFinalize(this);
         }
 
         // ReSharper disable once EmptyDestructor
@@ -318,8 +314,7 @@ namespace LunrCoreLmdb
         {
             if (!disposing)
                 return;
-            if (Env.IsValueCreated)
-                Env.Value.Dispose();
+            Env.Dispose();
         }
 
         #endregion
