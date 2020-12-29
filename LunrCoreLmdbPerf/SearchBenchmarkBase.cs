@@ -5,12 +5,11 @@ using LunrCoreLmdb;
 
 namespace LunrCoreLmdbPerf
 {
-    public class SearchBenchmarkDelegated
+    public abstract class SearchBenchmarkBase
     {
-        private DelegatedIndex _index;
+        protected DelegatedIndex Index;
 
-        private readonly Document[] _documents = new[]
-        {
+        protected readonly Document[] Documents = {
             new Document
             {
                 { "id", "a" },
@@ -34,72 +33,54 @@ namespace LunrCoreLmdbPerf
             }
         };
 
-        [GlobalSetup]
-        public async Task Setup()
-        {
-            var index = await Index.Build(config: async builder =>
-            {
-                builder.ReferenceField = "id";
-
-                builder
-                    .AddField("title")
-                    .AddField("body", boost: 10);
-
-                foreach (Document doc in _documents)
-                {
-                    await builder.Add(doc);
-                }
-            });
-
-            _index = index.AsDelegated();
-        }
+       
 
         [Benchmark]
         public async Task SearchSingleTerm()
         {
-            await foreach (Result _ in _index.Search("green")) { }
+            await foreach (Result _ in Index.Search("green")) { }
         }
 
         [Benchmark]
         public async Task SearchMultipleTerms()
         {
-            await foreach (Result _ in _index.Search("green plant")) { }
+            await foreach (Result _ in Index.Search("green plant")) { }
         }
 
         [Benchmark]
         public async Task SearchTrailingWildcard()
         {
-            await foreach (Result _ in _index.Search("pl*")) { }
+            await foreach (Result _ in Index.Search("pl*")) { }
         }
 
         [Benchmark]
         public async Task SearchLeadingWildcard()
         {
-            await foreach (Result _ in _index.Search("*ant")) { }
+            await foreach (Result _ in Index.Search("*ant")) { }
         }
 
         [Benchmark]
         public async Task SearchContainedWildcard()
         {
-            await foreach (Result _ in _index.Search("p*t")) { }
+            await foreach (Result _ in Index.Search("p*t")) { }
         }
 
         [Benchmark]
         public async Task SearchWithField()
         {
-            await foreach (Result _ in _index.Search("title:plant")) { }
+            await foreach (Result _ in Index.Search("title:plant")) { }
         }
 
         [Benchmark]
         public async Task SearchWithEditDistance()
         {
-            await foreach (Result _ in _index.Search("plint~2")) { }
+            await foreach (Result _ in Index.Search("plint~2")) { }
         }
 
         [Benchmark]
         public async Task SearchTypeAhead()
         {
-            await foreach (Result _ in _index.Query(q =>
+            await foreach (Result _ in Index.Query(q =>
             {
                 q.AddTerm("pl", boost: 100, usePipeline: true);
                 q.AddTerm("pl", boost: 10, usePipeline: false, wildcard: QueryWildcard.Trailing);
@@ -110,13 +91,32 @@ namespace LunrCoreLmdbPerf
         [Benchmark]
         public async Task SearchNegatedQuery()
         {
-            await foreach (Result _ in _index.Search("-plant")) { }
+            await foreach (Result _ in Index.Search("-plant")) { }
         }
 
         [Benchmark]
         public async Task SearchRequiredTerm()
         {
-            await foreach (Result _ in _index.Search("green +plant")) { }
+            await foreach (Result _ in Index.Search("green +plant")) { }
+        }
+
+        public async Task<Index> PlainIndex()
+        {
+            var index = await Lunr.Index.Build(config: async builder =>
+            {
+                builder.ReferenceField = "id";
+
+                builder
+                    .AddField("title")
+                    .AddField("body", boost: 10);
+
+                foreach (Document doc in Documents)
+                {
+                    await builder.Add(doc);
+                }
+            });
+
+            return index;
         }
     }
 }
