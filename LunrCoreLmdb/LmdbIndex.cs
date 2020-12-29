@@ -304,15 +304,17 @@ namespace LunrCoreLmdb
         public void Dispose()
         {
             Dispose(true);
-            // GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         // ReSharper disable once EmptyDestructor
-        ~LmdbIndex() { }
+        ~LmdbIndex() { Dispose(false); }
 
         public void Dispose(bool disposing)
         {
             if (!disposing)
+                return;
+            if (Env.Handle() == IntPtr.Zero)
                 return;
             Env.Dispose();
         }
