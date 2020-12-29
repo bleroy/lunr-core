@@ -5,8 +5,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Lunr;
 
-namespace Lunr
+namespace LunrCoreLmdb
 {
     /// <summary>
     /// A delegated index contains pointers to functions that represent a built index of all documents and provides a query interface to the index.
@@ -170,11 +171,11 @@ namespace Lunr
         public async IAsyncEnumerable<Result> Query(Action<Query> queryFactory, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var results = new List<Result>();
-            var query = new Query(GetFields());
+            var query = new Query(GetFields().ToArray());
             var matchingFields = new Dictionary<FieldReference, MatchData>();
             var termFieldCache = new HashSet<string>();
-            var requiredMatches = new Dictionary<string, ISet<string>>();
-            var prohibitedMatches = new Dictionary<string, ISet<string>>();
+            var requiredMatches = new Dictionary<string, Lunr.ISet<string>>();
+            var prohibitedMatches = new Dictionary<string, Lunr.ISet<string>>();
 
             // To support field level boosts a query vector is created per
             // field. An empty vector is eagerly created to support negated
@@ -190,7 +191,7 @@ namespace Lunr
             for (int i = 0; i < query.Clauses.Count; i++)
             {
                 Clause clause = query.Clauses[i];
-                ISet<string> clauseMatches = Set<string>.Empty;
+                Lunr.ISet<string> clauseMatches = Set<string>.Empty;
 
                 // Unless the pipeline has been disabled for this term, which is
                 // the case for terms with wildcards, we need to pass the clause
@@ -345,8 +346,8 @@ namespace Lunr
             // Need to combine the field scoped required and prohibited
             // matching documents into a global set of required and prohibited
             // matches.
-            ISet<string> allRequiredMatches = Set<string>.Complete;
-            ISet<string> allProhibitedMatches = Set<string>.Empty;
+            Lunr.ISet<string> allRequiredMatches = Set<string>.Complete;
+            Lunr.ISet<string> allProhibitedMatches = Set<string>.Empty;
 
             foreach (string field in GetFields())
             {

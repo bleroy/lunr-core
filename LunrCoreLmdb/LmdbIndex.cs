@@ -81,7 +81,7 @@ namespace LunrCoreLmdb
 
 		#region Field Vectors
 
-        public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken)
+        public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

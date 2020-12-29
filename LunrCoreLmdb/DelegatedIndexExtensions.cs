@@ -1,4 +1,6 @@
-﻿namespace Lunr
+﻿using Lunr;
+
+namespace LunrCoreLmdb
 {
     public static class DelegatedIndexExtensions
     {

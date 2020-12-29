@@ -11,10 +11,7 @@ namespace LunrCoreLmdb
 
         public static byte[] BuildAllFieldsKey() => Encoding.UTF8.GetBytes(FieldPrefix);
 
-        public static byte[] BuildFieldKey(string field)
-        {
-            return Encoding.UTF8.GetBytes($"{FieldPrefix}{field}");
-        }
+        public static byte[] BuildFieldKey(string field) => Encoding.UTF8.GetBytes($"{FieldPrefix}{field}");
 
         #endregion
 
@@ -33,24 +30,16 @@ namespace LunrCoreLmdb
         
         private const string InvertedIndexEntryPrefix = "E:";
 
-        public static byte[] BuildInvertedIndexEntryKey(string key)
-        {
-            return Encoding.UTF8.GetBytes($"{InvertedIndexEntryPrefix}{key}");
-        }
+        public static byte[] BuildInvertedIndexEntryKey(string key) => Encoding.UTF8.GetBytes($"{InvertedIndexEntryPrefix}{key}");
 
         #endregion
 
         #region TokenSet
 
         private const string TokenSetWordPrefix = "T:";
-
-        public static byte[] BuildTokenSetWordKey(string word)
-        {
-            return Encoding.UTF8.GetBytes($"{TokenSetWordPrefix}{word}"); 
-        }
+        public static byte[] BuildTokenSetWordKey(string word) => Encoding.UTF8.GetBytes($"{TokenSetWordPrefix}{word}");
+        public static byte[] BuildAllTokenSetWordKeys() => Encoding.UTF8.GetBytes(TokenSetWordPrefix);
 
         #endregion
-
-        public static byte[] BuildAllTokenSetWordKeys() => Encoding.UTF8.GetBytes(TokenSetWordPrefix);
     }
 }

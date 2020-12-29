@@ -1,8 +1,9 @@
 ﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Lunr;
+using LunrCoreLmdb;
 
-namespace LunrCorePerf
+namespace LunrCoreLmdbPerf
 {
     public class SearchBenchmarkDelegated
     {

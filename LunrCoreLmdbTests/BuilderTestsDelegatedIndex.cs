@@ -1,13 +1,15 @@
-using Lunr;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Lunr;
+using LunrCoreLmdb;
+using LunrCoreTests;
 using Xunit;
-using Index = Lunr.DelegatedIndex;
+using Index = LunrCoreLmdb.DelegatedIndex;
 
-namespace LunrCoreTests
+namespace LunrCoreLmdbTests
 {
     public class BuilderTestsDelegatedIndex
     {
@@ -27,7 +29,7 @@ namespace LunrCoreTests
 
             var index = builder.Build().AsDelegated();
 
-            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);
             Assert.Equal(1,
                 builder.FieldTermFrequencies
                     [FieldReference.FromString("title/id")]
@@ -48,7 +50,7 @@ namespace LunrCoreTests
 
             var index = builder.Build().AsDelegated();
 
-            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")["constructor"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["constructor"]["id"]);
         }
 
         [Fact]
@@ -65,7 +67,7 @@ namespace LunrCoreTests
 
             var index = builder.Build().AsDelegated();
 
-            Assert.Empty(index.GetInvertedIndexEntryByKey("word")["title"]["constructor"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("word")!["title"]["constructor"]);
         }
 
         [Fact]
@@ -94,8 +96,8 @@ namespace LunrCoreTests
             var index = builder.Build().AsDelegated();
 
             Assert.Equal(
-                new[] { "foo" },
-                index.GetInvertedIndexEntryByKey("word")["title"]["id"]["constructor"]);
+                new object?[] { "foo" },
+                index.GetInvertedIndexEntryByKey("word")!["title"]["id"]["constructor"]);
         }
 
         [Fact]
@@ -118,7 +120,7 @@ namespace LunrCoreTests
             
             var index = builder.Build().AsDelegated();
 
-            Assert.Empty(index.GetInvertedIndexEntryByKey("bob")["name"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("bob")!["name"]["id"]);
         }
 
         private static async Task<string> ExtractName(Document doc)
@@ -257,10 +259,10 @@ namespace LunrCoreTests
 
            
             Assert.Equal(4, builder.InvertedIndex.Count);
-            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")["title"]["id"]);
-            Assert.Empty(index.GetInvertedIndexEntryByKey("this")["title"]["id"]);
-            Assert.Empty(index.GetInvertedIndexEntryByKey("is")["title"]["id"]);
-            Assert.Empty(index.GetInvertedIndexEntryByKey("special")["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("this")!["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("is")!["title"]["id"]);
+            Assert.Empty(index.GetInvertedIndexEntryByKey("special")!["title"]["id"]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("constructor")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("this")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("is")]);
