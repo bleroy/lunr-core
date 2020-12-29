@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using Lunr;
+using LunrCoreLmdb;
 using Xunit;
 using Index = Lunr.Index;
 
-namespace LunrCore.Lmdb.Tests
+namespace LunrCoreLmdbTests
 {
     public class LmdbIndexTests
     {
@@ -103,6 +104,9 @@ namespace LunrCore.Lmdb.Tests
                 
                 var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey);
                 Assert.NotNull(getInvertedIndexEntry);
+
+                var tokenSet = lmdb.IntersectTokenSets(index.TokenSet);
+                Assert.Single(tokenSet.Edges);
             }
             finally
             {

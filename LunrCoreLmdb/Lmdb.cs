@@ -1,6 +1,6 @@
 ﻿using Lunr;
 
-namespace LunrCore.Lmdb
+namespace LunrCoreLmdb
 {
     public static class Lmdb
     {

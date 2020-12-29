@@ -7,7 +7,7 @@ using System.Threading;
 using LightningDB;
 using Lunr;
 
-namespace LunrCore.Lmdb
+namespace LunrCoreLmdb
 {
     public sealed class LmdbIndex
     {
@@ -155,13 +155,6 @@ namespace LunrCore.Lmdb
 
 		#region Inverted Index Entries
 
-        /*
-          private TokenSet CreateTokenSet()
-            => TokenSet = TokenSet.FromArray(InvertedIndex
-                .Keys
-                .OrderBy(k => k, StringComparer.Ordinal));
-         */
-
         public bool AddInvertedIndexEntry(string key, InvertedIndexEntry invertedIndexEntry, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -170,6 +163,8 @@ namespace LunrCore.Lmdb
             using var db = tx.OpenDatabase(configuration: Config);
 
             tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
+            tx.Put(db, KeyBuilder.BuildTokenSetWordKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+
             return tx.Commit() == MDBResultCode.Success;
         }
 
@@ -189,7 +184,43 @@ namespace LunrCore.Lmdb
             return r != MDBResultCode.Success ? default : v.AsSpan().DeserializeInvertedIndexEntry();
         }
 
-		#endregion
+        #endregion
+
+        #region TokenSets
+
+        public TokenSet IntersectTokenSets(TokenSet other, CancellationToken cancellationToken)
+        {
+            // FIXME: This is still reading fully into memory before intersection
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var builder = new TokenSet.Builder();
+
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+
+            var sr = cursor.SetRange(KeyBuilder.BuildAllTokenSetWordKeys());
+            if (sr != MDBResultCode.Success)
+                return builder.Root;
+
+            var (r, _, v) = cursor.GetCurrent();
+			
+            while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
+            {
+                var buffer = v.AsSpan().ToArray();
+                var word = Encoding.UTF8.GetString(buffer);
+                builder.Insert(word);
+
+                r = cursor.Next();
+                if (r != MDBResultCode.Success)
+                    break;
+            }
+
+            return builder.Root.Intersect(other);
+        }
+
+        #endregion
 
         #region Management
 
@@ -264,10 +295,7 @@ namespace LunrCore.Lmdb
 
         public IEnumerable<string> GetFields() => GetFields(CancellationToken.None);
 
-        public TokenSet IntersectTokenSets(TokenSet other)
-        {
-            throw new NotImplementedException();
-        }
+        public TokenSet IntersectTokenSets(TokenSet other) => IntersectTokenSets(other, CancellationToken.None);
 
         public Vector? GetFieldVectorByKey(string key) => GetFieldVectorByKey(key, CancellationToken.None);
 

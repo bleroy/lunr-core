@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace LunrCore.Lmdb
+namespace LunrCoreLmdb
 {
     public sealed class DeserializeContext
     {

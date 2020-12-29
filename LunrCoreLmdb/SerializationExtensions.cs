@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Lunr;
 
-namespace LunrCore.Lmdb
+namespace LunrCoreLmdb
 {
     public static class SerializationExtensions
     {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Text;
-using Lunr;
 
-namespace LunrCore.Lmdb
+namespace LunrCoreLmdb
 {
     internal static class KeyBuilder
     {
@@ -41,7 +40,17 @@ namespace LunrCore.Lmdb
 
         #endregion
 
+        #region TokenSet
 
-        
+        private const string TokenSetWordPrefix = "T:";
+
+        public static byte[] BuildTokenSetWordKey(string word)
+        {
+            return Encoding.UTF8.GetBytes($"{TokenSetWordPrefix}{word}"); 
+        }
+
+        #endregion
+
+        public static byte[] BuildAllTokenSetWordKeys() => Encoding.UTF8.GetBytes(TokenSetWordPrefix);
     }
 }

@@ -1,10 +1,11 @@
 using System;
 using System.Linq;
 using Lunr;
+using LunrCoreLmdb;
 using Xunit;
 using Index = Lunr.Index;
 
-namespace LunrCore.Lmdb.Tests
+namespace LunrCoreLmdbTests
 {
     public class SerializationTests
     {
