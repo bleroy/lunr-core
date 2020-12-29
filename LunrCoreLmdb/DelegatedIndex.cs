@@ -12,57 +12,18 @@ namespace LunrCoreLmdb
     /// <summary>
     /// A delegated index contains pointers to functions that represent a built index of all documents and provides a query interface to the index.
     /// </summary>
-    public class DelegatedIndex
+    public class DelegatedIndex : IReadOnlyIndex
     {
+        private readonly IReadOnlyIndex _index;
+
         /// <summary>
         /// Constructs a new index.
         /// </summary>
-        /// <param name="getInvertedIndexEntryByKey">An index of term/field to document reference.</param>
-        /// <param name="getFieldVectorKeys">Field vectors</param>
-        /// <param name="getFieldVectorByKey">Field vectors</param>
-        /// <param name="intersectTokenSets">A set of all corpus tokens.</param>
-        /// <param name="getFields">The names of indexed document fields.</param>
-        /// <param name="pipeline">The pipeline to use for search terms.</param>
-        public DelegatedIndex(
-            Delegates.GetInvertedIndexEntryByKey getInvertedIndexEntryByKey,
-            Delegates.GetFieldVectorKeys getFieldVectorKeys,
-            Delegates.GetFieldVectorByKey getFieldVectorByKey,
-            Delegates.IntersectTokenSets intersectTokenSets,
-            Delegates.GetFields getFields,
-            Pipeline pipeline)
+        public DelegatedIndex(IReadOnlyIndex index, Pipeline pipeline)
         {
-            GetInvertedIndexEntryByKey = getInvertedIndexEntryByKey;
-            GetFieldVectorKeys = getFieldVectorKeys;
-            GetFieldVectorByKey = getFieldVectorByKey;
-            IntersectTokenSets = intersectTokenSets;
-            GetFields = getFields;
+            _index = index;
             Pipeline = pipeline;
         }
-
-        /// <summary>
-        /// An index of term/field to document reference.
-        /// </summary>
-        public Delegates.GetInvertedIndexEntryByKey GetInvertedIndexEntryByKey { get; }
-
-        /// <summary>
-        /// Field vectors.
-        /// </summary>
-        public Delegates.GetFieldVectorKeys GetFieldVectorKeys { get; }
-
-        /// <summary>
-        /// Field vectors.
-        /// </summary>
-        public Delegates.GetFieldVectorByKey GetFieldVectorByKey { get; }
-
-        /// <summary>
-        /// A set of all corpus tokens.
-        /// </summary>
-        public Delegates.IntersectTokenSets IntersectTokenSets { get; }
-
-        /// <summary>
-        /// The names of indexed document fields.
-        /// </summary>
-        public Delegates.GetFields GetFields { get; }
 
         /// <summary>
         /// The pipeline to use for search terms.
@@ -171,7 +132,7 @@ namespace LunrCoreLmdb
         public async IAsyncEnumerable<Result> Query(Action<Query> queryFactory, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var results = new List<Result>();
-            var query = new Query(GetFields().ToArray());
+            var query = new Query(_index.GetFields().ToArray());
             var matchingFields = new Dictionary<FieldReference, MatchData>();
             var termFieldCache = new HashSet<string>();
             var requiredMatches = new Dictionary<string, Lunr.ISet<string>>();
@@ -181,7 +142,7 @@ namespace LunrCoreLmdb
             // field. An empty vector is eagerly created to support negated
             // queries.
             var queryVectors = new Dictionary<string, Vector>();
-            foreach (string field in GetFields())
+            foreach (string field in _index.GetFields())
             {
                 queryVectors[field] = new Vector();
             }
@@ -219,7 +180,7 @@ namespace LunrCoreLmdb
                     // be used to intersect the indexes token set to get a list of terms
                     // to lookup in the inverted index.
                     var termTokenSet = TokenSet.FromClause(clause);
-                    IEnumerable<string> expandedTerms = IntersectTokenSets(termTokenSet).ToEnumeration();
+                    IEnumerable<string> expandedTerms = _index.IntersectTokenSets(termTokenSet).ToEnumeration();
 
                     // If a term marked as required does not exist in the tokenSet it is
                     // impossible for the search to return any matches.We set all the field
@@ -238,7 +199,7 @@ namespace LunrCoreLmdb
                     foreach (string expandedTerm in expandedTerms)
                     {
                         // For each term get the posting and termIndex, this is required for building the query vector.
-                        InvertedIndexEntry posting = GetInvertedIndexEntryByKey(expandedTerm);
+                        InvertedIndexEntry posting = _index.GetInvertedIndexEntryByKey(expandedTerm);
                         int termIndex = posting.Index;
 
                         foreach (string field in clause.Fields)
@@ -349,7 +310,7 @@ namespace LunrCoreLmdb
             Lunr.ISet<string> allRequiredMatches = Set<string>.Complete;
             Lunr.ISet<string> allProhibitedMatches = Set<string>.Empty;
 
-            foreach (string field in GetFields())
+            foreach (string field in _index.GetFields())
             {
                 if (requiredMatches.ContainsKey(field))
                 {
@@ -376,7 +337,7 @@ namespace LunrCoreLmdb
             // populate the results.
             if (query.IsNegated)
             {
-                matchingFieldRefs = GetFieldVectorKeys();
+                matchingFieldRefs = _index.GetFieldVectorKeys();
 
                 foreach (string matchingFieldRef in matchingFieldRefs)
                 {
@@ -399,7 +360,7 @@ namespace LunrCoreLmdb
                 if (!allRequiredMatches.Contains(docRef)) continue;
                 if (allProhibitedMatches.Contains(docRef)) continue;
 
-                Vector fieldVector = GetFieldVectorByKey(fieldRefString);
+                Vector fieldVector = _index.GetFieldVectorByKey(fieldRefString);
                 double score = queryVectors[fieldRef.FieldName].Similarity(fieldVector);
 
                 if (matches.TryGetValue(docRef, out Result docMatch))
@@ -446,5 +407,34 @@ namespace LunrCoreLmdb
                 yield return result;
             }
         }
+
+        #region IReadOnlyIndex
+
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key)
+        {
+            return _index.GetInvertedIndexEntryByKey(key);
+        }
+
+        public IEnumerable<string> GetFieldVectorKeys()
+        {
+            return _index.GetFieldVectorKeys();
+        }
+
+        public Vector? GetFieldVectorByKey(string key)
+        {
+            return _index.GetFieldVectorByKey(key);
+        }
+
+        public TokenSet IntersectTokenSets(TokenSet other)
+        {
+            return _index.IntersectTokenSets(other);
+        }
+
+        public IEnumerable<string> GetFields()
+        {
+            return _index.GetFields();
+        }
+
+        #endregion
     }
 }

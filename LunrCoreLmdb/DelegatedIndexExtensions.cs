@@ -1,15 +1,23 @@
-﻿using Lunr;
+﻿using System.Collections.Generic;
+using Lunr;
 
 namespace LunrCoreLmdb
 {
     public static class DelegatedIndexExtensions
     {
         /// <summary> This wraps a standard in-memory index, so that it can be used as a delegated index. </summary>
-        public static DelegatedIndex AsDelegated(this Index index)
+        public static DelegatedIndex AsDelegated(this Index index) => new DelegatedIndex(new ReadOnlyIndex(index), index.Pipeline);
+
+        internal class ReadOnlyIndex : IReadOnlyIndex
         {
-            return new DelegatedIndex(key => index.InvertedIndex[key], () => index.FieldVectors.Keys,
-                key => index.FieldVectors[key], other => index.TokenSet.Intersect(other), () => index.Fields,
-                index.Pipeline);
+            private readonly Index _index;
+
+            public ReadOnlyIndex(Index index) => _index = index;
+            public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key) => _index.InvertedIndex[key];
+            public IEnumerable<string> GetFieldVectorKeys() => _index.FieldVectors.Keys;
+            public Vector? GetFieldVectorByKey(string key) => _index.FieldVectors[key];
+            public TokenSet IntersectTokenSets(TokenSet other) => _index.TokenSet.Intersect(other);
+            public IEnumerable<string> GetFields() => _index.Fields;
         }
     }
 }

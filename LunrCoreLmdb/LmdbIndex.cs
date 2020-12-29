@@ -9,7 +9,7 @@ using Lunr;
 
 namespace LunrCoreLmdb
 {
-    public sealed class LmdbIndex
+    public sealed class LmdbIndex : IReadOnlyIndex
     {
         public Lazy<LightningEnvironment> Env { get; }
 

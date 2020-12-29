@@ -8,13 +8,7 @@ namespace LunrCoreLmdb
         {
             var index = new LmdbIndex(path);
 
-            return new DelegatedIndex(
-                index.GetInvertedIndexEntryByKey, 
-                index.GetFieldVectorKeys, 
-                index.GetFieldVectorByKey,
-                index.IntersectTokenSets, 
-                index.GetFields, 
-                pipeline);
+            return new DelegatedIndex(index, pipeline);
         }
     }
 }
