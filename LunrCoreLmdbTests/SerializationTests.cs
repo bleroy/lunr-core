@@ -15,7 +15,7 @@ namespace LunrCoreLmdbTests
         {
             const string field = "Field";
 
-            var index = new LmdbIndex($"{Guid.NewGuid()}");
+            var index = new LmdbIndex(Guid.NewGuid().ToString());
 
             try
             {
@@ -45,7 +45,7 @@ namespace LunrCoreLmdbTests
         {
             const string key = "Key";
 
-            var index = new LmdbIndex($"{Guid.NewGuid()}");
+            var index = new LmdbIndex(Guid.NewGuid().ToString());
 
             try
             {
@@ -82,7 +82,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void Can_persist_inverted_index_entries()
         {
-            var lmdb = new LmdbIndex($"{Guid.NewGuid()}");
+            var lmdb = new LmdbIndex(Guid.NewGuid().ToString());
 
             try
             {

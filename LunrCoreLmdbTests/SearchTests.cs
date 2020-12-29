@@ -28,7 +28,7 @@ namespace LunrCoreLmdbTests
         {
             var plain = await GetPlainIndex();
 
-            var path = $"{Guid.NewGuid()}";
+            var path = Guid.NewGuid().ToString();
             var lmdb = new LmdbIndex(path);
 
             try
