@@ -33,11 +33,11 @@ namespace LunrCoreLmdb
             Path = Env.Value.Path;
         }
 
-		#region Fields 
+        #region Fields 
 
         public bool AddField(string field, CancellationToken cancellationToken = default)
         {
-			cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
@@ -68,7 +68,7 @@ namespace LunrCoreLmdb
                 yield break;
 
             var (r, _, v) = cursor.GetCurrent();
-			
+            
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var buffer = v.AsSpan().ToArray();
@@ -77,9 +77,9 @@ namespace LunrCoreLmdb
             }
         }
 
-		#endregion
+        #endregion
 
-		#region Field Vectors
+        #region Field Vectors
 
         public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken = default)
         {
@@ -127,7 +127,7 @@ namespace LunrCoreLmdb
                 yield break;
 
             var (r, _, v) = cursor.GetCurrent();
-			
+            
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var key = v.AsSpan().ToArray();
@@ -151,9 +151,9 @@ namespace LunrCoreLmdb
             return tx.Commit() == MDBResultCode.Success;
         }
 
-		#endregion
+        #endregion
 
-		#region Inverted Index Entries
+        #region Inverted Index Entries
 
         public bool AddInvertedIndexEntry(string key, InvertedIndexEntry invertedIndexEntry, CancellationToken cancellationToken = default)
         {
@@ -205,7 +205,7 @@ namespace LunrCoreLmdb
                 return builder.Root;
 
             var (r, _, v) = cursor.GetCurrent();
-			
+            
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 var buffer = v.AsSpan().ToArray();
@@ -232,63 +232,63 @@ namespace LunrCoreLmdb
 
         private static readonly DatabaseConfiguration Config = new DatabaseConfiguration {Flags = DatabaseOpenFlags.None};
         
-		private static void CreateIfNotExists(LightningEnvironment environment)
-		{
-			using var tx = environment.BeginTransaction();
-			try
-			{
-				using var db = tx.OpenDatabase(null, Config);
+        private static void CreateIfNotExists(LightningEnvironment environment)
+        {
+            using var tx = environment.BeginTransaction();
+            try
+            {
+                using var db = tx.OpenDatabase(null, Config);
                 tx.Commit();
-			}
-			catch (LightningException)
-			{
-				using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
-				{
-					tx.Commit();
-				}
-			}
-		}
+            }
+            catch (LightningException)
+            {
+                using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
+                {
+                    tx.Commit();
+                }
+            }
+        }
 
         public ulong GetLength()
-		{
-			using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-			using var db = tx.OpenDatabase(configuration: Config);
-			var count = tx.GetEntriesCount(db); // entries also contains handles to databases
-			return (ulong) count;
-		}
+        {
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            var count = tx.GetEntriesCount(db); // entries also contains handles to databases
+            return (ulong) count;
+        }
 
-		public void Clear()
-		{
-			using var tx = Env.Value.BeginTransaction();
-			var db = tx.OpenDatabase(configuration: Config);
-			tx.TruncateDatabase(db);
-			tx.Commit();
-		}
+        public void Clear()
+        {
+            using var tx = Env.Value.BeginTransaction();
+            var db = tx.OpenDatabase(configuration: Config);
+            tx.TruncateDatabase(db);
+            tx.Commit();
+        }
 
-		public void Destroy()
-		{
-			using (var tx = Env.Value.BeginTransaction())
-			{
-				using var db = tx.OpenDatabase(configuration: Config);
-				tx.DropDatabase(db);
-				tx.Commit();
-			}
+        public void Destroy()
+        {
+            using (var tx = Env.Value.BeginTransaction())
+            {
+                using var db = tx.OpenDatabase(configuration: Config);
+                tx.DropDatabase(db);
+                tx.Commit();
+            }
 
-			if (Env.IsValueCreated)
-				Env.Value.Dispose();
+            if (Env.IsValueCreated)
+                Env.Value.Dispose();
 
-			try
-			{
-				Directory.Delete(Path, true);
-			}
-			catch (Exception exception)
-			{
-				Trace.TraceError(exception.ToString());
-			}
-		}
+            try
+            {
+                Directory.Delete(Path, true);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError(exception.ToString());
+            }
+        }
 
-		#endregion
-		
+        #endregion
+        
         #region Delegates
 
         public IEnumerable<string> GetFields() => GetFields(CancellationToken.None);
@@ -303,8 +303,8 @@ namespace LunrCoreLmdb
 
         #endregion
 
-		#region IDisposable
-		
+        #region IDisposable
+        
         public void Dispose()
         {
             Dispose(true);
@@ -322,6 +322,6 @@ namespace LunrCoreLmdb
                 Env.Value.Dispose();
         }
 
-		#endregion
+        #endregion
     }
 }
