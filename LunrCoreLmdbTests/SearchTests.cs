@@ -48,6 +48,7 @@ namespace LunrCoreLmdbTests
             }
             finally
             {
+                lmdb.Destroy();
                 lmdb.Dispose();
             }
         }
