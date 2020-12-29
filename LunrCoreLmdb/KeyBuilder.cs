@@ -7,39 +7,45 @@ namespace LunrCoreLmdb
     {
         #region Fields
 
-        private const string FieldPrefix = "F:";
-
-        public static byte[] BuildAllFieldsKey() => Encoding.UTF8.GetBytes(FieldPrefix);
-
-        public static byte[] BuildFieldKey(string field) => Encoding.UTF8.GetBytes($"{FieldPrefix}{field}");
+        private static readonly byte[] FieldPrefix = Encoding.UTF8.GetBytes("F:");
+        public static byte[] BuildAllFieldsKey() => FieldPrefix;
+        public static byte[] BuildFieldKey(string field) => FieldPrefix.Concat(Encoding.UTF8.GetBytes(field));
 
         #endregion
 
         #region Field Vectors
 
-        private const string FieldVectorKeyPrefix = "VK:";
-        public static byte[] BuildAllFieldVectorKeys() => Encoding.UTF8.GetBytes(FieldVectorKeyPrefix);
-        public static ReadOnlySpan<byte> BuildFieldVectorKeyKey(string key) => Encoding.UTF8.GetBytes($"{FieldVectorKeyPrefix}{key}");
+        private static readonly byte[] FieldVectorKeyPrefix = Encoding.UTF8.GetBytes("VK:");
+        public static byte[] BuildAllFieldVectorKeys() => FieldVectorKeyPrefix;
+        public static ReadOnlySpan<byte> BuildFieldVectorKeyKey(string key) => FieldVectorKeyPrefix.Concat(Encoding.UTF8.GetBytes(key));
 
-        private const string FieldVectorValuePrefix = "V:";
-        public static byte[] BuildFieldVectorKey(string key) => Encoding.UTF8.GetBytes($"{FieldVectorValuePrefix}{key}");
+        private static readonly byte[] FieldVectorValuePrefix = Encoding.UTF8.GetBytes("V:");
+        public static byte[] BuildFieldVectorKey(string key) => FieldVectorValuePrefix.Concat(Encoding.UTF8.GetBytes(key));
 
         #endregion
 
         #region Inverted Indices
         
-        private const string InvertedIndexEntryPrefix = "E:";
+        private static readonly byte[] InvertedIndexEntryPrefix = Encoding.UTF8.GetBytes("E:");
 
-        public static byte[] BuildInvertedIndexEntryKey(string key) => Encoding.UTF8.GetBytes($"{InvertedIndexEntryPrefix}{key}");
+        public static byte[] BuildInvertedIndexEntryKey(string key) => InvertedIndexEntryPrefix.Concat(Encoding.UTF8.GetBytes(key));
 
         #endregion
 
         #region TokenSet
 
-        private const string TokenSetWordPrefix = "T:";
-        public static byte[] BuildTokenSetWordKey(string word) => Encoding.UTF8.GetBytes($"{TokenSetWordPrefix}{word}");
-        public static byte[] BuildAllTokenSetWordKeys() => Encoding.UTF8.GetBytes(TokenSetWordPrefix);
+        private static readonly byte[] TokenSetWordPrefix = Encoding.UTF8.GetBytes("T:");
+        public static byte[] BuildTokenSetWordKey(string word) => TokenSetWordPrefix.Concat(Encoding.UTF8.GetBytes(word));
+        public static byte[] BuildAllTokenSetWordKeys() => TokenSetWordPrefix;
 
         #endregion
+
+        public static byte[] Concat(this byte[] left, byte[] right)
+        {
+            var buffer = new byte[left.Length + right.Length];
+            Buffer.BlockCopy(left, 0, buffer, 0, left.Length);
+            Buffer.BlockCopy(right, 0, buffer, left.Length, right.Length);
+            return buffer;
+        }
     }
 }
