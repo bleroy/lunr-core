@@ -59,7 +59,9 @@ namespace LunrCoreLmdb
 
         public IEnumerable<string> GetFields(CancellationToken cancellationToken)
         {
-            var cursor = OpenReadOnlyCursor();
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
 
             var sr = cursor.SetRange(KeyBuilder.BuildAllFieldsKey());
             if (sr != MDBResultCode.Success)
@@ -99,7 +101,9 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var cursor = OpenReadOnlyCursor();
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
 
             var sr = cursor.Set(KeyBuilder.BuildFieldVectorKey(key));
             if (sr != MDBResultCode.Success)
@@ -114,7 +118,9 @@ namespace LunrCoreLmdb
 
         public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken)
         {
-            var cursor = OpenReadOnlyCursor();
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
 
             var sr = cursor.SetRange(KeyBuilder.BuildAllFieldVectorKeys());
             if (sr != MDBResultCode.Success)
@@ -166,7 +172,9 @@ namespace LunrCoreLmdb
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var cursor = OpenReadOnlyCursor();
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
 
             var sr = cursor.Set(KeyBuilder.BuildInvertedIndexEntryKey(key));
             if (sr != MDBResultCode.Success)
@@ -188,7 +196,9 @@ namespace LunrCoreLmdb
 
             var builder = new TokenSet.Builder();
 
-            var cursor = OpenReadOnlyCursor();
+            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
 
             var sr = cursor.SetRange(KeyBuilder.BuildAllTokenSetWordKeys());
             if (sr != MDBResultCode.Success)
@@ -313,13 +323,5 @@ namespace LunrCoreLmdb
         }
 
         #endregion
-
-        private LightningCursor OpenReadOnlyCursor()
-        {
-            using var tx = Env.Value.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-            return cursor;
-        }
     }
 }
