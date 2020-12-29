@@ -199,8 +199,8 @@ namespace LunrCoreLmdb
                     foreach (string expandedTerm in expandedTerms)
                     {
                         // For each term get the posting and termIndex, this is required for building the query vector.
-                        InvertedIndexEntry posting = _index.GetInvertedIndexEntryByKey(expandedTerm);
-                        int termIndex = posting.Index;
+                        InvertedIndexEntry? posting = _index.GetInvertedIndexEntryByKey(expandedTerm);
+                        int termIndex = posting!.Index;
 
                         foreach (string field in clause.Fields)
                         {
@@ -360,8 +360,8 @@ namespace LunrCoreLmdb
                 if (!allRequiredMatches.Contains(docRef)) continue;
                 if (allProhibitedMatches.Contains(docRef)) continue;
 
-                Vector fieldVector = _index.GetFieldVectorByKey(fieldRefString);
-                double score = queryVectors[fieldRef.FieldName].Similarity(fieldVector);
+                Vector? fieldVector = _index.GetFieldVectorByKey(fieldRefString);
+                double score = queryVectors[fieldRef.FieldName].Similarity(fieldVector!);
 
                 if (matches.TryGetValue(docRef, out Result docMatch))
                 {
