@@ -33,8 +33,8 @@ namespace LunrCoreLmdb
             {
                 fixed(byte* buf = &buffer.GetPinnableReference())
                 {
-                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    var br = new BinaryReader(ms);
+                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    using var br = new BinaryReader(ms);
                     var context = new DeserializeContext(br);
 
                     var count = context.br.ReadInt32();
@@ -84,8 +84,8 @@ namespace LunrCoreLmdb
             {
                 fixed (byte* buf = &buffer.GetPinnableReference())
                 {
-                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    var br = new BinaryReader(ms);
+                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    using var br = new BinaryReader(ms);
                     var context = new DeserializeContext(br);
 
                     var count = context.br.ReadInt32();
@@ -149,8 +149,8 @@ namespace LunrCoreLmdb
             {
                 fixed(byte* buf = &buffer.GetPinnableReference())
                 {
-                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    var br = new BinaryReader(ms);
+                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    using var br = new BinaryReader(ms);
                     var context = new DeserializeContext(br);
 
                     return DeserializeInvertedIndexEntry(context);
@@ -225,8 +225,8 @@ namespace LunrCoreLmdb
             {
                 fixed(byte* buf = &buffer.GetPinnableReference())
                 {
-                    var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    var br = new BinaryReader(ms);
+                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
+                    using var br = new BinaryReader(ms);
                     var context = new DeserializeContext(br);
                     return context.DeserializeTokenSet();
                 }
