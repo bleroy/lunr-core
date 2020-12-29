@@ -12,7 +12,7 @@ namespace LunrCoreLmdb
     /// <summary>
     /// A delegated index contains pointers to functions that represent a built index of all documents and provides a query interface to the index.
     /// </summary>
-    public class DelegatedIndex : IReadOnlyIndex
+    public sealed class DelegatedIndex : IReadOnlyIndex, IDisposable
     {
         private readonly IReadOnlyIndex _index;
 
@@ -436,5 +436,11 @@ namespace LunrCoreLmdb
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            if(_index is IDisposable disposable)
+                disposable.Dispose();
+        }
     }
 }
