@@ -12,8 +12,8 @@ namespace LunrCoreLmdb
 
         public static ReadOnlySpan<byte> Serialize(this Vector vector)
         {
-            var ms = new MemoryStream();
-            var bw =new BinaryWriter(ms);
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
             var context = new SerializeContext(bw);
 
             var values = vector.Save().ToList();
@@ -57,7 +57,9 @@ namespace LunrCoreLmdb
 
         public static ReadOnlySpan<byte> Serialize(this InvertedIndex invertedIndex)
         {
-            var ms = GetSerializationContext(out var context);
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
+            var context = new SerializeContext(bw);
 
             var entries =
                 invertedIndex.OrderBy(kvp => kvp.Key, StringComparer.Ordinal)
@@ -105,7 +107,9 @@ namespace LunrCoreLmdb
         
         public static ReadOnlySpan<byte> Serialize(this InvertedIndexEntry invertedIndexEntry)
         {
-            var ms = GetSerializationContext(out var context);
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
+            var context = new SerializeContext(bw);
 
             Serialize(invertedIndexEntry, context);
 
@@ -242,13 +246,5 @@ namespace LunrCoreLmdb
         }
 
         #endregion
-
-        private static MemoryStream GetSerializationContext(out SerializeContext context)
-        {
-            var ms = new MemoryStream();
-            var bw = new BinaryWriter(ms);
-            context = new SerializeContext(bw);
-            return ms;
-        }
     }
 }
