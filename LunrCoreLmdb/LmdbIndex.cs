@@ -28,33 +28,25 @@ namespace LunrCoreLmdb
 
         #region Fields 
 
-        public bool AddField(string field, CancellationToken cancellationToken = default)
+        public bool AddField(string field, CancellationToken cancellationToken = default) => WithWritableTransaction((db, tx) =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
             tx.Put(db, KeyBuilder.BuildFieldKey(field), Encoding.UTF8.GetBytes(field), PutOptions.NoDuplicateData);
             return tx.Commit() == MDBResultCode.Success;
-        }
+        });
 
-        public bool RemoveField(string field, CancellationToken cancellationToken = default)
+        public bool RemoveField(string field, CancellationToken cancellationToken = default) => WithWritableTransaction((db, tx) =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
             tx.Delete(db, KeyBuilder.BuildFieldKey(field));
             return tx.Commit() == MDBResultCode.Success;
-        }
+        });
 
-        public IEnumerable<string> GetFields(CancellationToken cancellationToken)
+        public IEnumerable<string> GetFields(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFields(c, cancellationToken));
+
+        private static IEnumerable<string> GetFields(LightningCursor cursor, CancellationToken cancellationToken)
         {
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
+            cancellationToken.ThrowIfCancellationRequested();
 
             var allFieldsKey = KeyBuilder.GetAllFieldsKey();
             var sr = cursor.SetRange(allFieldsKey);
@@ -62,7 +54,7 @@ namespace LunrCoreLmdb
                 yield break;
 
             var (r, k, v) = cursor.GetCurrent();
-            
+
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 if (!k.AsSpan().StartsWith(allFieldsKey))
@@ -73,7 +65,7 @@ namespace LunrCoreLmdb
                 yield return field;
 
                 r = cursor.Next();
-                if(r == MDBResultCode.Success)
+                if (r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
         }
@@ -84,38 +76,35 @@ namespace LunrCoreLmdb
 
         public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            tx.Put(db, KeyBuilder.BuildFieldVectorKeyKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
-            tx.Put(db, KeyBuilder.BuildFieldVectorValueKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
-
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Put(db, KeyBuilder.BuildFieldVectorKeyKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+                tx.Put(db, KeyBuilder.BuildFieldVectorValueKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
         public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
+            return WithReadOnlyCursor(cursor =>
+            {
+                var (r, k, v) = cursor.SetKey(KeyBuilder.BuildFieldVectorValueKey(key));
+                if (r != MDBResultCode.Success)
+                    return default;
 
-            var (r, k, v) = cursor.SetKey(KeyBuilder.BuildFieldVectorValueKey(key));
-            if (r != MDBResultCode.Success)
-                return default;
-
-            var vector = v.AsSpan().DeserializeFieldVector();
-            return vector;
+                var vector = v.AsSpan().DeserializeFieldVector();
+                return vector;
+            });
         }
 
-        public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken)
+        public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFieldVectorKeys(c, cancellationToken));
+
+        private static IEnumerable<string> GetFieldVectorKeys(LightningCursor cursor, CancellationToken cancellationToken)
         {
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
+            cancellationToken.ThrowIfCancellationRequested();
 
             var allFieldVectorKeys = KeyBuilder.GetAllFieldVectorKeys();
             var sr = cursor.SetRange(allFieldVectorKeys);
@@ -141,14 +130,13 @@ namespace LunrCoreLmdb
 
         public bool RemoveFieldVector(string key, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            tx.Delete(db, KeyBuilder.BuildFieldVectorValueKey(key));
-            tx.Delete(db, KeyBuilder.BuildFieldVectorKeyKey(key));
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Delete(db, KeyBuilder.BuildFieldVectorValueKey(key));
+                tx.Delete(db, KeyBuilder.BuildFieldVectorKeyKey(key));
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
         #endregion
@@ -157,26 +145,22 @@ namespace LunrCoreLmdb
 
         public bool AddInvertedIndexEntry(string key, InvertedIndexEntry invertedIndexEntry, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
-            tx.Put(db, KeyBuilder.BuildTokenSetWordKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
-
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
+                tx.Put(db, KeyBuilder.BuildTokenSetWordKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
-        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, CancellationToken cancellationToken)
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetInvertedIndexEntryByKey(key, c, cancellationToken));
+
+        private static InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, LightningCursor c, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
-            var (r, k, v) = cursor.SetKey(KeyBuilder.BuildInvertedIndexEntryKey(key));
+            var (r, k, v) = c.SetKey(KeyBuilder.BuildInvertedIndexEntryKey(key));
 
             if (r != MDBResultCode.Success)
                 return default;
@@ -189,7 +173,9 @@ namespace LunrCoreLmdb
 
         #region TokenSets
 
-        public TokenSet IntersectTokenSets(TokenSet other, CancellationToken cancellationToken)
+        public TokenSet IntersectTokenSets(TokenSet other, CancellationToken cancellationToken) => WithReadOnlyCursor(c => IntersectTokenSets(other, c, cancellationToken));
+
+        private static TokenSet IntersectTokenSets(TokenSet other, LightningCursor cursor, CancellationToken cancellationToken)
         {
             // FIXME: This is still reading fully into memory before intersection
 
@@ -197,17 +183,13 @@ namespace LunrCoreLmdb
 
             var builder = new TokenSet.Builder();
 
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
             var allWordKeys = KeyBuilder.BuildAllTokenSetWordKeys();
             var sr = cursor.SetRange(allWordKeys);
             if (sr != MDBResultCode.Success)
                 return builder.Root;
 
             var (r, k, v) = cursor.GetCurrent();
-            
+
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
                 if (!k.AsSpan().StartsWith(allWordKeys))
@@ -218,10 +200,10 @@ namespace LunrCoreLmdb
                 builder.Insert(word);
 
                 r = cursor.Next();
-                if(r == MDBResultCode.Success)
+                if (r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
-            
+
             return builder.Root.Intersect(other);
         }
 
@@ -254,22 +236,6 @@ namespace LunrCoreLmdb
             }
         }
 
-        public ulong GetLength()
-        {
-            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            var count = tx.GetEntriesCount(db); // entries also contains handles to databases
-            return (ulong) count;
-        }
-
-        public void Clear()
-        {
-            using var tx = _env.BeginTransaction();
-            var db = tx.OpenDatabase(configuration: Config);
-            tx.TruncateDatabase(db);
-            tx.Commit();
-        }
-
         #endregion
         
         #region Delegates
@@ -289,6 +255,47 @@ namespace LunrCoreLmdb
         public void Dispose()
         {
             _env.Dispose();
+        }
+        
+        private LightningTransaction? _transaction;
+        private LightningDatabase? _database;
+        private LightningCursor? _cursor;
+
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+
+        private T WithReadOnlyCursor<T>(Func<LightningCursor, T> func)
+        {
+            _semaphore.Wait();
+
+            _transaction?.Dispose();
+            _transaction = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
+
+            _database?.Dispose();
+            _database = _transaction.OpenDatabase(configuration: Config);
+
+            _cursor?.Dispose();
+            _cursor = _transaction.CreateCursor(_database);
+
+            var result = func.Invoke(_cursor);
+
+            _semaphore.Release();
+            return result;
+        }
+
+        private T WithWritableTransaction<T>(Func<LightningDatabase, LightningTransaction, T> func)
+        {
+            _semaphore.Wait();
+
+            _transaction?.Dispose();
+            _transaction = _env.BeginTransaction(TransactionBeginFlags.None);
+
+            _database?.Dispose();
+            _database = _transaction.OpenDatabase(configuration: Config);
+
+            var result = func.Invoke(_database, _transaction);
+
+            _semaphore.Release();
+            return result;
         }
     }
 }
