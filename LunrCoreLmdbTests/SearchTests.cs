@@ -404,25 +404,27 @@ namespace LunrCoreLmdbTests
         //    Assert.Equal(new[] {"green"}, results[1].MatchData.Posting.Keys);
         //}
 
-        //[Fact(Skip = "MDB_BAD_RSLOT: Invalid reuse of reader locktable slot")]
-        //public async Task NegatedTermNoMatches()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Search("-qwertyuiop").ToList();
-        //    Assert.Equal(3, results.Count);
-        //    Assert.True(results.All(result => result.Score == 0));
-        //}
+        [Fact]
+        public async Task NegatedTermNoMatches()
+        {
+            var idx = await GetPlainIndex();
 
-        //[Fact(Skip = "MDB_BAD_RSLOT: Invalid reuse of reader locktable slot")]
-        //public async Task NegatedTermSomeMatch()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Search("-plant").ToList();
+            IList<Result> results = await idx.Search("-qwertyuiop").ToList();
 
-        //    Assert.Single(results);
-        //    Assert.Equal(0, results[0].Score);
-        //    Assert.Equal("a", results[0].DocumentReference);
-        //}
+            Assert.Equal(3, results.Count);
+            Assert.True(results.All(result => result.Score == 0));
+        }
+
+        [Fact]
+        public async Task NegatedTermSomeMatch()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Search("-plant").ToList();
+
+            Assert.Single(results);
+            Assert.Equal(0, results[0].Score);
+            Assert.Equal("a", results[0].DocumentReference);
+        }
 
         //[Fact]
         //public async Task FieldMatch()

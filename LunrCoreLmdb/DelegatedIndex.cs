@@ -337,7 +337,7 @@ namespace LunrCoreLmdb
             // populate the results.
             if (query.IsNegated)
             {
-                matchingFieldRefs = _index.GetFieldVectorKeys();
+                matchingFieldRefs = _index.GetFieldVectorKeys().ToList(); // perf: list here avoids another key scan
 
                 foreach (string matchingFieldRef in matchingFieldRefs)
                 {
