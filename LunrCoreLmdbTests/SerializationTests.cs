@@ -25,26 +25,19 @@ namespace LunrCoreLmdbTests
 
             using var index = new LmdbIndex(_tempDir.NewDirectory());
 
-            try
-            {
-                var addedField = index.AddField(field);
-                Assert.True(addedField);
+            var addedField = index.AddField(field);
+            Assert.True(addedField);
 
-                var fields = index.GetFields();
-                Assert.NotNull(fields);
-                Assert.Equal(field, fields.Single());
+            var fields = index.GetFields();
+            Assert.NotNull(fields);
+            Assert.Equal(field, fields.Single());
 
-                var removedField = index.RemoveField(field);
-                Assert.True(removedField);
+            var removedField = index.RemoveField(field);
+            Assert.True(removedField);
 
-                var noFields = index.GetFields();
-                Assert.NotNull(fields);
-                Assert.Empty(noFields);
-            }
-            finally
-            {
-                index.Dispose();
-            }
+            var noFields = index.GetFields();
+            Assert.NotNull(fields);
+            Assert.Empty(noFields);
         }
 
         [Fact]

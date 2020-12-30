@@ -180,13 +180,14 @@ namespace LunrCoreLmdb
                     // be used to intersect the indexes token set to get a list of terms
                     // to lookup in the inverted index.
                     var termTokenSet = TokenSet.FromClause(clause);
-                    IEnumerable<string> expandedTerms = _index.IntersectTokenSets(termTokenSet).ToEnumeration();
-
+                    var expandedTerms = _index.IntersectTokenSets(termTokenSet).ToEnumeration()
+                        .ToList(); // perf: terms list is a manageable size, we can avoid double traversal here
+                    
                     // If a term marked as required does not exist in the tokenSet it is
                     // impossible for the search to return any matches.We set all the field
                     // scoped required matches set to empty and stop examining any further
                     // clauses.
-                    if (!expandedTerms.Any() && clause.Presence == QueryPresence.Required)
+                    if (expandedTerms.Count == 0 && clause.Presence == QueryPresence.Required)
                     {
                         foreach (string field in clause.Fields)
                         {
@@ -325,6 +326,7 @@ namespace LunrCoreLmdb
 
             IEnumerable<string> matchingFieldRefs
                 = matchingFields.Keys.Select(k => k.ToString());
+
             var matches = new Dictionary<string, Result>();
 
             // If the query is negated (contains only prohibited terms)
@@ -346,6 +348,7 @@ namespace LunrCoreLmdb
                 }
             }
 
+            // ReSharper disable once PossibleMultipleEnumeration
             foreach (string fieldRefString in matchingFieldRefs)
             {
                 // Currently we have document fields that match the query, but we

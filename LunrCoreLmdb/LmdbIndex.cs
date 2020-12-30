@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 using LightningDB;
@@ -44,14 +42,16 @@ namespace LunrCoreLmdb
 
         public IEnumerable<string> GetFields(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFields(c, cancellationToken));
 
-        private static IEnumerable<string> GetFields(LightningCursor cursor, CancellationToken cancellationToken)
+        private static IList<string> GetFields(LightningCursor cursor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var fields = new List<string>();
 
             var allFieldsKey = KeyBuilder.GetAllFieldsKey();
             var sr = cursor.SetRange(allFieldsKey);
             if (sr != MDBResultCode.Success)
-                yield break;
+                return fields;
 
             var (r, k, v) = cursor.GetCurrent();
 
@@ -62,12 +62,14 @@ namespace LunrCoreLmdb
 
                 var buffer = v.AsSpan().ToArray();
                 var field = Encoding.UTF8.GetString(buffer);
-                yield return field;
+                fields.Add(field);
 
                 r = cursor.Next();
                 if (r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
+
+            return fields;
         }
 
         #endregion
@@ -85,31 +87,30 @@ namespace LunrCoreLmdb
             });
         }
 
-        public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken)
+        public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken) => WithReadOnlyCursor(cursor =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return WithReadOnlyCursor(cursor =>
-            {
-                var (r, k, v) = cursor.SetKey(KeyBuilder.BuildFieldVectorValueKey(key));
-                if (r != MDBResultCode.Success)
-                    return default;
+            var (r, k, v) = cursor.SetKey(KeyBuilder.BuildFieldVectorValueKey(key));
+            if (r != MDBResultCode.Success)
+                return default;
 
-                var vector = v.AsSpan().DeserializeFieldVector();
-                return vector;
-            });
-        }
+            var vector = v.AsSpan().DeserializeFieldVector();
+            return vector;
+        });
 
         public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFieldVectorKeys(c, cancellationToken));
 
-        private static IEnumerable<string> GetFieldVectorKeys(LightningCursor cursor, CancellationToken cancellationToken)
+        private static IList<string> GetFieldVectorKeys(LightningCursor cursor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var keys = new List<string>();
 
             var allFieldVectorKeys = KeyBuilder.GetAllFieldVectorKeys();
             var sr = cursor.SetRange(allFieldVectorKeys);
             if (sr != MDBResultCode.Success)
-                yield break;
+                return keys;
 
             var (r, k, v) = cursor.GetCurrent();
             
@@ -120,12 +121,14 @@ namespace LunrCoreLmdb
 
                 var buffer = v.AsSpan().ToArray();
                 var key = Encoding.UTF8.GetString(buffer);
-                yield return key;
+                keys.Add(key);
 
                 r = cursor.Next();
                 if(r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
+
+            return keys;
         }
 
         public bool RemoveFieldVector(string key, CancellationToken cancellationToken)
@@ -252,32 +255,16 @@ namespace LunrCoreLmdb
 
         #endregion
 
-        public void Dispose()
-        {
-            _env.Dispose();
-        }
         
-        private LightningTransaction? _transaction;
-        private LightningDatabase? _database;
-        private LightningCursor? _cursor;
-
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         private T WithReadOnlyCursor<T>(Func<LightningCursor, T> func)
         {
             _semaphore.Wait();
-
-            _transaction?.Dispose();
-            _transaction = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-
-            _database?.Dispose();
-            _database = _transaction.OpenDatabase(configuration: Config);
-
-            _cursor?.Dispose();
-            _cursor = _transaction.CreateCursor(_database);
-
-            var result = func.Invoke(_cursor);
-
+            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var db = tx.OpenDatabase(configuration: Config);
+            using var cursor = tx.CreateCursor(db);
+            var result = func.Invoke(cursor);
             _semaphore.Release();
             return result;
         }
@@ -285,17 +272,19 @@ namespace LunrCoreLmdb
         private T WithWritableTransaction<T>(Func<LightningDatabase, LightningTransaction, T> func)
         {
             _semaphore.Wait();
-
-            _transaction?.Dispose();
-            _transaction = _env.BeginTransaction(TransactionBeginFlags.None);
-
-            _database?.Dispose();
-            _database = _transaction.OpenDatabase(configuration: Config);
-
-            var result = func.Invoke(_database, _transaction);
-
+            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+            var result = func.Invoke(db, tx);
             _semaphore.Release();
             return result;
+        }
+
+        public void Dispose()
+        {
+            _semaphore.Wait();
+            _env.Dispose();
+            _semaphore.Release();
+            _semaphore.Dispose();
         }
     }
 }
