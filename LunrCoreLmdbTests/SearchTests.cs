@@ -51,101 +51,101 @@ namespace LunrCoreLmdbTests
             Assert.Equal("b", result.DocumentReference);
         }
 
-        //[Fact]
-        //public async Task SearchWithBuildTimeDocumentBoostsNoQueryBoost()
-        //{
-        //    var idx = await GetIndexWithDocumentBoost();
-        //    Result result = (await idx.Search("plumb").ToList()).First();
-        //    Assert.Equal("c", result.DocumentReference);
-        //}
+        [Fact]
+        public async Task SearchWithBuildTimeDocumentBoostsNoQueryBoost()
+        {
+            var idx = await GetIndexWithDocumentBoost();
+            Result result = (await idx.Search("plumb").ToList()).First();
+            Assert.Equal("c", result.DocumentReference);
+        }
 
-        //[Fact]
-        //public async Task SearchWithWithBuildTimeDocumentBoostsAndQueryBoost()
-        //{
-        //    var idx = await GetIndexWithDocumentBoost();
-        //    Result result = (await idx.Search("green study^10").ToList()).First();
-        //    // b ranks highest
-        //    Assert.Equal("b", result.DocumentReference);
-        //}
+        [Fact]
+        public async Task SearchWithWithBuildTimeDocumentBoostsAndQueryBoost()
+        {
+            var idx = await GetIndexWithDocumentBoost();
+            Result result = (await idx.Search("green study^10").ToList()).First();
+            // b ranks highest
+            Assert.Equal("b", result.DocumentReference);
+        }
 
-        //[Fact]
-        //public async Task SingleTermSearchWithoutBuildTimeBoost()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    Result result = (await idx.Search("scarlett").ToList()).Single();
-        //    Assert.Equal("c", result.DocumentReference);
-        //}
+        [Fact]
+        public async Task SingleTermSearchWithoutBuildTimeBoost()
+        {
+            var idx = await GetPlainIndex();
+            Result result = (await idx.Search("scarlett").ToList()).Single();
+            Assert.Equal("c", result.DocumentReference);
+        }
 
-        //[Fact]
-        //public async Task SearchNoMatch()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    Assert.False(await idx.Search("foo").Any());
-        //}
+        [Fact]
+        public async Task SearchNoMatch()
+        {
+            var idx = await GetPlainIndex();
+            Assert.False(await idx.Search("foo").Any());
+        }
 
-        //[Fact]
-        //public async Task SearchMultipleMatches()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Search("plant").ToList();
+        [Fact]
+        public async Task SearchMultipleMatches()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Search("plant").ToList();
 
-        //    Assert.Equal(2, results.Count);
-        //    Assert.Equal("b", results[0].DocumentReference);
-        //    Assert.Equal("c", results[1].DocumentReference);
-        //}
+            Assert.Equal(2, results.Count);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal("c", results[1].DocumentReference);
+        }
 
-        //// study would be stemmed to studi, tokens
-        //// are stemmed by default on index and must
-        //// also be stemmed on search to match
-        //[Fact]
-        //public async Task PipelineProcessingTwoMatches()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Query(q =>
-        //    {
-        //        q.AddTerm(term: "study", usePipeline: true);
-        //    }).ToList();
+        // study would be stemmed to studi, tokens
+        // are stemmed by default on index and must
+        // also be stemmed on search to match
+        [Fact]
+        public async Task PipelineProcessingTwoMatches()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Query(q =>
+            {
+                q.AddTerm(term: "study", usePipeline: true);
+            }).ToList();
 
-        //    Assert.Equal(2, results.Count);
-        //    Assert.Equal("b", results[0].DocumentReference);
-        //    Assert.Equal("a", results[1].DocumentReference);
-        //}
+            Assert.Equal(2, results.Count);
+            Assert.Equal("b", results[0].DocumentReference);
+            Assert.Equal("a", results[1].DocumentReference);
+        }
 
-        //[Fact]
-        //public async Task NoPipelineProcessingNoMatches()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Query(q =>
-        //    {
-        //        q.AddTerm(term: "study", usePipeline: false);
-        //    }).ToList();
+        [Fact]
+        public async Task NoPipelineProcessingNoMatches()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Query(q =>
+            {
+                q.AddTerm(term: "study", usePipeline: false);
+            }).ToList();
 
-        //    Assert.False(results.Any());
-        //}
+            Assert.False(results.Any());
+        }
 
-        //[Fact]
-        //public async Task MultipleTermsAllTermsMatch()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Search("fellow candlestick").ToList();
+        [Fact]
+        public async Task MultipleTermsAllTermsMatch()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Search("fellow candlestick").ToList();
 
-        //    Assert.Single(results);
-        //    Assert.Equal("a", results[0].DocumentReference);
-        //    Assert.Equal(new[] {"fellow", "candlestick"}, results[0].MatchData.Posting.Keys);
-        //    Assert.Equal("body", results[0].MatchData.Posting["fellow"].Keys.Single());
-        //    Assert.Equal("body", results[0].MatchData.Posting["candlestick"].Keys.Single());
-        //}
+            Assert.Single(results);
+            Assert.Equal("a", results[0].DocumentReference);
+            Assert.Equal(new[] { "fellow", "candlestick" }, results[0].MatchData.Posting.Keys);
+            Assert.Equal("body", results[0].MatchData.Posting["fellow"].Keys.Single());
+            Assert.Equal("body", results[0].MatchData.Posting["candlestick"].Keys.Single());
+        }
 
-        //[Fact]
-        //public async Task MultipleTermsOneTermsMatches()
-        //{
-        //    var idx = await GetPlainIndex();
-        //    IList<Result> results = await idx.Search("week foo").ToList();
+        [Fact]
+        public async Task MultipleTermsOneTermsMatches()
+        {
+            var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Search("week foo").ToList();
 
-        //    Assert.Single(results);
-        //    Assert.Equal("c", results[0].DocumentReference);
-        //    Assert.Equal(new[] {"week"}, results[0].MatchData.Posting.Keys);
-        //}
+            Assert.Single(results);
+            Assert.Equal("c", results[0].DocumentReference);
+            Assert.Equal(new[] { "week" }, results[0].MatchData.Posting.Keys);
+        }
 
         //[Fact]
         //public async Task MultipleTermsDuplicateQueryTerms()
@@ -162,8 +162,8 @@ namespace LunrCoreLmdbTests
         //    IList<Result> results = await idx.Search("candlestick green").ToList();
 
         //    Assert.Equal(3, results.Count);
-        //    Assert.Equal(new[] {"a", "b", "c"}, results.Select(result => result.DocumentReference));
-        //    Assert.Equal(new[] {"candlestick", "green"}, results[0].MatchData.Posting.Keys);
+        //    Assert.Equal(new[] { "a", "b", "c" }, results.Select(result => result.DocumentReference));
+        //    Assert.Equal(new[] { "candlestick", "green" }, results[0].MatchData.Posting.Keys);
         //    Assert.Equal("green", results[1].MatchData.Posting.Keys.Single());
         //    Assert.Equal("green", results[2].MatchData.Posting.Keys.Single());
         //}
@@ -184,7 +184,7 @@ namespace LunrCoreLmdbTests
         //    IList<Result> results = await idx.Search("water").ToList();
 
         //    Assert.Equal(2, results.Count);
-        //    Assert.Equal(new[] {"b", "c"}.ToHashSet(), results.Select(result => result.DocumentReference).ToHashSet());
+        //    Assert.Equal(new[] { "b", "c" }.ToHashSet(), results.Select(result => result.DocumentReference).ToHashSet());
         //}
 
         //[Fact]
