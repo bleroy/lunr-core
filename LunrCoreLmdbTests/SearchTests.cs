@@ -45,7 +45,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchWithBuildTimeFieldBoostsNoQueryBoost()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             Result result = (await idx.Search("professor").ToList()).First();
             // b ranks highest
             Assert.Equal("b", result.DocumentReference);
@@ -54,7 +54,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchWithBuildTimeDocumentBoostsNoQueryBoost()
         {
-            var idx = await GetIndexWithDocumentBoost();
+            using var idx = await GetIndexWithDocumentBoost();
             Result result = (await idx.Search("plumb").ToList()).First();
             Assert.Equal("c", result.DocumentReference);
         }
@@ -62,7 +62,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchWithWithBuildTimeDocumentBoostsAndQueryBoost()
         {
-            var idx = await GetIndexWithDocumentBoost();
+            using var idx = await GetIndexWithDocumentBoost();
             Result result = (await idx.Search("green study^10").ToList()).First();
             // b ranks highest
             Assert.Equal("b", result.DocumentReference);
@@ -71,7 +71,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SingleTermSearchWithoutBuildTimeBoost()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             Result result = (await idx.Search("scarlett").ToList()).Single();
             Assert.Equal("c", result.DocumentReference);
         }
@@ -79,14 +79,14 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchNoMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             Assert.False(await idx.Search("foo").Any());
         }
 
         [Fact]
         public async Task SearchMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("plant").ToList();
 
             Assert.Equal(2, results.Count);
@@ -100,7 +100,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task PipelineProcessingTwoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Query(q =>
             {
                 q.AddTerm(term: "study", usePipeline: true);
@@ -114,7 +114,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task NoPipelineProcessingNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Query(q =>
             {
                 q.AddTerm(term: "study", usePipeline: false);
@@ -126,7 +126,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task MultipleTermsAllTermsMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("fellow candlestick").ToList();
 
             Assert.Single(results);
@@ -139,7 +139,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task MultipleTermsOneTermsMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("week foo").ToList();
 
             Assert.Single(results);
@@ -150,7 +150,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task MultipleTermsDuplicateQueryTerms()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("fellow candlestick foo bar green plant fellow").ToList();
             Assert.Equal(3, results.Count);
         }
@@ -158,7 +158,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task MultipleTermsDocumentsWithAllTermsScoreHigher()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("candlestick green").ToList();
 
             Assert.Equal(3, results.Count);
@@ -171,7 +171,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task MultipleTermsNoTermsMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("foo bar").ToList();
 
             Assert.Empty(results);
@@ -180,7 +180,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task CorpusTermsAreStemmed()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("water").ToList();
 
             Assert.Equal(2, results.Count);
@@ -190,7 +190,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task FieldScopedTerm()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("title:plant").ToList();
 
             Assert.Single(results);
@@ -202,7 +202,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task FieldScopedTermNoMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("title:candlestick").ToList();
 
             Assert.Empty(results);
@@ -211,7 +211,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TrailingWildcardNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("fo*").ToList();
 
             Assert.Empty(results);
@@ -220,7 +220,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TrailingWildcardOneMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("candle*").ToList();
 
             Assert.Single(results);
@@ -231,7 +231,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TrailingWildcardMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("pl*").ToList();
 
             Assert.Equal(2, results.Count);
@@ -243,7 +243,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task LeadingWildcardNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("*oo").ToList();
 
             Assert.Empty(results);
@@ -252,7 +252,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task LeadingWildcardMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("*ant").ToList();
 
             Assert.Equal(2, results.Count);
@@ -264,7 +264,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task ContainedWildcardNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("f*o").ToList();
 
             Assert.Empty(results);
@@ -273,7 +273,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task ContainedWildcardMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("pl*nt").ToList();
 
             Assert.Equal(2, results.Count);
@@ -285,7 +285,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task EditDistanceNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("foo~1").ToList();
 
             Assert.Empty(results);
@@ -294,7 +294,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task EditDistanceMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("plont~1").ToList();
 
             Assert.Equal(2, results.Count);
@@ -306,7 +306,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchByUnknownField()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             await Assert.ThrowsAsync<QueryParserException>(async () =>
             {
                 await idx.Search("unknown-field:plant").ToList();
@@ -316,7 +316,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchByFieldNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("title:candlestick").ToList();
 
             Assert.Empty(results);
@@ -325,7 +325,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task SearchByFieldOneMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("title:plant").ToList();
 
             Assert.Single(results);
@@ -336,7 +336,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task BoostNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("foo^10").ToList();
 
             Assert.Empty(results);
@@ -345,7 +345,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task BoostMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("scarlett candlestick^5").ToList();
 
             Assert.Equal(2, results.Count);
@@ -357,7 +357,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TypeAheadStyleSearchNoResults()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Query(q => q
                 .AddTerm("xyz", boost: 100, usePipeline: true)
                 .AddTerm("xyz", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
@@ -370,7 +370,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TypeAheadStyleSearchMultipleResults()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Query(q => q
                 .AddTerm("pl", boost: 100, usePipeline: true)
                 .AddTerm("pl", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
@@ -386,7 +386,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task ProhibitedTermNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("-green").ToList();
 
             Assert.Empty(results);
@@ -395,7 +395,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task ProhibitedTermMultipleMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("-candlestick green").ToList();
 
             Assert.Equal(2, results.Count);
@@ -407,7 +407,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task NegatedTermNoMatches()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
 
             IList<Result> results = await idx.Search("-qwertyuiop").ToList();
 
@@ -418,7 +418,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task NegatedTermSomeMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("-plant").ToList();
 
             Assert.Single(results);
@@ -429,7 +429,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task FieldMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("-title:plant plumb").ToList();
 
             Assert.Single(results);
@@ -440,7 +440,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task RequiredTermMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+candlestick green").ToList();
 
             Assert.Single(results);
@@ -451,7 +451,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task RequiredTermsNoMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+mustard +plant").ToList();
 
             Assert.Empty(results);
@@ -460,7 +460,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task NoMatchingTerms()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+qwertyuiop green").ToList();
 
             Assert.Empty(results);
@@ -469,7 +469,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task RequiredFieldMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+title:plant green").ToList();
 
             Assert.Single(results);
@@ -480,7 +480,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task RequiredFieldAndTermMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+title:plant +green").ToList();
 
             Assert.Single(results);
@@ -491,7 +491,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TwoRequiredFieldsMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+title:plant +body:study").ToList();
 
             Assert.Single(results);
@@ -502,7 +502,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task TwoRequiredFieldsOnlyOneMatch()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+title:plant +body:qwertyuiop").ToList();
 
             Assert.Empty(results);
@@ -511,7 +511,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task AllTogetherNow()
         {
-            var idx = await GetPlainIndex();
+            using var idx = await GetPlainIndex();
             IList<Result> results = await idx.Search("+plant green -office").ToList();
 
             Assert.Single(results);
