@@ -8,14 +8,22 @@ using Index = Lunr.Index;
 
 namespace LunrCoreLmdbTests
 {
-    public class SerializationTests
+    [Collection(nameof(TempDirectory))]
+    public class SerializationTests : IDisposable
     {
+        private readonly TempDirectory _tempDir;
+
+        public SerializationTests(TempDirectory tempDir)
+        {
+            _tempDir = tempDir;
+        }
+
         [Fact]
         public void Can_persist_fields()
         {
             const string field = "Field";
 
-            var index = new LmdbIndex(Guid.NewGuid().ToString());
+            using var index = new LmdbIndex(_tempDir.NewDirectory());
 
             try
             {
@@ -35,7 +43,6 @@ namespace LunrCoreLmdbTests
             }
             finally
             {
-                index.Destroy();
                 index.Dispose();
             }
         }
@@ -45,74 +52,58 @@ namespace LunrCoreLmdbTests
         {
             const string key = "Key";
 
-            var index = new LmdbIndex(Guid.NewGuid().ToString());
+            using var index = new LmdbIndex(_tempDir.NewDirectory());
 
-            try
-            {
-                Vector vector = VectorFrom(4, 5, 6);
-                Assert.Equal(Math.Sqrt(77), vector.Magnitude);
+            Vector vector = VectorFrom(4, 5, 6);
+            Assert.Equal(Math.Sqrt(77), vector.Magnitude);
 
-                var addedVector = index.AddFieldVector(key, vector, CancellationToken.None);
-                Assert.True(addedVector);
+            var addedVector = index.AddFieldVector(key, vector, CancellationToken.None);
+            Assert.True(addedVector);
 
-                var getByKey = index.GetFieldVectorByKey(key);
-                Assert.NotNull(getByKey);
-                Assert.Equal(Math.Sqrt(77), getByKey?.Magnitude);
+            var getByKey = index.GetFieldVectorByKey(key);
+            Assert.NotNull(getByKey);
+            Assert.Equal(Math.Sqrt(77), getByKey?.Magnitude);
 
-                var getKeys = index.GetFieldVectorKeys().ToList();
-                Assert.Single(getKeys);
-                Assert.Equal(getKeys[0], key);
+            var getKeys = index.GetFieldVectorKeys().ToList();
+            Assert.Single(getKeys);
+            Assert.Equal(getKeys[0], key);
 
-                var removedVector = index.RemoveFieldVector(key, CancellationToken.None);
-                Assert.True(removedVector);
+            var removedVector = index.RemoveFieldVector(key, CancellationToken.None);
+            Assert.True(removedVector);
 
-                var noVector = index.GetFieldVectorByKey(key);
-                Assert.Null(noVector);
+            var noVector = index.GetFieldVectorByKey(key);
+            Assert.Null(noVector);
 
-                var noVectorKeys = index.GetFieldVectorKeys(CancellationToken.None);
-                Assert.Empty(noVectorKeys);
-            }
-            finally
-            {
-                index.Destroy();
-                index.Dispose();
-            }
+            var noVectorKeys = index.GetFieldVectorKeys(CancellationToken.None);
+            Assert.Empty(noVectorKeys);
         }
 
         [Fact]
         public void Can_persist_inverted_index_entries()
         {
-            var lmdb = new LmdbIndex(Guid.NewGuid().ToString());
+            using var lmdb = new LmdbIndex(_tempDir.NewDirectory());
 
-            try
+            var builder = new Builder();
+            builder.AddField("title");
+            builder.Add(new Document
             {
-                var builder = new Builder();
-                builder.AddField("title");
-                builder.Add(new Document
-                {
-                    { "id", "id" },
-                    { "title", "test" },
-                    { "body", "missing" }
-                }).ConfigureAwait(false).GetAwaiter().GetResult();
-                Index index = builder.Build();
+                { "id", "id" },
+                { "title", "test" },
+                { "body", "missing" }
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            Index index = builder.Build();
 
-                var firstKey = index.InvertedIndex.Keys.FirstOrDefault() ?? throw new InvalidOperationException();
-                Assert.NotNull(firstKey);
+            var firstKey = index.InvertedIndex.Keys.FirstOrDefault() ?? throw new InvalidOperationException();
+            Assert.NotNull(firstKey);
 
-                var added = lmdb.AddInvertedIndexEntry(firstKey, index.InvertedIndex[firstKey], CancellationToken.None);
-                Assert.True(added);
+            var added = lmdb.AddInvertedIndexEntry(firstKey, index.InvertedIndex[firstKey], CancellationToken.None);
+            Assert.True(added);
                 
-                var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey);
-                Assert.NotNull(getInvertedIndexEntry);
+            var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey);
+            Assert.NotNull(getInvertedIndexEntry);
 
-                var tokenSet = lmdb.IntersectTokenSets(index.TokenSet);
-                Assert.Single(tokenSet.Edges);
-            }
-            finally
-            {
-                lmdb.Destroy();
-                lmdb.Dispose();
-            }
+            var tokenSet = lmdb.IntersectTokenSets(index.TokenSet);
+            Assert.Single(tokenSet.Edges);
         }
 
         [Fact]
@@ -229,5 +220,10 @@ namespace LunrCoreLmdbTests
 
         private static Vector VectorFrom(params double[] elements)
             => new Vector(elements.Select((el, i) => (i, el)).ToArray());
+
+        public void Dispose()
+        {
+            _tempDir.Dispose();
+        }
     }
 }
