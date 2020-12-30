@@ -8,19 +8,19 @@ namespace LunrCoreLmdb
         #region Fields
 
         private static readonly byte[] FieldPrefix = Encoding.UTF8.GetBytes("F:");
-        public static byte[] BuildAllFieldsKey() => FieldPrefix;
+        public static byte[] GetAllFieldsKey() => FieldPrefix;
         public static byte[] BuildFieldKey(string field) => FieldPrefix.Concat(Encoding.UTF8.GetBytes(field));
 
         #endregion
 
         #region Field Vectors
 
-        private static readonly byte[] FieldVectorKeyPrefix = Encoding.UTF8.GetBytes("VK:");
-        public static byte[] BuildAllFieldVectorKeys() => FieldVectorKeyPrefix;
+        private static readonly byte[] FieldVectorKeyPrefix = Encoding.UTF8.GetBytes("K:");
+        public static byte[] GetAllFieldVectorKeys() => FieldVectorKeyPrefix;
         public static ReadOnlySpan<byte> BuildFieldVectorKeyKey(string key) => FieldVectorKeyPrefix.Concat(Encoding.UTF8.GetBytes(key));
 
         private static readonly byte[] FieldVectorValuePrefix = Encoding.UTF8.GetBytes("V:");
-        public static byte[] BuildFieldVectorKey(string key) => FieldVectorValuePrefix.Concat(Encoding.UTF8.GetBytes(key));
+        public static byte[] BuildFieldVectorValueKey(string key) => FieldVectorValuePrefix.Concat(Encoding.UTF8.GetBytes(key));
 
         #endregion
 

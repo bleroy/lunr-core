@@ -17,7 +17,7 @@ namespace LunrCoreLmdb
             var context = new SerializeContext(bw);
 
             var values = vector.Save().ToList();
-            context.bw.Write(values.Count);
+            context.bw.Write(values.Count / 2);
             foreach (var value in values)
             {
                 context.bw.Write(value);
