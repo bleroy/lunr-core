@@ -5,20 +5,30 @@ namespace LunrCoreLmdb
 {
     public sealed class SerializeContext
     {
-        public const ulong FormatVersion = 1UL;
+        public const int FormatVersion = 1;
 
-        public readonly BinaryWriter bw;
+        private readonly BinaryWriter _bw;
 
-        public SerializeContext(BinaryWriter bw, ulong version = FormatVersion)
+        public SerializeContext(BinaryWriter bw, int version = FormatVersion)
         {
-            this.bw = bw;
+            _bw = bw;
             if (Version > FormatVersion)
                 throw new Exception("Tried to write an object with a version that is too new");
             Version = version;
-
-            bw.Write(Version);
+            _bw.Write(Version);
         }
 
-        public ulong Version { get; }
+        public int Version { get; }
+
+        public void Write(int value) => _bw.Write(value);
+
+        public void Write(double value) => _bw.Write(value);
+
+        public void Write(string value)
+        {
+            _bw.Write(value.Length);
+            foreach(var c in value)
+                _bw.Write((byte) c);
+        }
     }
 }

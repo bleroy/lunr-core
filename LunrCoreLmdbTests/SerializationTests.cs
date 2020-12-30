@@ -126,8 +126,7 @@ namespace LunrCoreLmdbTests
             Index index = builder.Build();
 
             var original = index.InvertedIndex;
-            var buffer = original.Serialize();
-            var deserialized = buffer.DeserializeInvertedIndex();
+            var deserialized = original.Serialize().DeserializeInvertedIndex();
 
             AssertInvertedIndex(original, deserialized);
         }

@@ -30,14 +30,13 @@ namespace LunrCoreLmdbPerf
                 {
                     var ms = new UnmanagedMemoryStream(buf, _buffer.Length);
                     var br = new BinaryReader(ms);
-                    var context = new DeserializeContext(br);
 
-                    var count = context.br.ReadInt32();
+                    var count = br.ReadInt32();
                     var values = new List<(int, double)>();
                     for (var i = 0; i < count; i++)
                     {
-                        var index = context.br.ReadDouble();
-                        var value = context.br.ReadDouble();
+                        var index = br.ReadDouble();
+                        var value = br.ReadDouble();
                         values.Add(((int) index, value));
                     }
 

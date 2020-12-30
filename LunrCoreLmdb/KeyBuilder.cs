@@ -40,7 +40,7 @@ namespace LunrCoreLmdb
 
         #endregion
 
-        public static byte[] Concat(this byte[] left, byte[] right)
+        private static byte[] Concat(this byte[] left, byte[] right)
         {
             var buffer = new byte[left.Length + right.Length];
             Buffer.BlockCopy(left, 0, buffer, 0, left.Length);

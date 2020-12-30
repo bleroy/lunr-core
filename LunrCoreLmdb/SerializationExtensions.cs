@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
 using Lunr;
 
 namespace LunrCoreLmdb
@@ -13,14 +16,13 @@ namespace LunrCoreLmdb
         public static ReadOnlySpan<byte> Serialize(this Vector vector)
         {
             using var ms = new MemoryStream();
-            using var bw = new BinaryWriter(ms);
+            using var bw = new BinaryWriter(ms, Encoding.UTF8);
             var context = new SerializeContext(bw);
-
-            var values = vector.Save().ToList();
-            context.bw.Write(values.Count / 2);
-            foreach (var value in values)
+                        
+            context.Write(vector.Count);
+            foreach (var value in vector.Save())
             {
-                context.bw.Write(value);
+                context.Write(value);
             }
 
             ms.Position = 0;
@@ -29,26 +31,19 @@ namespace LunrCoreLmdb
 
         public static Vector DeserializeFieldVector(this ReadOnlySpan<byte> buffer)
         {
-            unsafe
+            var context = new DeserializeContext(ref buffer);
+
+            var count = context.ReadInt32(ref buffer);
+
+            var values = new List<(int, double)>();
+            for (var i = 0; i < count; i++)
             {
-                fixed(byte* buf = &buffer.GetPinnableReference())
-                {
-                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    using var br = new BinaryReader(ms);
-                    var context = new DeserializeContext(br);
-
-                    var count = context.br.ReadInt32();
-                    var values = new List<(int, double)>();
-                    for (var i = 0; i < count; i++)
-                    {
-                        var index = context.br.ReadDouble();
-                        var value = context.br.ReadDouble();
-                        values.Add(((int) index, value));
-                    }
-
-                    return new Vector(values.ToArray());
-                }
+                var index = context.ReadDouble(ref buffer);
+                var value = context.ReadDouble(ref buffer);
+                values.Add(((int) index, value));
             }
+
+            return new Vector(values.ToArray());
         }
 
         #endregion
@@ -58,17 +53,17 @@ namespace LunrCoreLmdb
         public static ReadOnlySpan<byte> Serialize(this InvertedIndex invertedIndex)
         {
             using var ms = new MemoryStream();
-            using var bw = new BinaryWriter(ms);
+            using var bw = new BinaryWriter(ms, Encoding.UTF8);
             var context = new SerializeContext(bw);
 
             var entries =
                 invertedIndex.OrderBy(kvp => kvp.Key, StringComparer.Ordinal)
                     .ToList();
 
-            context.bw.Write(entries.Count);
+            context.Write(entries.Count);
             foreach(var entry in entries)
             {
-                context.bw.Write(entry.Key);
+                context.Write(entry.Key);
                 entry.Value.Serialize(context);
             }
 
@@ -79,23 +74,13 @@ namespace LunrCoreLmdb
         public static InvertedIndex DeserializeInvertedIndex(this ReadOnlySpan<byte> buffer)
         {
             var invertedIndex = new InvertedIndex();
-
-            unsafe
+            var context = new DeserializeContext(ref buffer);
+            var count = context.ReadInt32(ref buffer);
+            for (var i = 0; i < count; i++)
             {
-                fixed (byte* buf = &buffer.GetPinnableReference())
-                {
-                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    using var br = new BinaryReader(ms);
-                    var context = new DeserializeContext(br);
-
-                    var count = context.br.ReadInt32();
-                    for (var i = 0; i < count; i++)
-                    {
-                        var key = context.br.ReadString();
-                        var value = DeserializeInvertedIndexEntry(context);
-                        invertedIndex.Add(key, value);
-                    }
-                }
+                var key = context.ReadString(ref buffer);
+                var value = DeserializeInvertedIndexEntry(context, ref buffer);
+                invertedIndex.Add(key, value);
             }
 
             return invertedIndex;
@@ -119,23 +104,23 @@ namespace LunrCoreLmdb
 
         public static void Serialize(this InvertedIndexEntry invertedIndexEntry, SerializeContext context)
         {
-            context.bw.Write(invertedIndexEntry.Index);
-            context.bw.Write(invertedIndexEntry.Count);
+            context.Write(invertedIndexEntry.Index);
+            context.Write(invertedIndexEntry.Count);
 
             foreach (KeyValuePair<string, FieldMatches> pair in invertedIndexEntry)
             {
-                context.bw.Write(pair.Key);
-                context.bw.Write(pair.Value.Count); // FieldMatches
+                context.Write(pair.Key);
+                context.Write(pair.Value.Count); // FieldMatches
 
                 foreach (KeyValuePair<string, FieldMatchMetadata> fieldMatches in pair.Value)
                 {
-                    context.bw.Write(fieldMatches.Key);
-                    context.bw.Write(fieldMatches.Value.Count); // FieldMatchMetadata
+                    context.Write(fieldMatches.Key);
+                    context.Write(fieldMatches.Value.Count); // FieldMatchMetadata
 
                     foreach (KeyValuePair<string, IList<object?>> fieldMatchMetadata in fieldMatches.Value)
                     {
-                        context.bw.Write(fieldMatchMetadata.Key);
-                        context.bw.Write(fieldMatchMetadata.Value.Count);
+                        context.Write(fieldMatchMetadata.Key);
+                        context.Write(fieldMatchMetadata.Value.Count);
 
                         // ??
                     }
@@ -145,42 +130,34 @@ namespace LunrCoreLmdb
 
         public static InvertedIndexEntry DeserializeInvertedIndexEntry(this ReadOnlySpan<byte> buffer)
         {
-            unsafe
-            {
-                fixed(byte* buf = &buffer.GetPinnableReference())
-                {
-                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    using var br = new BinaryReader(ms);
-                    var context = new DeserializeContext(br);
+            var context = new DeserializeContext(ref buffer);
 
-                    return DeserializeInvertedIndexEntry(context);
-                }
-            }
+            return DeserializeInvertedIndexEntry(context, ref buffer);
         }
 
-        public static InvertedIndexEntry DeserializeInvertedIndexEntry(this DeserializeContext context)
+        public static InvertedIndexEntry DeserializeInvertedIndexEntry(this DeserializeContext context, ref ReadOnlySpan<byte> buffer)
         {
             var entry = new InvertedIndexEntry();
-            entry.Index = context.br.ReadInt32(); // Index
-            var fieldMatchesCount = context.br.ReadInt32(); // Count
+            entry.Index = context.ReadInt32(ref buffer);
+            var fieldMatchesCount = context.ReadInt32(ref buffer);
 
             for (var i = 0; i < fieldMatchesCount; i++)
             {
                 var fieldMatches = new FieldMatches();
 
-                var fieldMatchesKey = context.br.ReadString();
-                var fieldMatchCount = context.br.ReadInt32();
+                var fieldMatchesKey = context.ReadString(ref buffer);
+                var fieldMatchCount = context.ReadInt32(ref buffer);
 
                 for (var j = 0; j < fieldMatchCount; j++)
                 {
                     var fieldMatchMeta = new FieldMatchMetadata();
 
-                    var fieldMatchMetaKey = context.br.ReadString();
-                    var fieldMatchMetaCount = context.br.ReadInt32();
+                    var fieldMatchMetaKey = context.ReadString(ref buffer);
+                    var fieldMatchMetaCount = context.ReadInt32(ref buffer);
 
                     for (var k = 0; k < fieldMatchMetaCount; k++)
                     {
-                        var fieldMatchMetaValueKey = context.br.ReadString();
+                        var fieldMatchMetaValueKey = context.ReadString(ref buffer);
                         fieldMatchMeta.Add(fieldMatchMetaValueKey, new List<object?>());
                     }
 
@@ -200,7 +177,7 @@ namespace LunrCoreLmdb
         public static ReadOnlySpan<byte> Serialize(this TokenSet tokenSet)
         {
             var ms = new MemoryStream();
-            var bw = new BinaryWriter(ms);
+            var bw = new BinaryWriter(ms, Encoding.UTF8);
             var context = new SerializeContext(bw);
 
             tokenSet.Serialize(context);
@@ -212,34 +189,20 @@ namespace LunrCoreLmdb
         public static void Serialize(this TokenSet tokenSet, SerializeContext context)
         {
             var words = tokenSet.ToEnumeration().ToList();
-            context.bw.Write(words.Count);
+            context.Write(words.Count);
             foreach (var word in words)
-            {
-                context.bw.Write(word);
-            }
+                context.Write(word);
         }
 
-        public static TokenSet DeserializeTokenSet(this ReadOnlySpan<byte> buffer)
-        {
-            unsafe
-            {
-                fixed(byte* buf = &buffer.GetPinnableReference())
-                {
-                    using var ms = new UnmanagedMemoryStream(buf, buffer.Length);
-                    using var br = new BinaryReader(ms);
-                    var context = new DeserializeContext(br);
-                    return context.DeserializeTokenSet();
-                }
-            }
-        }
+        public static TokenSet DeserializeTokenSet(this ReadOnlySpan<byte> buffer) => new DeserializeContext(ref buffer).DeserializeTokenSet(ref buffer);
 
-        public static TokenSet DeserializeTokenSet(this DeserializeContext context)
+        public static TokenSet DeserializeTokenSet(this DeserializeContext context, ref ReadOnlySpan<byte> buffer)
         {
             var builder = new TokenSet.Builder();
-            var count = context.br.ReadInt32();
+            var count = context.ReadInt32(ref buffer);
             for (var i = 0; i < count; i++)
             {
-                var word = context.br.ReadString();
+                var word = context.ReadString(ref buffer);
                 builder.Insert(word);
             }
             return builder.Root;
