@@ -256,35 +256,26 @@ namespace LunrCoreLmdb
         #endregion
 
         
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-
         private T WithReadOnlyCursor<T>(Func<LightningCursor, T> func)
         {
-            _semaphore.Wait();
             using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
             using var cursor = tx.CreateCursor(db);
             var result = func.Invoke(cursor);
-            _semaphore.Release();
             return result;
         }
 
         private T WithWritableTransaction<T>(Func<LightningDatabase, LightningTransaction, T> func)
         {
-            _semaphore.Wait();
             using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
             using var db = tx.OpenDatabase(configuration: Config);
             var result = func.Invoke(db, tx);
-            _semaphore.Release();
             return result;
         }
 
         public void Dispose()
         {
-            _semaphore.Wait();
             _env.Dispose();
-            _semaphore.Release();
-            _semaphore.Dispose();
         }
     }
 }
