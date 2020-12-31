@@ -122,7 +122,21 @@ namespace LunrCoreLmdb
                         context.Write(fieldMatchMetadata.Key);
                         context.Write(fieldMatchMetadata.Value.Count);
 
-                        // ??
+                        foreach (object? meta in fieldMatchMetadata.Value)
+                        {
+                            var type = meta?.GetType();
+                            if (type == null)
+                                continue;
+
+                            if (!SerializeContext.KnownTypes.TryGetValue(type, out var serializer))
+                                throw new SerializationException($"no serializer registered for '{type.Name}'");
+
+                            if (context.Write(meta != null && type != null))
+                            {
+                                context.Write(type?.FullName!);
+                                context.Write(serializer.Item1(meta ?? throw new InvalidOperationException("unexpected null value")));
+                            }
+                        }
                     }
                 }
             }
@@ -158,7 +172,33 @@ namespace LunrCoreLmdb
                     for (var k = 0; k < fieldMatchMetaCount; k++)
                     {
                         var fieldMatchMetaValueKey = context.ReadString(ref buffer);
-                        fieldMatchMeta.Add(fieldMatchMetaValueKey, new List<object?>());
+                        var fieldMatchMetaValueCount = context.ReadInt32(ref buffer);
+
+                        var meta = new List<object?>(fieldMatchMetaValueCount);
+
+                        for (var l = 0; l < fieldMatchMetaValueCount; l++)
+                        {
+                            if (context.ReadBoolean(ref buffer))
+                            {
+                                var typeName = context.ReadString(ref buffer);
+                                var type = Type.GetType(typeName);
+                                if(type == null)
+                                    throw new SerializationException($"no serializer registered for '{typeName}'");
+
+                                if (!SerializeContext.KnownTypes.TryGetValue(type, out var serializer))
+                                    throw new SerializationException($"no serializer registered for '{type.Name}'");
+
+                                var data = context.ReadBytes(ref buffer);
+                                var deserialized = serializer.Item2(data.ToArray());
+                                meta.Add(deserialized);
+                            }
+                            else
+                            {
+                                meta.Add(null);
+                            }
+                        }
+                        
+                        fieldMatchMeta.Add(fieldMatchMetaValueKey, meta);
                     }
 
                     fieldMatches.Add(fieldMatchMetaKey, fieldMatchMeta);

@@ -36,6 +36,13 @@ namespace LunrCoreLmdb
             buffer = buffer.Slice(1);
             return value;
         }
+
+        public bool ReadBoolean(ref ReadOnlySpan<byte> buffer)
+        {
+            var value = buffer[0] == 1;
+            buffer = buffer.Slice(1);
+            return value;
+        }
         
         public string ReadString(ref ReadOnlySpan<byte> buffer)
         {
@@ -48,5 +55,14 @@ namespace LunrCoreLmdb
             }
             return sb.ToString();
         }
+
+        public ReadOnlySpan<byte> ReadBytes(ref ReadOnlySpan<byte> buffer)
+        {
+            var length = ReadInt32(ref buffer);
+            var value = buffer.Slice(0, length);
+            buffer = buffer.Slice(length);
+            return value;
+        }
+
     }
 }
