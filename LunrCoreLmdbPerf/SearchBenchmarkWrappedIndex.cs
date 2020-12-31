@@ -12,4 +12,6 @@ namespace LunrCoreLmdbPerf
             Index = (await PlainIndex()).AsDelegated();
         }
     }
+
+
 }
