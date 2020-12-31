@@ -8,13 +8,13 @@ namespace Lunr.Multi
 {
     public readonly struct Among : IEquatable<Among>
     {
-        private readonly object s_size;
-        private readonly char[] s;
-        private readonly int result;
-        private readonly string? method;
-        private readonly int substring_i;
+        public readonly int s_size;
+        public readonly char[] s;
+        public readonly int result;
+        public readonly Func<bool>? method;
+        public readonly int substring_i;
 
-        public Among(string s, int substring_i, int result, string method = default!)
+        public Among(string s, int substring_i, int result, Func<bool> method = default!)
         {
             if (s == null)
                 throw new ArgumentException($"Bad Among initialization: s:{s}, substring_i: {substring_i}, result: {result}");
@@ -25,19 +25,14 @@ namespace Lunr.Multi
             this.method = method;
         }
 
-        public bool Equals(Among other)
-        {
-            return s_size.Equals(other.s_size) && 
-                   s.SequenceEqual(other.s) && 
-                   result == other.result &&
-                   method == other.method && 
-                   substring_i == other.substring_i;
-        }
+        public bool Equals(Among other) =>
+            s_size.Equals(other.s_size) && 
+            s.SequenceEqual(other.s) && 
+            result == other.result &&
+            method == other.method && 
+            substring_i == other.substring_i;
 
-        public override bool Equals(object? obj)
-        {
-            return obj is Among other && Equals(other);
-        }
+        public override bool Equals(object? obj) => obj is Among other && Equals(other);
 
         public override int GetHashCode()
         {
@@ -52,37 +47,8 @@ namespace Lunr.Multi
             }
         }
 
-        public static bool operator ==(Among left, Among right)
-        {
-            return left.Equals(right);
-        }
+        public static bool operator ==(Among left, Among right) => left.Equals(right);
 
-        public static bool operator !=(Among left, Among right)
-        {
-            return !left.Equals(right);
-        }
-
-        private sealed class AmongEqualityComparer : IEqualityComparer<Among>
-        {
-            public bool Equals(Among x, Among y)
-            {
-                return x.s_size.Equals(y.s_size) && x.s.Equals(y.s) && x.result == y.result && x.method == y.method && x.substring_i == y.substring_i;
-            }
-
-            public int GetHashCode(Among obj)
-            {
-                unchecked
-                {
-                    var hashCode = obj.s_size.GetHashCode();
-                    hashCode = (hashCode * 397) ^ obj.s.GetHashCode();
-                    hashCode = (hashCode * 397) ^ obj.result;
-                    hashCode = (hashCode * 397) ^ (obj.method != null ? obj.method.GetHashCode() : 0);
-                    hashCode = (hashCode * 397) ^ obj.substring_i;
-                    return hashCode;
-                }
-            }
-        }
-
-        public static IEqualityComparer<Among> AmongComparer { get; } = new AmongEqualityComparer();
+        public static bool operator !=(Among left, Among right) => !left.Equals(right);
     }
 }
