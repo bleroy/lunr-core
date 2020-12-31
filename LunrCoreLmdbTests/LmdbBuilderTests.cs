@@ -7,18 +7,25 @@ using Lunr;
 using LunrCoreLmdb;
 using LunrCoreTests;
 using Xunit;
-using Index = LunrCoreLmdb.DelegatedIndex;
 
 namespace LunrCoreLmdbTests
 {
-    public class BuilderTestsDelegatedIndex
+    [Collection(nameof(TempDirectory))]
+    public class LmdbBuilderTests : IDisposable
     {
+        private readonly TempDirectory _tempDir;
+
+        public LmdbBuilderTests(TempDirectory tempDir)
+        {
+            _tempDir = tempDir;
+        }
+
         // The next few tests really only makes sense in the Javascript version.
         // Including them anyways.
         [Fact]
         public async Task FieldContainsTermsThatClashWithObjectPrototype()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("title");
 
             await builder.Add(new Document
@@ -27,7 +34,7 @@ namespace LunrCoreLmdbTests
                 { "title", "constructor" }
             });
 
-            var index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);
             Assert.Equal(1,
@@ -39,7 +46,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task FieldNameClashesWithObjectPrototype()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("constructor");
             
             await builder.Add(new Document
@@ -48,7 +55,7 @@ namespace LunrCoreLmdbTests
                 { "constructor", "constructor" }
             });
 
-            var index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["constructor"]["id"]);
         }
@@ -56,7 +63,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task DocumentRefClashesWithObjectPrototype()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("title");
 
             await builder.Add(new Document
@@ -65,7 +72,7 @@ namespace LunrCoreLmdbTests
                 { "title", "word" }
             });
 
-            var index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("word")!["title"]["constructor"]);
         }
@@ -80,7 +87,7 @@ namespace LunrCoreLmdbTests
             };
             Pipeline.Function pipelineFunction = fn.ToPipelineFunction();
 
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.IndexingPipeline.RegisterFunction(pipelineFunction, "test");
             builder.IndexingPipeline.Add(pipelineFunction);
             builder.MetadataAllowList.Add("constructor");
@@ -93,7 +100,7 @@ namespace LunrCoreLmdbTests
                 { "title", "word" }
             });
 
-            var index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Equal(
                 new object?[] { "foo" },
@@ -103,7 +110,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task ExtractingNestedPropertiesFromADocument()
         {
-            var builder = new Builder(
+            var builder = new LmdbBuilder(
                 new Field<string>("name", extractor: ExtractName));
 
             await builder.Add(new Document
@@ -117,8 +124,8 @@ namespace LunrCoreLmdbTests
                     }
                 }
             });
-            
-            var index = builder.Build().AsDelegated();
+
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("bob")!["name"]["id"]);
         }
@@ -129,7 +136,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void DefiningFieldsToIndex()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("foo");
             Assert.Equal(new[] { "foo" }, builder.Fields.Select(f => f.Name));
         }
@@ -137,7 +144,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void FieldWithIllegalCharactersThrows()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             Assert.Throws<InvalidOperationException>(() =>
             {
                 builder.AddField("foo/bar");
@@ -147,14 +154,14 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void DefaultReferenceFieldIsId()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             Assert.Equal("id", builder.ReferenceField);
         }
 
         [Fact]
         public void DefiningAReferenceField()
         {
-            var builder = new Builder
+            var builder = new LmdbBuilder
             {
                 ReferenceField = "foo"
             };
@@ -164,7 +171,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void FieldLengthNormalizationFactorIsCoercedToRange()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             Assert.Equal(0.75, builder.FieldLengthNormalizationFactor);
 
             builder.FieldLengthNormalizationFactor = -1;
@@ -180,7 +187,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public void TermFrequencySaturationFactor()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             Assert.Equal(1.2, builder.TermFrequencySaturationFactor);
 
             builder.TermFrequencySaturationFactor = 1.6;
@@ -190,7 +197,7 @@ namespace LunrCoreLmdbTests
         [Fact]
         public async Task BuilderBuildsInvertedIndex()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("title");
             await builder.Add(new Document
             {
@@ -199,7 +206,7 @@ namespace LunrCoreLmdbTests
                 { "body", "missing" }
             });
 
-            Index index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
             Assert.Empty(builder.InvertedIndex["test"]["title"]["id"]);
 
@@ -219,8 +226,8 @@ namespace LunrCoreLmdbTests
 
         [Fact]
         public async Task BuilderCanIncludeTokenPositions()
-        { 
-            Index index = (await Lunr.Index.Build(async builder =>
+        {
+            using var index = await LmdbIndex.Build(_tempDir.NewDirectory(), async builder =>
             {
                 builder.MetadataAllowList.Add("position");
                 builder.AddField("href", 3);
@@ -234,16 +241,16 @@ namespace LunrCoreLmdbTests
                     {"title", "Bertrand"},
                     {"body", "I am developer."}
                 });
-            })).AsDelegated();
+            });
 
             Result developer = (await index.Search("developer").ToList()).Single();
             Assert.Equal(new Slice(5, 10), (Slice?)developer.MatchData.Posting["develop"]["body"]["position"].Single());
         }
-        
+
         [Fact]
         public async Task BuilderWithCustomSeparator()
         {
-            var builder = new Builder();
+            var builder = new LmdbBuilder();
             builder.AddField("title");
 
             var regex = new Regex(@"[^\w]");
@@ -255,9 +262,8 @@ namespace LunrCoreLmdbTests
                 { "title", "constructor(this,is,special)" }
             });
 
-            var index = builder.Build().AsDelegated();
+            using var index = builder.Build(_tempDir.NewDirectory());
 
-           
             Assert.Equal(4, builder.InvertedIndex.Count);
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);
             Assert.Empty(index.GetInvertedIndexEntryByKey("this")!["title"]["id"]);
@@ -267,6 +273,11 @@ namespace LunrCoreLmdbTests
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("this")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("is")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("special")]);
+        }
+
+        public void Dispose()
+        {
+            _tempDir.Dispose();
         }
     }
 }

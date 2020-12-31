@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using LightningDB;
 using Lunr;
 
@@ -11,9 +11,7 @@ namespace LunrCoreLmdb
 {
     public sealed class LmdbIndex : IReadOnlyIndex, IDisposable
     {
-        public LightningEnvironment Env { get; }
-
-        public string Path { get; }
+        private readonly LightningEnvironment _env;
 
         public LmdbIndex(string path)
         {
@@ -23,55 +21,139 @@ namespace LunrCoreLmdb
                 MaxReaders = DefaultMaxReaders,
                 MapSize = DefaultMapSize
             };
-            var environment = new LightningEnvironment(path, config);
-            environment.Open();
-            CreateIfNotExists(environment);
-            Env = environment;
-            Path = Env.Path;
+            _env = new LightningEnvironment(path, config);
+            _env.Open();
+            CreateDatabaseIfNotExists(_env);
+        }
+
+        /// <summary>
+        /// A convenience function for configuring and constructing
+        /// a new lunr DelegatedIndex.
+        /// 
+        /// An `LmdbBuilder` instance is created and the pipeline setup
+        /// with a trimmer, stop word filter and stemmer.
+        /// 
+        /// This builder object is yielded to the configuration function
+        /// that is passed as a parameter, allowing the list of fields
+        /// and other builder parameters to be customized.
+        /// 
+        /// All documents _must_ be added within the passed config function.
+        /// </summary>
+        /// <example>
+        /// var idx = Index.Build(async builder =>
+        /// {
+        ///      builder
+        ///         .AddField("title")
+        ///         .AddField("body");
+        /// 
+        ///      builder.ReferenceField = "id";
+        /// 
+        ///      foreach(Document doc in documents)
+        ///      {
+        ///          builder.add(doc);
+        ///      }
+        /// });
+        /// </example>
+        /// <param name="path">The directory path to the LMDB database used to store this index.</param>
+        /// <param name="trimmer">An optional trimmer. Default is a regex-based word trimmer.</param>
+        /// <param name="stopWordFilter">An optional stopword filter. Default is English.</param>
+        /// <param name="stemmer">An optional stemmer. Default is English.</param>
+        /// <param name="config">A Configuration function.</param>
+        /// <param name="tokenizer">An optional tokenizer. Default is a ToString() based splitter. </param>
+        /// <param name="registry">An optional pipeline function registry. Default filters through the specific trimmer, stopword filter, and stemmer.</param>
+        /// <param name="indexingPipeline">An optional indexing pipeline. Default filters through the specific trimmer, stopword filter, and stemmer. </param>
+        /// <param name="searchPipeline">An optional search pipeline. Default filters through the stemmer.</param>
+        /// <param name="cancellationToken">An optional cancellation token. Default is equivalent to CancellationToken.None.</param>
+        /// <param name="fields">The fields for this builder.</param>
+        /// <returns>The delegated index.</returns>
+        public static async Task<DelegatedIndex> Build(
+            string path,
+            Func<LmdbBuilder, Task>? config = null!,
+            TrimmerBase? trimmer = null!,
+            StopWordFilterBase? stopWordFilter = null!,
+            StemmerBase? stemmer = null!,
+            Tokenizer? tokenizer = null!,
+            PipelineFunctionRegistry? registry = null!,
+            IEnumerable<string>? indexingPipeline = null!,
+            IEnumerable<string>? searchPipeline = null!,
+            CancellationToken cancellationToken = default,
+            params Field[] fields)
+        {
+            Pipeline.Function trimmerFunction = (trimmer ?? new Trimmer()).FilterFunction;
+            Pipeline.Function filterFunction = (stopWordFilter ?? new EnglishStopWordFilter()).FilterFunction;
+            Pipeline.Function stemmerFunction = (stemmer ?? new EnglishStemmer()).StemmerFunction;
+            registry ??= new PipelineFunctionRegistry();
+            registry.Add("trimmer", trimmerFunction);
+            registry.Add("stopWordFilter", filterFunction);
+            registry.Add("stemmer", stemmerFunction);
+
+            Pipeline idxPipeline = indexingPipeline is null ?
+                new Pipeline(registry, trimmerFunction, filterFunction, stemmerFunction) :
+                new Pipeline(registry, indexingPipeline.Select(function => registry[function]).ToArray());
+            Pipeline srchPipeline = searchPipeline is null ?
+                new Pipeline(registry, stemmerFunction) :
+                new Pipeline(registry, searchPipeline.Select(function => registry[function]).ToArray());
+
+            var builder = new LmdbBuilder(
+                indexingPipeline: idxPipeline,
+                searchPipeline: srchPipeline,
+                tokenizer: tokenizer ?? new Tokenizer(),
+                fields: fields);
+
+            if (config != null)
+            {
+                await config(builder);
+            }
+
+            return builder.Build(path, cancellationToken);
         }
 
         #region Fields 
 
-        public bool AddField(string field, CancellationToken cancellationToken = default)
+        public bool AddField(string field, CancellationToken cancellationToken = default) => WithWritableTransaction((db, tx) =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
             tx.Put(db, KeyBuilder.BuildFieldKey(field), Encoding.UTF8.GetBytes(field), PutOptions.NoDuplicateData);
             return tx.Commit() == MDBResultCode.Success;
-        }
+        });
 
-        public bool RemoveField(string field, CancellationToken cancellationToken = default)
+        public bool RemoveField(string field, CancellationToken cancellationToken = default) => WithWritableTransaction((db, tx) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            tx.Delete(db, KeyBuilder.BuildFieldKey(field));
+            return tx.Commit() == MDBResultCode.Success;
+        });
+
+        public IEnumerable<string> GetFields(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFields(c, cancellationToken));
+
+        private static IList<string> GetFields(LightningCursor cursor, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
+            var fields = new List<string>();
 
-            tx.Delete(db, KeyBuilder.BuildFieldKey(field));
-            return tx.Commit() == MDBResultCode.Success;
-        }
-
-        public IEnumerable<string> GetFields(CancellationToken cancellationToken)
-        {
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
-            var sr = cursor.SetRange(KeyBuilder.BuildAllFieldsKey());
+            var allFieldsKey = KeyBuilder.GetAllFieldsKey();
+            var sr = cursor.SetRange(allFieldsKey);
             if (sr != MDBResultCode.Success)
-                yield break;
+                return fields;
 
-            var (r, _, v) = cursor.GetCurrent();
-            
+            var (r, k, v) = cursor.GetCurrent();
+
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
+                if (!k.AsSpan().StartsWith(allFieldsKey))
+                    break;
+
                 var buffer = v.AsSpan().ToArray();
-                yield return Encoding.UTF8.GetString(buffer);
+                var field = Encoding.UTF8.GetString(buffer);
+                fields.Add(field);
+
                 r = cursor.Next();
+                if (r == MDBResultCode.Success)
+                    (r, k, v) = cursor.GetCurrent();
             }
+
+            return fields;
         }
 
         #endregion
@@ -80,72 +162,67 @@ namespace LunrCoreLmdb
 
         public bool AddFieldVector(string key, Vector vector, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            // Key:
-            tx.Put(db, KeyBuilder.BuildFieldVectorKeyKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
-
-            // Value:
-            tx.Put(db, KeyBuilder.BuildFieldVectorKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
-
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Put(db, KeyBuilder.BuildFieldVectorKeyKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+                tx.Put(db, KeyBuilder.BuildFieldVectorValueKey(key), vector.Serialize(), PutOptions.NoDuplicateData);
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
-        public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken)
+        public Vector? GetFieldVectorByKey(string key, CancellationToken cancellationToken) => WithReadOnlyCursor(cursor =>
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
-            var sr = cursor.Set(KeyBuilder.BuildFieldVectorKey(key));
-            if (sr != MDBResultCode.Success)
-                return default;
-
-            var (r, _, v) = cursor.GetCurrent();
+            var (r, k, v) = cursor.SetKey(KeyBuilder.BuildFieldVectorValueKey(key));
             if (r != MDBResultCode.Success)
                 return default;
 
             return v.AsSpan().DeserializeFieldVector();
-        }
+        });
 
-        public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken)
+        public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFieldVectorKeys(c, cancellationToken));
+
+        private static IList<string> GetFieldVectorKeys(LightningCursor cursor, CancellationToken cancellationToken)
         {
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            var sr = cursor.SetRange(KeyBuilder.BuildAllFieldVectorKeys());
+            var keys = new List<string>();
+
+            var allFieldVectorKeys = KeyBuilder.GetAllFieldVectorKeys();
+            var sr = cursor.SetRange(allFieldVectorKeys);
             if (sr != MDBResultCode.Success)
-                yield break;
+                return keys;
 
-            var (r, _, v) = cursor.GetCurrent();
+            var (r, k, v) = cursor.GetCurrent();
             
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
-                var key = v.AsSpan().ToArray();
-                yield return Encoding.UTF8.GetString(key);
+                if (!k.AsSpan().StartsWith(allFieldVectorKeys))
+                    break;
+
+                var buffer = v.AsSpan().ToArray();
+                var key = Encoding.UTF8.GetString(buffer);
+                keys.Add(key);
 
                 r = cursor.Next();
-                if (r != MDBResultCode.Success)
-                    yield break;
+                if(r == MDBResultCode.Success)
+                    (r, k, v) = cursor.GetCurrent();
             }
+
+            return keys;
         }
 
         public bool RemoveFieldVector(string key, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            tx.Delete(db, KeyBuilder.BuildFieldVectorKey(key));
-            tx.Delete(db, KeyBuilder.BuildFieldVectorKeyKey(key));
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Delete(db, KeyBuilder.BuildFieldVectorValueKey(key));
+                tx.Delete(db, KeyBuilder.BuildFieldVectorKeyKey(key));
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
         #endregion
@@ -154,30 +231,21 @@ namespace LunrCoreLmdb
 
         public bool AddInvertedIndexEntry(string key, InvertedIndexEntry invertedIndexEntry, CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.None);
-            using var db = tx.OpenDatabase(configuration: Config);
-
-            tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
-            tx.Put(db, KeyBuilder.BuildTokenSetWordKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
-
-            return tx.Commit() == MDBResultCode.Success;
+            return WithWritableTransaction((db, tx) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                tx.Put(db, KeyBuilder.BuildInvertedIndexEntryKey(key), invertedIndexEntry.Serialize(), PutOptions.NoDuplicateData);
+                tx.Put(db, KeyBuilder.BuildTokenSetWordKey(key), Encoding.UTF8.GetBytes(key), PutOptions.NoDuplicateData);
+                return tx.Commit() == MDBResultCode.Success;
+            });
         }
 
-        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, CancellationToken cancellationToken)
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetInvertedIndexEntryByKey(key, c, cancellationToken));
+
+        private static InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, LightningCursor c, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
-            var sr = cursor.Set(KeyBuilder.BuildInvertedIndexEntryKey(key));
-            if (sr != MDBResultCode.Success)
-                return default;
-
-            var (r, _, v) = cursor.GetCurrent();
+            var (r, k, v) = c.SetKey(KeyBuilder.BuildInvertedIndexEntryKey(key));
             return r != MDBResultCode.Success ? default : v.AsSpan().DeserializeInvertedIndexEntry();
         }
 
@@ -185,7 +253,9 @@ namespace LunrCoreLmdb
 
         #region TokenSets
 
-        public TokenSet IntersectTokenSets(TokenSet other, CancellationToken cancellationToken)
+        public TokenSet IntersectTokenSets(TokenSet other, CancellationToken cancellationToken) => WithReadOnlyCursor(c => IntersectTokenSets(other, c, cancellationToken));
+
+        private static TokenSet IntersectTokenSets(TokenSet other, LightningCursor cursor, CancellationToken cancellationToken)
         {
             // FIXME: This is still reading fully into memory before intersection
 
@@ -193,25 +263,25 @@ namespace LunrCoreLmdb
 
             var builder = new TokenSet.Builder();
 
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
-            using var db = tx.OpenDatabase(configuration: Config);
-            using var cursor = tx.CreateCursor(db);
-
-            var sr = cursor.SetRange(KeyBuilder.BuildAllTokenSetWordKeys());
+            var allWordKeys = KeyBuilder.BuildAllTokenSetWordKeys();
+            var sr = cursor.SetRange(allWordKeys);
             if (sr != MDBResultCode.Success)
                 return builder.Root;
 
-            var (r, _, v) = cursor.GetCurrent();
-            
+            var (r, k, v) = cursor.GetCurrent();
+
             while (r == MDBResultCode.Success && !cancellationToken.IsCancellationRequested)
             {
+                if (!k.AsSpan().StartsWith(allWordKeys))
+                    break;
+
                 var buffer = v.AsSpan().ToArray();
                 var word = Encoding.UTF8.GetString(buffer);
                 builder.Insert(word);
 
                 r = cursor.Next();
-                if (r != MDBResultCode.Success)
-                    break;
+                if (r == MDBResultCode.Success)
+                    (r, k, v) = cursor.GetCurrent();
             }
 
             return builder.Root.Intersect(other);
@@ -229,7 +299,7 @@ namespace LunrCoreLmdb
 
         private static readonly DatabaseConfiguration Config = new DatabaseConfiguration {Flags = DatabaseOpenFlags.None};
         
-        private static void CreateIfNotExists(LightningEnvironment environment)
+        private static void CreateDatabaseIfNotExists(LightningEnvironment environment)
         {
             using var tx = environment.BeginTransaction();
             try
@@ -246,41 +316,26 @@ namespace LunrCoreLmdb
             }
         }
 
-        public ulong GetLength()
+        private T WithReadOnlyCursor<T>(Func<LightningCursor, T> func)
         {
-            using var tx = Env.BeginTransaction(TransactionBeginFlags.ReadOnly);
+            using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
             using var db = tx.OpenDatabase(configuration: Config);
-            var count = tx.GetEntriesCount(db); // entries also contains handles to databases
-            return (ulong) count;
+            using var cursor = tx.CreateCursor(db);
+            var result = func.Invoke(cursor);
+            return result;
         }
 
-        public void Clear()
+        private T WithWritableTransaction<T>(Func<LightningDatabase, LightningTransaction, T> func)
         {
-            using var tx = Env.BeginTransaction();
-            var db = tx.OpenDatabase(configuration: Config);
-            tx.TruncateDatabase(db);
-            tx.Commit();
+            using var tx = _env.BeginTransaction(TransactionBeginFlags.None);
+            using var db = tx.OpenDatabase(configuration: Config);
+            var result = func.Invoke(db, tx);
+            return result;
         }
 
-        public void Destroy()
+        public void Dispose()
         {
-            using (var tx = Env.BeginTransaction())
-            {
-                using var db = tx.OpenDatabase(configuration: Config);
-                tx.DropDatabase(db);
-                tx.Commit();
-            }
-
-            Env.Dispose();
-
-            try
-            {
-                Directory.Delete(Path, true);
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceError(exception.ToString());
-            }
+            _env.Dispose();
         }
 
         #endregion
@@ -296,28 +351,6 @@ namespace LunrCoreLmdb
         public IEnumerable<string> GetFieldVectorKeys() => GetFieldVectorKeys(CancellationToken.None);
 
         public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key) => GetInvertedIndexEntryByKey(key, CancellationToken.None);
-
-        #endregion
-
-        #region IDisposable
-        
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        // ReSharper disable once EmptyDestructor
-        ~LmdbIndex() { Dispose(false); }
-
-        public void Dispose(bool disposing)
-        {
-            if (!disposing)
-                return;
-            if (Env.Handle() == IntPtr.Zero)
-                return;
-            Env.Dispose();
-        }
 
         #endregion
     }

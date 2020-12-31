@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using Lunr;
+using LunrCoreLmdb;
 
-namespace LunrCoreLmdb
+namespace LunrCoreLmdbPerf
 {
-    public static class DelegatedIndexExtensions
+    internal static class DelegatedIndexExtensions
     {
         /// <summary> This wraps a standard in-memory index, so that it can be used as a delegated index. </summary>
         public static DelegatedIndex AsDelegated(this Index index) => new DelegatedIndex(new ReadOnlyIndex(index), index.Pipeline);

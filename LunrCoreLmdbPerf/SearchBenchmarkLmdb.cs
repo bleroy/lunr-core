@@ -30,7 +30,7 @@ namespace LunrCoreLmdbPerf
             foreach (var (k, v) in plain.InvertedIndex)
                 _lmdb.AddInvertedIndexEntry(k, v);
 
-            Index = Lmdb.Open(_path, plain.Pipeline);
+            Index = new DelegatedIndex(_lmdb, plain.Pipeline);
         }
 
         [GlobalCleanup]
