@@ -330,13 +330,6 @@ namespace LunrCoreLmdb
 
 
             return new DelegatedIndex(lmdb, SearchPipeline);
-            
-            //return new LmdbIndex(
-            //    InvertedIndex,
-            //    FieldVectors,
-            //    TokenSet,
-            //    Fields.Select(f => f.Name),
-            //    SearchPipeline);
         }
 
         // Skipping plug-ins as they're not implemented and sort of pointless

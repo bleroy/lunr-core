@@ -29,14 +29,14 @@ namespace LunrCoreLmdb
         /// <summary>
         /// A convenience function for configuring and constructing
         /// a new lunr DelegatedIndex.
-        ///
+        /// 
         /// An `LmdbBuilder` instance is created and the pipeline setup
         /// with a trimmer, stop word filter and stemmer.
-        ///
+        /// 
         /// This builder object is yielded to the configuration function
         /// that is passed as a parameter, allowing the list of fields
         /// and other builder parameters to be customized.
-        ///
+        /// 
         /// All documents _must_ be added within the passed config function.
         /// </summary>
         /// <example>
@@ -45,19 +45,27 @@ namespace LunrCoreLmdb
         ///      builder
         ///         .AddField("title")
         ///         .AddField("body");
-        ///
+        /// 
         ///      builder.ReferenceField = "id";
-        ///
+        /// 
         ///      foreach(Document doc in documents)
         ///      {
         ///          builder.add(doc);
         ///      }
         /// });
         /// </example>
+        /// <param name="path">The directory path to the LMDB database used to store this index.</param>
+        /// <param name="trimmer">An optional trimmer. Default is a regex-based word trimmer.</param>
         /// <param name="stopWordFilter">An optional stopword filter. Default is English.</param>
         /// <param name="stemmer">An optional stemmer. Default is English.</param>
         /// <param name="config">A Configuration function.</param>
-        /// <returns>The index.</returns>
+        /// <param name="tokenizer">An optional tokenizer. Default is a ToString() based splitter. </param>
+        /// <param name="registry">An optional pipeline function registry. Default filters through the specific trimmer, stopword filter, and stemmer.</param>
+        /// <param name="indexingPipeline">An optional indexing pipeline. Default filters through the specific trimmer, stopword filter, and stemmer. </param>
+        /// <param name="searchPipeline">An optional search pipeline. Default filters through the stemmer.</param>
+        /// <param name="cancellationToken">An optional cancellation token. Default is equivalent to CancellationToken.None.</param>
+        /// <param name="fields">The fields for this builder.</param>
+        /// <returns>The delegated index.</returns>
         public static async Task<DelegatedIndex> Build(
             string path,
             Func<LmdbBuilder, Task>? config = null!,
@@ -171,8 +179,7 @@ namespace LunrCoreLmdb
             if (r != MDBResultCode.Success)
                 return default;
 
-            var vector = v.AsSpan().DeserializeFieldVector();
-            return vector;
+            return v.AsSpan().DeserializeFieldVector();
         });
 
         public IEnumerable<string> GetFieldVectorKeys(CancellationToken cancellationToken) => WithReadOnlyCursor(c => GetFieldVectorKeys(c, cancellationToken));
@@ -238,14 +245,8 @@ namespace LunrCoreLmdb
         private static InvertedIndexEntry? GetInvertedIndexEntryByKey(string key, LightningCursor c, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
             var (r, k, v) = c.SetKey(KeyBuilder.BuildInvertedIndexEntryKey(key));
-
-            if (r != MDBResultCode.Success)
-                return default;
-
-            var invertedIndexEntry = v.AsSpan().DeserializeInvertedIndexEntry();
-            return invertedIndexEntry;
+            return r != MDBResultCode.Success ? default : v.AsSpan().DeserializeInvertedIndexEntry();
         }
 
         #endregion
@@ -315,23 +316,6 @@ namespace LunrCoreLmdb
             }
         }
 
-        #endregion
-        
-        #region Delegates
-
-        public IEnumerable<string> GetFields() => GetFields(CancellationToken.None);
-
-        public TokenSet IntersectTokenSets(TokenSet other) => IntersectTokenSets(other, CancellationToken.None);
-
-        public Vector? GetFieldVectorByKey(string key) => GetFieldVectorByKey(key, CancellationToken.None);
-
-        public IEnumerable<string> GetFieldVectorKeys() => GetFieldVectorKeys(CancellationToken.None);
-
-        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key) => GetInvertedIndexEntryByKey(key, CancellationToken.None);
-
-        #endregion
-
-        
         private T WithReadOnlyCursor<T>(Func<LightningCursor, T> func)
         {
             using var tx = _env.BeginTransaction(TransactionBeginFlags.ReadOnly);
@@ -353,5 +337,21 @@ namespace LunrCoreLmdb
         {
             _env.Dispose();
         }
+
+        #endregion
+        
+        #region Delegates
+
+        public IEnumerable<string> GetFields() => GetFields(CancellationToken.None);
+
+        public TokenSet IntersectTokenSets(TokenSet other) => IntersectTokenSets(other, CancellationToken.None);
+
+        public Vector? GetFieldVectorByKey(string key) => GetFieldVectorByKey(key, CancellationToken.None);
+
+        public IEnumerable<string> GetFieldVectorKeys() => GetFieldVectorKeys(CancellationToken.None);
+
+        public InvertedIndexEntry? GetInvertedIndexEntryByKey(string key) => GetInvertedIndexEntryByKey(key, CancellationToken.None);
+
+        #endregion
     }
 }

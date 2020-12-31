@@ -62,27 +62,21 @@ namespace LunrCoreLmdb
                 {typeof(float), (v => BitConverter.GetBytes((int) v), b => BitConverter.ToSingle(b, 0))},
                 {typeof(double), (v => BitConverter.GetBytes((int) v), b => BitConverter.ToDouble(b, 0))},
                 {typeof(bool), (v => BitConverter.GetBytes((bool) v), b => BitConverter.ToBoolean(b, 0))},
-                {typeof(char), (v => BitConverter.GetBytes((char) v), b => BitConverter.ToChar(b, 0))}
+                {typeof(char), (v => BitConverter.GetBytes((char) v), b => BitConverter.ToChar(b, 0))},
+                {typeof(string), (v => Encoding.UTF8.GetBytes((string) v), b => Encoding.UTF8.GetString(b))},
+                {typeof(Slice), (v =>
+                {
+                    var (start, length) = (Slice) v;
+                    return Encoding.UTF8.GetBytes(start + "/" + length);
+                }, b =>
+                {
+                    var value = Encoding.UTF8.GetString(b);
+                    var tokens = value.Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries);
+                    return new Slice(Convert.ToInt32(tokens[0]), Convert.ToInt32(tokens[1]));
+                })}
             };
-
-            KnownTypes.Add(typeof(string), (v => Encoding.UTF8.GetBytes((string) v), b => Encoding.UTF8.GetString(b)));
-            KnownTypes.Add(typeof(Slice), (v =>
-            {
-                var (start, length) = (Slice) v;
-                return Encoding.UTF8.GetBytes($"{start}/{length}");
-            }, b =>
-            {
-                var value = Encoding.UTF8.GetString(b);
-                var tokens = value.Split(new[] {"/"}, StringSplitOptions.RemoveEmptyEntries);
-                return new Slice(Convert.ToInt32(tokens[0]), Convert.ToInt32(tokens[1]));
-            }));
         }
         
-        public static void AddKnownType<T>(Func<T, byte[]> typeToMemory, Func<byte[], T> memoryToType)
-        {
-            if(KnownTypes.ContainsKey(typeof(T)))
-                KnownTypes.Remove(typeof(T));
-            KnownTypes.Add(typeof(T), (v => typeToMemory((T) v), b => memoryToType(b)!));
-        }
+        public static void AddKnownType<T>(Func<T, byte[]> typeToMemory, Func<byte[], T> memoryToType) => KnownTypes[typeof(T)] = (v => typeToMemory((T) v), b => memoryToType(b)!);
     }
 }
