@@ -180,14 +180,13 @@ namespace LunrCoreLmdb
                     // be used to intersect the indexes token set to get a list of terms
                     // to lookup in the inverted index.
                     var termTokenSet = TokenSet.FromClause(clause);
-                    var expandedTerms = _index.IntersectTokenSets(termTokenSet).ToEnumeration()
-                        .ToList(); // perf: terms list is a manageable size, we can avoid double traversal here
+                    var expandedTerms = _index.IntersectTokenSets(termTokenSet).ToEnumeration();
                     
                     // If a term marked as required does not exist in the tokenSet it is
                     // impossible for the search to return any matches.We set all the field
                     // scoped required matches set to empty and stop examining any further
                     // clauses.
-                    if (expandedTerms.Count == 0 && clause.Presence == QueryPresence.Required)
+                    if (!expandedTerms.Any() && clause.Presence == QueryPresence.Required)
                     {
                         foreach (string field in clause.Fields)
                         {
@@ -339,7 +338,7 @@ namespace LunrCoreLmdb
             // populate the results.
             if (query.IsNegated)
             {
-                matchingFieldRefs = _index.GetFieldVectorKeys().ToList(); // perf: list here avoids another key scan
+                matchingFieldRefs = _index.GetFieldVectorKeys();
 
                 foreach (string matchingFieldRef in matchingFieldRefs)
                 {
