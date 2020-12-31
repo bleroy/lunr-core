@@ -133,7 +133,7 @@ namespace LunrCoreLmdb
 
                             if (context.Write(meta != null && type != null))
                             {
-                                context.Write(type?.FullName!);
+                                context.Write(type?.AssemblyQualifiedName!);
                                 context.Write(serializer.Item1(meta ?? throw new InvalidOperationException("unexpected null value")));
                             }
                         }
@@ -183,7 +183,7 @@ namespace LunrCoreLmdb
                                 var typeName = context.ReadString(ref buffer);
                                 var type = Type.GetType(typeName);
                                 if(type == null)
-                                    throw new SerializationException($"no serializer registered for '{typeName}'");
+                                    throw new SerializationException($"no type named '{typeName}' found in loaded assemblies");
 
                                 if (!SerializeContext.KnownTypes.TryGetValue(type, out var serializer))
                                     throw new SerializationException($"no serializer registered for '{type.Name}'");

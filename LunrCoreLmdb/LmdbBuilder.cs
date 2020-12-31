@@ -4,19 +4,20 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Lunr;
 
-namespace Lunr
+namespace LunrCoreLmdb
 {
     /// <summary>
-    /// `Builder` performs indexing on a set of documents and
-    /// returns instances of `Index` ready for querying.
+    /// `LmdbBuilder` performs indexing on a set of documents and
+    /// returns instances of `DelegatedIndex` ready for querying.
     /// 
     /// All configuration of the index is done via the builder, the
     /// fields to index, the document reference, the text processing
     /// pipeline and document scoring parameters are all set on the
     /// builder before indexing.
     /// </summary>
-    public class Builder
+    public class LmdbBuilder
     {
         private readonly Dictionary<string, Field> _fields = new Dictionary<string, Field>();
         private readonly Dictionary<string, Document> _documents = new Dictionary<string, Document>();
@@ -32,7 +33,7 @@ namespace Lunr
         /// <param name="searchPipeline">A pipeline for processing search terms before querying the index.</param>
         /// <param name="tokenizer">Function for splitting strings into tokens for indexing.</param>
         /// <param name="fields">The fields for this builder.</param>
-        public Builder(
+        public LmdbBuilder(
             Pipeline indexingPipeline,
             Pipeline searchPipeline,
             ITokenizer tokenizer,
@@ -49,7 +50,7 @@ namespace Lunr
         /// Creates a builder with a list of fields.
         /// </summary>
         /// <param name="fields">The fields for this builder.</param>
-        public Builder(params Field[] fields)
+        public LmdbBuilder(params Field[] fields)
         {
             InitializeFields(fields);
 
@@ -149,7 +150,7 @@ namespace Lunr
         /// </summary>
         /// <param name="allowedMetadata">The list to add.</param>
         /// <returns>The builder.</returns>
-        public Builder AllowMetadata(params string[] allowedMetadata)
+        public LmdbBuilder AllowMetadata(params string[] allowedMetadata)
         {
             foreach(string allowedMetadatum in allowedMetadata)
             {
@@ -171,7 +172,7 @@ namespace Lunr
         /// one field are more important than other fields.
         /// </summary>
         /// <param name="field">A field to index in all documents.</param>
-        public Builder AddField(Field field)
+        public LmdbBuilder AddField(Field field)
         {
             if (field.Name.IndexOf('/') != -1) throw new ArgumentOutOfRangeException($"Field '{field.Name}' contains illegal character '/'");
 
@@ -196,7 +197,7 @@ namespace Lunr
         /// <param name="fieldName">The name of a field to index in all documents.</param>
         /// <param name="boost">An optional boost for this field.</param>
         /// <param name="extractor">An optional extraction function for this field's values.</param>
-        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null!)
+        public LmdbBuilder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null!)
             => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
@@ -306,24 +307,36 @@ namespace Lunr
         }
 
         /// <summary>
-        /// Builds the index, creating an instance of lunr.Index.
+        /// Builds the index, creating an instance of DelegatedIndex.
         ///
         /// This completes the indexing process and should only be called
         /// once all documents have been added to the index.
         /// </summary>
         /// <returns>The index.</returns>
-        public Index Build()
+        public DelegatedIndex Build(string path, CancellationToken cancellationToken = default)
         {
             CalculateAverageFieldLengths();
-            CreateFieldVectors();
             CreateTokenSet();
 
-            return new Index(
-                InvertedIndex,
-                FieldVectors,
-                TokenSet,
-                Fields.Select(f => f.Name),
-                SearchPipeline);
+            var lmdb = new LmdbIndex(path);
+
+            foreach (var invertedIndexEntry in InvertedIndex)
+                lmdb.AddInvertedIndexEntry(invertedIndexEntry.Key, invertedIndexEntry.Value, cancellationToken);
+
+            CreateFieldVectors(lmdb, cancellationToken);
+
+            foreach (var field in Fields.Select(f => f.Name))
+                lmdb.AddField(field, cancellationToken);
+
+
+            return new DelegatedIndex(lmdb, SearchPipeline);
+            
+            //return new LmdbIndex(
+            //    InvertedIndex,
+            //    FieldVectors,
+            //    TokenSet,
+            //    Fields.Select(f => f.Name),
+            //    SearchPipeline);
         }
 
         // Skipping plug-ins as they're not implemented and sort of pointless
@@ -359,8 +372,10 @@ namespace Lunr
         /// <summary>
         /// Builds a vector space model of every document using Vector.
         /// </summary>
-        private void CreateFieldVectors()
+        private void CreateFieldVectors(LmdbIndex idx, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var termIdfCache = new Dictionary<Token, double>();
             var fieldVectors = new Dictionary<string, Vector>();
 
@@ -405,6 +420,9 @@ namespace Lunr
             }
 
             FieldVectors = fieldVectors;
+
+            foreach (var (k, v) in fieldVectors)
+                idx.AddFieldVector(k, v, cancellationToken);
         }
 
         /// <summary>
