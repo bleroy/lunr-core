@@ -22,6 +22,8 @@ namespace Lunr
         private readonly List<(int index, double value)> _elements;
         private double _magnitude = 0;
 
+        public int Count => _elements.Count;
+
         public Vector(params (int index, double value)[] elements)
             => _elements = new List<(int, double)>(elements);
 

@@ -86,7 +86,7 @@ namespace Lunr
         /// This tokenizer will convert its parameter to a string by calling `ToString` and
         /// then will split this string on white space, punctuation and separators.
         /// </summary>
-        /// <param name="enumerble">The list of objects to tokenize.</param>
+        /// <param name="enumerable">The list of objects to tokenize.</param>
         /// <param name="metadata">Optional metadata can be passed to the tokenizer, this metadata will be cloned and
         /// added as metadata to every token that is created from the object to be tokenized.</param>
         /// <returns>The list of tokens extracted from the string.</returns>

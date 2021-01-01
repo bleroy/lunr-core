@@ -45,7 +45,7 @@ namespace Lunr
         /// <param name="kvp">The key value pair to deconstruct.</param>
         /// <param name="key">The deconstructed key.</param>
         /// <param name="value">The deconstructed value.</param>
-        internal static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> kvp, out TKey key, out TValue value)
+        public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> kvp, out TKey key, out TValue value)
         {
             key = kvp.Key;
             value = kvp.Value;
