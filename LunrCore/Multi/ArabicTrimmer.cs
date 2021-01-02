@@ -2,15 +2,15 @@
 
 namespace Lunr.Multi
 {
-    public sealed class FrenchTrimmer : TrimmerBase
+    public sealed class ArabicTrimmer : TrimmerBase
     {
         private static readonly Regex StartRegex;
         private static readonly Regex EndRegex;
 
-        static FrenchTrimmer()
+        static ArabicTrimmer()
         {
-            StartRegex = new Regex("^[^" + WordCharacters.French + "]+", RegexOptions.Compiled);
-            EndRegex = new Regex("[^" + WordCharacters.French + "]+$", RegexOptions.Compiled);
+            StartRegex = new Regex("^[^" + WordCharacters.Arabic + "]+", RegexOptions.Compiled);
+            EndRegex = new Regex("[^" + WordCharacters.Arabic + "]+$", RegexOptions.Compiled);
         }
 
         public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, string.Empty), string.Empty);
