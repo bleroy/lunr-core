@@ -1,7 +1,6 @@
 ﻿// Ported from: https://github.com/MihaiValentin/lunr-languages/blob/master/LICENSE
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Lunr.Multi

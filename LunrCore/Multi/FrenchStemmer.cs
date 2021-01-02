@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace Lunr.Multi
 {
@@ -20,7 +21,7 @@ namespace Lunr.Multi
         public override string Stem(string w)
         {
             sbp.SetCurrent(w);
-            Stem();
+            stem();
             return sbp.GetCurrent();
         }
 
@@ -750,7 +751,7 @@ namespace Lunr.Multi
             }
         }
 
-        private bool Stem()
+        private void stem()
         {
             var v_1 = sbp.cursor;
             r_prelude();
@@ -765,7 +766,6 @@ namespace Lunr.Multi
             r_un_accent();
             sbp.cursor = sbp.limit_backward;
             r_postlude();
-            return true;
         }
     }
 }
