@@ -1,5 +1,5 @@
 ﻿using System;
-using Lunr.Multi;
+using Lunr.Globalization;
 using Xunit;
 
 namespace LunrCoreTests.Multi

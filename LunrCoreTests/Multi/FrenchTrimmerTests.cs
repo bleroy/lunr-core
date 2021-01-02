@@ -1,4 +1,4 @@
-﻿using Lunr.Multi;
+﻿using Lunr.Globalization.fr;
 using Xunit;
 
 namespace LunrCoreTests.Multi

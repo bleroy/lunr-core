@@ -40,7 +40,7 @@ namespace LunrCoreTests.Multi
         
         private async Task<Index> GetPlainIndex()
         {
-            return await Index.Fr.Build(async builder =>
+            return await Lunr.Globalization.fr.Index.Build(async builder =>
             {
                 builder.ReferenceField = "id";
 

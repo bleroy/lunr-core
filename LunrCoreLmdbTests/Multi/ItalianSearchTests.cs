@@ -47,7 +47,7 @@ namespace LunrCoreLmdbTests.Multi
         
         private async Task<DelegatedIndex> GetPlainIndex()
         {
-            var idx = await Lunr.Index.It.Build(async builder =>
+            var idx = await Lunr.Globalization.it.Index.Build(async builder =>
             {
                 builder.ReferenceField = "id";
 

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Lunr;
-using Lunr.Multi;
+using Lunr.Globalization.fr;
 using Xunit;
 
 namespace LunrCoreTests.Multi
