@@ -9,8 +9,8 @@ namespace LunrCoreLmdbPerf
     [SimpleJob(RunStrategy.Throughput)]
     public class BlockCopyVsLinqConcat
     {
-        private byte[] _left;
-        private byte[] _right;
+        private byte[] _left = null!;
+        private byte[] _right = null!;
 
         [GlobalSetup]
         public void GlobalSetUp()
