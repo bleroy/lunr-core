@@ -7,7 +7,6 @@
         private int I_p2;
         private int I_p1;
         
-
         public GermanStemmer()
         {
             sbp = new SnowballProgram();

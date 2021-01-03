@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Lunr;
 using Xunit;
+using Index = Lunr.Index;
 
 namespace LunrCoreTests.Globalization.de
 {
