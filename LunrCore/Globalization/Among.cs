@@ -25,7 +25,7 @@ namespace Lunr.Globalization
         }
 
         public bool Equals(Among other) =>
-            s_size.Equals(other.s_size) && 
+            s_size == other.s_size && 
             s.SequenceEqual(other.s) && 
             result == other.result &&
             method == other.method && 
