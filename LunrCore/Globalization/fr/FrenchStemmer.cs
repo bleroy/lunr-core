@@ -2,10 +2,11 @@
 {
 	public sealed class FrenchStemmer : StemmerBase
 	{
-		private SnowballProgram sbp;
-		private int I_p2;
-		private int I_p1;
-		private int I_pV;
+		private readonly SnowballProgram sbp;
+
+		private readonly int I_p2;
+		private readonly int I_p1;
+		private readonly int I_pV;
 
 		public FrenchStemmer()
 		{
@@ -648,10 +649,15 @@
 					sbp.SliceDelete();
 				}
 				else
+				{
 					sbp.cursor = sbp.limit - v_1;
+				}
+
 			}
 			else
+			{
 				sbp.cursor = sbp.limit - v_1;
+			}
 
 			if (sbp.cursor >= I_pV)
 			{
@@ -703,6 +709,7 @@
 			{
 				sbp.cursor = sbp.limit - v_1;
 				sbp.ket = sbp.cursor;
+
 				if (sbp.cursor > sbp.limit_backward)
 				{
 					sbp.cursor--;
@@ -721,10 +728,10 @@
 			{
 				sbp.ket = sbp.cursor;
 				var v_1 = sbp.limit - sbp.cursor;
-				if (!sbp.EqualsSegmentBackwards(1, "\u00E9"))
+				if (!sbp.EqualsSegmentBackwards(1, "é"))
 				{
 					sbp.cursor = sbp.limit - v_1;
-					if (!sbp.EqualsSegmentBackwards(1, "\u00E8"))
+					if (!sbp.EqualsSegmentBackwards(1, "è"))
 						return;
 				}
 
@@ -760,7 +767,7 @@
 			else
 			{
 				sbp.cursor = sbp.limit;
-				if (sbp.EqualsSegmentBackwards(1, "\u00E7"))
+				if (sbp.EqualsSegmentBackwards(1, "ç"))
 				{
 					sbp.bra = sbp.cursor;
 					sbp.SliceFrom("c");
