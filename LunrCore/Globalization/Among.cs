@@ -43,15 +43,7 @@ namespace Lunr.Globalization
 
 		public override int GetHashCode()
 		{
-			unchecked
-			{
-				var hashCode = Size.GetHashCode();
-				hashCode = (hashCode * 397) ^ StringArray.GetHashCode();
-				hashCode = (hashCode * 397) ^ Result;
-				hashCode = (hashCode * 397) ^ (Method != null ? Method.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ Substring;
-				return hashCode;
-			}
+			return (Size, StringArray, Result, Method, Substring).GetHashCode();
 		}
 
 		public static bool operator ==(Among left, Among right)

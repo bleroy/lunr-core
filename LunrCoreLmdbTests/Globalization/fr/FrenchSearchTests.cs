@@ -5,7 +5,7 @@ using Lunr;
 using LunrCoreLmdb;
 using Xunit;
 
-namespace LunrCoreLmdbTests.Multi
+namespace LunrCoreLmdbTests.Globalization.fr
 {
     [Collection(nameof(TempDirectory))]
     public class FrenchSearchTests : IDisposable

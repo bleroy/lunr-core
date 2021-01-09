@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Lunr;
 using Xunit;
 
-namespace LunrCoreTests.Multi
+namespace LunrCoreTests.Globalization.it
 {
     public class ItalianSearchTests
     {

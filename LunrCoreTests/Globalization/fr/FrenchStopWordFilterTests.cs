@@ -3,7 +3,7 @@ using Lunr;
 using Lunr.Globalization.fr;
 using Xunit;
 
-namespace LunrCoreTests.Multi
+namespace LunrCoreTests.Globalization.fr
 {
     public class FrenchStopWordFilterTests
     {
