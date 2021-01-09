@@ -31,7 +31,7 @@ namespace Lunr.Globalization
             return result;
         }
 
-        public bool in_grouping(int[] s, int min, int max) {
+        public bool InGrouping(int[] s, int min, int max) {
             if (cursor < limit) {
                 var ch = (int) current[cursor];
                 if (ch <= max && ch >= min) {
@@ -46,15 +46,15 @@ namespace Lunr.Globalization
             return false;
         }
 
-        public bool in_grouping_b(int[] s, int min, int max) {
-            if (this.cursor > this.limit_backward) {
+        public bool InGroupingBackwards(int[] s, int min, int max) {
+            if (cursor > limit_backward) {
 
-                var ch = (int) current[this.cursor - 1];
+                var ch = (int) current[cursor - 1];
                 if (ch <= max && ch >= min) {
                     ch -= min;
                     var r = s[ch >> 3] & (0X1 << (ch & 0X7));
                     if (r == 0) {
-                        this.cursor--;
+                        cursor--;
                         return true;
                     }
                 }
@@ -62,62 +62,62 @@ namespace Lunr.Globalization
             return false;
         }
 
-        public bool out_grouping(int[] s, int min, int max)
+        public bool OutGrouping(int[] s, int min, int max)
         {
-            if (this.cursor < this.limit) {
-                var ch = (int) current[this.cursor];
+            if (cursor < limit) {
+                var ch = (int) current[cursor];
                 if (ch > max || ch < min) {
-                    this.cursor++;
+                    cursor++;
                     return true;
                 }
                 ch -= min;
                 var r = (s[ch >> 3] & (0X1 << (ch & 0X7)));
                 if (r != 0) {
-                    this.cursor++;
+                    cursor++;
                     return true;
                 }
             }
             return false;
         }
 
-        public bool out_grouping_b(int[] s, int min, int max) {
-            if (this.cursor > this.limit_backward) {
-                var ch = (int) current[this.cursor - 1];
+        public bool OutGroupingBackwards(int[] s, int min, int max) {
+            if (cursor > limit_backward) {
+                var ch = (int) current[cursor - 1];
                 if (ch > max || ch < min) {
-                    this.cursor--;
+                    cursor--;
                     return true;
                 }
                 ch -= min;
                 var r = (s[ch >> 3] & (0X1 << (ch & 0X7)));
                 if (r != 0) {
-                    this.cursor--;
+                    cursor--;
                     return true;
                 }
             }
             return false;
         }
 
-        public bool eq_s(int s_size, string s) {
-            if (this.limit - this.cursor < s_size)
+        public bool EqualsSegment(int s_size, string s) {
+            if (limit - cursor < s_size)
                 return false;
             for (var i = 0; i < s_size; i++)
-                if (current[this.cursor + i] != s[i])
+                if (current[cursor + i] != s[i])
                     return false;
-            this.cursor += s_size;
+            cursor += s_size;
             return true;
         }
         
-        public bool eq_s_b(int s_size, string s) {
-            if (this.cursor - this.limit_backward < s_size)
+        public bool EqualsSegmentBackwards(int s_size, string s) {
+            if (cursor - limit_backward < s_size)
                 return false;
             for (var i = 0; i < s_size; i++)
-                if (current[this.cursor - s_size + i] != s[i])
+                if (current[cursor - s_size + i] != s[i])
                     return false;
-            this.cursor -= s_size;
+            cursor -= s_size;
             return true;
         }
 
-        public int find_among(Among[] v, int v_size)
+        public int FindAmong(Among[] v, int v_size)
         {
             var i = 0;
             var j = v_size;
@@ -182,12 +182,12 @@ namespace Lunr.Globalization
             }
         }
         
-        public int find_among_b(Among[] v, int v_size)
+        public int FindAmongBackwards(Among[] v, int v_size)
         {
             var i = 0;
             var j = v_size;
             var c = cursor;
-            var lb = this.limit_backward;
+            var lb = limit_backward;
             var common_i = 0;
             var common_j = 0;
             var first_key_inspected = false;
@@ -233,11 +233,11 @@ namespace Lunr.Globalization
                 var w = v[i];
                 if (common_i >= w.s_size)
                 {
-                    this.cursor = c - w.s_size;
+                    cursor = c - w.s_size;
                     if (w.method == null)
                         return w.result;
                     var res = w.method();
-                    this.cursor = c - w.s_size;
+                    cursor = c - w.s_size;
                     if (res)
                         return w.result;
                 }
@@ -247,7 +247,7 @@ namespace Lunr.Globalization
             }
         }
         
-        public int replace_s(int c_bra, int c_ket, string s)
+        public int ReplaceSegment(int c_bra, int c_ket, string s)
         {
             var adjustment = s.Length - (c_ket - c_bra);
             var left = current.Substring(0, c_bra);
@@ -262,38 +262,38 @@ namespace Lunr.Globalization
             return adjustment;
         }
 
-        public void slice_check()
+        public void SliceCheck()
         {
             if (bra < 0 || bra > ket || ket > limit|| limit > current?.Length)
                 throw new InvalidOperationException("faulty slice operation");
         }
 
-        public void slice_from(string s)
+        public void SliceFrom(string s)
         {
-            slice_check();
-            replace_s(bra, ket, s);
+            SliceCheck();
+            ReplaceSegment(bra, ket, s);
         }
 
-        public void slice_del()
+        public void SliceDelete()
         {
-            slice_from(string.Empty);
+            SliceFrom(string.Empty);
         }
 
-        public void insert(int c_bra, int c_ket, string s)
+        public void Insert(int c_bra, int c_ket, string s)
         {
-            var adjustment = replace_s(c_bra, c_ket, s);
+            var adjustment = ReplaceSegment(c_bra, c_ket, s);
             if (c_bra <= bra)
                 bra += adjustment;
             if (c_bra <= ket)
                 ket += adjustment;
         }
 
-        public string? slice_to()
+        public string SliceTo()
         {
-            slice_check();
-            return current?.Substring(bra, ket);
+            SliceCheck();
+            return current.Substring(bra, ket);
         }
 
-        public bool eq_v_b(string s) => eq_s_b(s.Length, s);
+        public bool EqualsValueBackwards(string s) => EqualsSegmentBackwards(s.Length, s);
     }
 }
