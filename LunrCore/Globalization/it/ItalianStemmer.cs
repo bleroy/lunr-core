@@ -42,11 +42,11 @@
 			a_0 = new[] {
 				new Among("", -1, 7),
 				new Among("qu", 0, 6),
-				new Among("\u00E1", 0, 1),
-				new Among("\u00E9", 0, 2),
-				new Among("\u00ED", 0, 3),
-				new Among("\u00F3", 0, 4),
-				new Among("\u00FA", 0, 5)
+				new Among(@"á", 0, 1),
+				new Among(@"é", 0, 2),
+				new Among(@"í", 0, 3),
+				new Among(@"ó", 0, 4),
+				new Among(@"ú", 0, 5)
 			};
 			a_1 = new[] {
 				new Among("", -1, 3),
@@ -158,10 +158,10 @@
 				new Among("amento", -1, 6),
 				new Among("imento", -1, 6),
 				new Among("ivo", -1, 9),
-				new Among("it\u00E0", -1, 8),
-				new Among("ist\u00E0", -1, 1),
-				new Among("ist\u00E8", -1, 1),
-				new Among("ist\u00EC", -1, 1)
+				new Among(@"ità", -1, 8),
+				new Among(@"istà", -1, 1),
+				new Among(@"istè", -1, 1),
+				new Among(@"istì", -1, 1)
 			};
 			a_7 = new[] {
 				new Among("isca", -1, 1),
@@ -247,10 +247,10 @@
 				new Among("ivo", -1, 1),
 				new Among("ar", -1, 1),
 				new Among("ir", -1, 1),
-				new Among("er\u00E0", -1, 1),
-				new Among("ir\u00E0", -1, 1),
-				new Among("er\u00F2", -1, 1),
-				new Among("ir\u00F2", -1, 1)
+				new Among(@"erà", -1, 1),
+				new Among(@"irà", -1, 1),
+				new Among(@"erò", -1, 1),
+				new Among(@"irò", -1, 1)
 			};
 			g_v = new[] {17, 65, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 128, 8, 2, 1};
 			g_AEIO = new[] {17, 65, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 128, 8, 2};
@@ -288,19 +288,19 @@
 					switch (among_var)
 					{
 						case 1:
-							sbp.SliceFrom("\u00E0");
+							sbp.SliceFrom(@"à");
 							continue;
 						case 2:
-							sbp.SliceFrom("\u00E8");
+							sbp.SliceFrom(@"è");
 							continue;
 						case 3:
-							sbp.SliceFrom("\u00EC");
+							sbp.SliceFrom(@"ì");
 							continue;
 						case 4:
-							sbp.SliceFrom("\u00F2");
+							sbp.SliceFrom(@"ò");
 							continue;
 						case 5:
-							sbp.SliceFrom("\u00F9");
+							sbp.SliceFrom(@"ù");
 							continue;
 						case 6:
 							sbp.SliceFrom("qU");

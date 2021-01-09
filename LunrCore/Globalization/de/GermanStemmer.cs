@@ -2,7 +2,7 @@
 {
 	public sealed class GermanStemmer : StemmerBase
 	{
-		private SnowballProgram sbp;
+		private readonly SnowballProgram sbp;
 		private int I_x;
 		private int I_p2;
 		private int I_p1;
@@ -40,9 +40,9 @@
 				new Among("", -1, 6),
 				new Among("U", 0, 2),
 				new Among("Y", 0, 1),
-				new Among("\u00E4", 0, 3),
-				new Among("\u00F6", 0, 4),
-				new Among("\u00FC", 0, 5)
+				new Among("ä", 0, 3),
+				new Among("ö", 0, 4),
+				new Among("ü", 0, 5)
 			};
 			a_1 = new[] {
 				new Among("e", -1, 2),
@@ -103,7 +103,7 @@
 			{
 				var v_2 = sbp.cursor;
 				sbp.bra = v_2;
-				if (sbp.EqualsSegment(1, "\u00DF"))
+				if (sbp.EqualsSegment(1, "ß"))
 				{
 					sbp.ket = sbp.cursor;
 					sbp.SliceFrom("ss");
