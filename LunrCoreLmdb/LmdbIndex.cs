@@ -6,8 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using LightningDB;
 using Lunr;
-using Lunr.Globalization.fr;
-using Lunr.Globalization.it;
 
 namespace LunrCoreLmdb
 {
