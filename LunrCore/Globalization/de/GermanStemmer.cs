@@ -3,9 +3,9 @@
 	public sealed class GermanStemmer : StemmerBase
 	{
 		private readonly SnowballProgram sbp;
-		private int I_x;
-		private int I_p2;
 		private int I_p1;
+		private int I_p2;
+		private int I_x;
 
 		public GermanStemmer()
 		{
@@ -21,64 +21,6 @@
 			StemImpl();
 			return sbp.GetCurrent();
 		}
-
-		#region Data
-
-		private static readonly Among[] a_0;
-		private static readonly Among[] a_1;
-		private static readonly Among[] a_2;
-		private static readonly Among[] a_3;
-		private static readonly Among[] a_4;
-
-		private static readonly int[] g_v;
-		private static readonly int[] g_s_ending;
-		private static readonly int[] g_st_ending;
-
-		static GermanStemmer()
-		{
-			a_0 = new[] {
-				new Among("", -1, 6),
-				new Among("U", 0, 2),
-				new Among("Y", 0, 1),
-				new Among("ä", 0, 3),
-				new Among("ö", 0, 4),
-				new Among("ü", 0, 5)
-			};
-			a_1 = new[] {
-				new Among("e", -1, 2),
-				new Among("em", -1, 1),
-				new Among("en", -1, 2),
-				new Among("ern", -1, 1),
-				new Among("er", -1, 1),
-				new Among("s", -1, 3),
-				new Among("es", 5, 2)
-			};
-			a_2 = new[] {
-				new Among("en", -1, 1),
-				new Among("er", -1, 1),
-				new Among("st", -1, 2),
-				new Among("est", 2, 1)
-			};
-			a_3 = new[] {
-				new Among("ig", -1, 1),
-				new Among("lich", -1, 1)
-			};
-			a_4 = new[] {
-				new Among("end", -1, 1),
-				new Among("ig", -1, 2),
-				new Among("ung", -1, 1),
-				new Among("lich", -1, 3),
-				new Among("isch", -1, 2),
-				new Among("ik", -1, 2),
-				new Among("heit", -1, 3),
-				new Among("keit", -1, 4)
-			};
-			g_v = new[] {17, 65, 16, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 32, 8};
-			g_s_ending = new[] {117, 30, 5};
-			g_st_ending = new[] {117, 30, 4};
-		}
-
-		#endregion
 
 		private bool habr1(string c1, string c2, int v_1)
 		{
@@ -111,7 +53,10 @@
 				else
 				{
 					if (v_2 >= sbp.limit)
+					{
 						break;
+					}
+
 					sbp.cursor = v_2 + 1;
 				}
 			}
@@ -128,10 +73,15 @@
 						var v_5 = sbp.cursor;
 						sbp.bra = v_5;
 						if (habr1("u", "U", v_4))
+						{
 							break;
+						}
+
 						sbp.cursor = v_5;
 						if (habr1("y", "Y", v_4))
+						{
 							break;
+						}
 					}
 
 					if (v_4 >= sbp.limit)
@@ -150,14 +100,20 @@
 			while (!sbp.InGrouping(g_v, 97, 252))
 			{
 				if (sbp.cursor >= sbp.limit)
+				{
 					return true;
+				}
+
 				sbp.cursor++;
 			}
 
 			while (!sbp.OutGrouping(g_v, 97, 252))
 			{
 				if (sbp.cursor >= sbp.limit)
+				{
 					return true;
+				}
+
 				sbp.cursor++;
 			}
 
@@ -176,9 +132,14 @@
 				{
 					I_p1 = sbp.cursor;
 					if (I_p1 < I_x)
+					{
 						I_p1 = I_x;
+					}
+
 					if (!habr2())
+					{
 						I_p2 = sbp.cursor;
+					}
 				}
 			}
 		}
@@ -191,7 +152,10 @@
 				sbp.bra = v_1;
 				var among_var = sbp.FindAmong(a_0, 6);
 				if (among_var == 0) /* !! */
+				{
 					return;
+				}
+
 				sbp.ket = sbp.cursor;
 				switch (among_var)
 				{
@@ -210,15 +174,25 @@
 						break;
 					case 6:
 						if (sbp.cursor >= sbp.limit)
+						{
 							return;
+						}
+
 						sbp.cursor++;
 						break;
 				}
 			}
 		}
 
-		private bool r_R1() => I_p1 <= sbp.cursor;
-		private bool r_R2() => I_p2 <= sbp.cursor;
+		private bool r_R1()
+		{
+			return I_p1 <= sbp.cursor;
+		}
+
+		private bool r_R2()
+		{
+			return I_p2 <= sbp.cursor;
+		}
 
 		private void r_standard_suffix()
 		{
@@ -242,13 +216,18 @@
 							{
 								sbp.bra = sbp.cursor;
 								if (sbp.EqualsSegmentBackwards(3, "nis"))
+								{
 									sbp.SliceDelete();
+								}
 							}
 
 							break;
 						case 3:
 							if (sbp.InGroupingBackwards(g_s_ending, 98, 116))
+							{
 								sbp.SliceDelete();
+							}
+
 							break;
 					}
 				}
@@ -304,7 +283,9 @@
 								{
 									sbp.cursor = sbp.limit - v_2;
 									if (r_R2())
+									{
 										sbp.SliceDelete();
+									}
 								}
 							}
 
@@ -326,12 +307,17 @@
 							{
 								sbp.cursor = sbp.limit - v_4;
 								if (!sbp.EqualsSegmentBackwards(2, "en"))
+								{
 									break;
+								}
 							}
 
 							sbp.bra = sbp.cursor;
 							if (r_R1())
+							{
 								sbp.SliceDelete();
+							}
+
 							break;
 						case 4:
 							sbp.SliceDelete();
@@ -341,7 +327,9 @@
 							{
 								sbp.bra = sbp.cursor;
 								if (r_R2() && among_var == 1)
+								{
 									sbp.SliceDelete();
+								}
 							}
 
 							break;
@@ -362,5 +350,60 @@
 			sbp.cursor = sbp.limit_backward;
 			r_postlude();
 		}
+
+		#region Data
+
+		private static readonly Among[] a_0 =
+		{
+			new Among("", -1, 6),
+			new Among("U", 0, 2),
+			new Among("Y", 0, 1),
+			new Among("ä", 0, 3),
+			new Among("ö", 0, 4),
+			new Among("ü", 0, 5)
+		};
+
+		private static readonly Among[] a_1 =
+		{
+			new Among("e", -1, 2),
+			new Among("em", -1, 1),
+			new Among("en", -1, 2),
+			new Among("ern", -1, 1),
+			new Among("er", -1, 1),
+			new Among("s", -1, 3),
+			new Among("es", 5, 2)
+		};
+
+		private static readonly Among[] a_2 =
+		{
+			new Among("en", -1, 1),
+			new Among("er", -1, 1),
+			new Among("st", -1, 2),
+			new Among("est", 2, 1)
+		};
+
+		private static readonly Among[] a_3 =
+		{
+			new Among("ig", -1, 1),
+			new Among("lich", -1, 1)
+		};
+
+		private static readonly Among[] a_4 =
+		{
+			new Among("end", -1, 1),
+			new Among("ig", -1, 2),
+			new Among("ung", -1, 1),
+			new Among("lich", -1, 3),
+			new Among("isch", -1, 2),
+			new Among("ik", -1, 2),
+			new Among("heit", -1, 3),
+			new Among("keit", -1, 4)
+		};
+
+		private static readonly int[] g_v = {17, 65, 16, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 32, 8};
+		private static readonly int[] g_s_ending = {117, 30, 5};
+		private static readonly int[] g_st_ending = {117, 30, 4};
+
+		#endregion
 	}
 }
