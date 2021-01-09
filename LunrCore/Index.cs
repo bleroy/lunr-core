@@ -9,8 +9,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Lunr.Globalization.fr;
-using Lunr.Globalization.it;
 
 namespace Lunr
 {
