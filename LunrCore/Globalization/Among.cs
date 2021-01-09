@@ -16,7 +16,8 @@ namespace Lunr.Globalization
         public Among(string s, int substring_i, int result, Func<bool> method = default!)
         {
             if (s == null)
-                throw new ArgumentException($"Bad Among initialization: s:{s}, substring_i: {substring_i}, result: {result}");
+                throw new ArgumentNullException(nameof(s));
+
             this.s_size = s.Length;
             this.s = s.ToCharArray();
             this.substring_i = substring_i;
