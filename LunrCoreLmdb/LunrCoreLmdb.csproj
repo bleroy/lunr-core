@@ -1,18 +1,36 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>8</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Lunr</RootNamespace>
+    <Version>2.3.8.5</Version>
+    <Authors>Bertrand Le Roy</Authors>
+    <Company>Decent Consulting</Company>
+    <Description>A .NET Core, LMDB-backed port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright." Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International</Description>
+    <Copyright>2020 Bertrand Le Roy</Copyright>
+    <PackageProjectUrl>https://github.com/bleroy/lunr-core</PackageProjectUrl>
+    <PackageIcon>LunrCoreLmdb.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/bleroy/lunr-core</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="LightningDB" Version="0.13.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <ProjectReference Include="..\LunrCore\LunrCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LunrCore\LunrCore.csproj" />
+    <None Include="Assets/LunrCoreLmdb.png" Pack="true" PackagePath=""/>
+    <None Include="../LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>
