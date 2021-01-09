@@ -13,6 +13,6 @@ namespace Lunr.Globalization.da
 			EndRegex = new Regex("[^" + WordCharacters.Danish + "]+$", RegexOptions.Compiled);
 		}
 
-		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, string.Empty), string.Empty);
+		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, ""), "");
 	}
 }

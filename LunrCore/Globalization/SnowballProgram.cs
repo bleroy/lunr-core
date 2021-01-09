@@ -355,7 +355,7 @@ namespace Lunr.Globalization
 
 		public void SliceDelete()
 		{
-			SliceFrom(string.Empty);
+			SliceFrom("");
 		}
 
 		public void Insert(int c_bra, int c_ket, string s)

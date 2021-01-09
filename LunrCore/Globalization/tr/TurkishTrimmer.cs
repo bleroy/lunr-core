@@ -13,6 +13,6 @@ namespace Lunr.Globalization.tr
 			EndRegex = new Regex("[^" + WordCharacters.Turkish + "]+$", RegexOptions.Compiled);
 		}
 
-		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, string.Empty), string.Empty);
+		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, ""), "");
 	}
 }
