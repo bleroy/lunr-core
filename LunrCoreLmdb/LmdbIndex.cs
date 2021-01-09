@@ -107,7 +107,7 @@ namespace LunrCoreLmdb
 
             return builder.Build(path, cancellationToken);
         }
-
+        
         #region Fields 
 
         public bool AddField(string field, CancellationToken cancellationToken = default) => WithWritableTransaction((db, tx) =>

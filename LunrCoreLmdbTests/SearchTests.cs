@@ -535,7 +535,7 @@ namespace LunrCoreLmdbTests
                 }
             });
 
-            return CopyIndex(idx);
+            return idx.CopyToLmdb(_tempDir.NewDirectory());
         }
 
         private async Task<DelegatedIndex> GetIndexWithDocumentBoost()
@@ -559,29 +559,9 @@ namespace LunrCoreLmdbTests
                 }
             });
 
-            return CopyIndex(idx);
+            return idx.CopyToLmdb(_tempDir.NewDirectory());
         }
 
-        private DelegatedIndex CopyIndex(Lunr.Index index)
-        {
-            var path = _tempDir.NewDirectory();
-
-            var lmdb = new LmdbIndex(path);
-            
-            foreach (var field in index.Fields)
-                Assert.True(lmdb.AddField(field));
-
-            foreach (var (k, v) in index.FieldVectors)
-                Assert.True(lmdb.AddFieldVector(k, v));
-
-            foreach (var (k, v) in index.InvertedIndex)
-                Assert.True(lmdb.AddInvertedIndexEntry(k, v));
-
-            var idx = new DelegatedIndex(lmdb, index.Pipeline);
-
-            return idx;
-        }
-        
         public void Dispose()
         {
             _tempDir.Dispose();
