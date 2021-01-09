@@ -9,6 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreTests", "LunrCoreTe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Metadata", "Metadata", "{333885CB-3ADF-4462-8910-27A16B6C5F55}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
 		LICENSE = LICENSE
 		README.md = README.md
@@ -20,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreLmdb", "LunrCoreLmd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreLmdbTests", "LunrCoreLmdbTests\LunrCoreLmdbTests.csproj", "{2EF25270-1D0D-4450-ADBB-BCFD08FB9BB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LunrCoreLmdbPerf", "LunrCoreLmdbPerf\LunrCoreLmdbPerf.csproj", "{41BB51FD-462C-4AAB-9B4D-127FD784B566}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LunrCoreLmdbPerf", "LunrCoreLmdbPerf\LunrCoreLmdbPerf.csproj", "{41BB51FD-462C-4AAB-9B4D-127FD784B566}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
