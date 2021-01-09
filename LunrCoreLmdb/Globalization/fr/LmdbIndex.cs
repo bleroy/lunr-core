@@ -39,9 +39,6 @@ namespace LunrCoreLmdb.Globalization.fr
         /// });
         /// </example>
         /// <param name="path">The directory path to the LMDB database used to store this index.</param>
-        /// <param name="trimmer">An optional trimmer. Default is a regex-based word trimmer.</param>
-        /// <param name="stopWordFilter">An optional stopword filter. Default is English.</param>
-        /// <param name="stemmer">An optional stemmer. Default is English.</param>
         /// <param name="config">A Configuration function.</param>
         /// <param name="tokenizer">An optional tokenizer. Default is a ToString() based splitter. </param>
         /// <param name="registry">An optional pipeline function registry. Default filters through the specific trimmer, stopword filter, and stemmer.</param>
