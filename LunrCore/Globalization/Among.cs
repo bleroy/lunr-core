@@ -1,17 +1,15 @@
-﻿// Ported from: https://github.com/MihaiValentin/lunr-languages/blob/master/LICENSE
-
-using System;
+﻿using System;
 using System.Linq;
 
 namespace Lunr.Globalization
 {
 	public readonly struct Among : IEquatable<Among>
 	{
-		public readonly int Size;
-		public readonly char[] StringArray;
-		public readonly int Result;
-		public readonly Func<bool>? Method;
-		public readonly int Substring;
+		public int Size { get; }
+		public char[] StringArray { get; }
+		public int Result { get; }
+		public Func<bool>? Method { get; }
+		public int Substring { get; }
 
 		public Among(string s, int substring, int result, Func<bool> method = default!)
 		{

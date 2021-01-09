@@ -92,3 +92,4 @@ See the [`CONTRIBUTING.md` file](CONTRIBUTING.md).
 * Original code by [Oliver Nightingale](https://github.com/olivernn) and contributors, ported to .NET Core by [Bertrand Le Roy](https://github.com/bleroy).
 * Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International.
 * Perf tests use a [word list by Sindre Sorhus](https://github.com/sindresorhus/word-list).
+* Globalization ported from [Mihai Valentin's Lunr Languages Project](https://github.com/MihaiValentin/lunr-languages).
