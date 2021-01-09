@@ -18,7 +18,7 @@
         public override string Stem(string w)
         {
             sbp.SetCurrent(w);
-            stem();
+            StemImpl();
             return sbp.GetCurrent();
         }
 
@@ -56,8 +56,8 @@
             {
                 new Among("iqU", -1, 3), 
                 new Among("abl", -1, 3), 
-                new Among("I\u00E8r", -1, 4),
-                new Among("i\u00E8r", -1, 4), 
+                new Among("Ièr", -1, 4),
+                new Among("ièr", -1, 4), 
                 new Among("eus", -1, 2), 
                 new Among("iv", -1, 1)
             };
@@ -102,7 +102,7 @@
                 new Among("ments", -1, 15), 
                 new Among("ements", 30, 6), 
                 new Among("issements", 31, 12),
-                new Among("it\u00E9s", -1, 7), 
+                new Among("ités", -1, 7), 
                 new Among("ment", -1, 15),
                 new Among("ement", 34, 6), 
                 new Among("issement", 35, 12), 
@@ -111,7 +111,7 @@
                 new Among("aux", -1, 10),
                 new Among("eaux", 39, 9), 
                 new Among("eux", -1, 1), 
-                new Among("it\u00E9", -1, 7)
+                new Among("ité", -1, 7)
             };
             a_5 = new[]
             {
@@ -124,10 +124,10 @@
                 new Among("ir", -1, 1), 
                 new Among("iras", -1, 1),
                 new Among("ies", -1, 1),
-                new Among("\u00EEmes", -1, 1), 
+                new Among("îmes", -1, 1), 
                 new Among("isses", -1, 1), 
                 new Among("issantes", -1, 1),
-                new Among("\u00EEtes", -1, 1), 
+                new Among("îtes", -1, 1), 
                 new Among("is", -1, 1),
                 new Among("irais", 13, 1), 
                 new Among("issais", 13, 1), 
@@ -145,7 +145,7 @@
                 new Among("irent", -1, 1), 
                 new Among("issent", -1, 1),
                 new Among("iront", -1, 1), 
-                new Among("\u00EEt", -1, 1), 
+                new Among("ît", -1, 1), 
                 new Among("iriez", -1, 1),
                 new Among("issiez", -1, 1), 
                 new Among("irez", -1, 1), 
@@ -157,17 +157,17 @@
                 new Among("era", 0, 2),
                 new Among("asse", -1, 3), 
                 new Among("ante", -1, 3),
-                new Among("\u00E9e", -1, 2),
+                new Among("ée", -1, 2),
                 new Among("ai", -1, 3), 
                 new Among("erai", 5, 2), 
                 new Among("er", -1, 2), 
                 new Among("as", -1, 3),
                 new Among("eras", 8, 2), 
-                new Among("\u00E2mes", -1, 3),
+                new Among("âmes", -1, 3),
                 new Among("asses", -1, 3), 
                 new Among("antes", -1, 3), 
-                new Among("\u00E2tes", -1, 3),
-                new Among("\u00E9es", -1, 2), 
+                new Among("âtes", -1, 3),
+                new Among("ées", -1, 2), 
                 new Among("ais", -1, 3),
                 new Among("erais", 15, 2), 
                 new Among("ions", -1, 1), 
@@ -175,32 +175,32 @@
                 new Among("assions", 17, 3), 
                 new Among("erons", -1, 2),
                 new Among("ants", -1, 3), 
-                new Among("\u00E9s", -1, 2), 
+                new Among("és", -1, 2), 
                 new Among("ait", -1, 3),
                 new Among("erait", 23, 2), 
                 new Among("ant", -1, 3),
                 new Among("aIent", -1, 3), 
                 new Among("eraIent", 26, 2), 
-                new Among("\u00E8rent", -1, 2),
+                new Among("èrent", -1, 2),
                 new Among("assent", -1, 3), 
                 new Among("eront", -1, 2),
-                new Among("\u00E2t", -1, 3), 
+                new Among("ât", -1, 3), 
                 new Among("ez", -1, 2), 
                 new Among("iez", 32, 2), 
                 new Among("eriez", 33, 2),
                 new Among("assiez", 33, 3),
                 new Among("erez", 32, 2), 
-                new Among("\u00E9", -1, 2)
+                new Among("é", -1, 2)
             };
             a_7 = new[]
             {
                 new Among("e", -1, 3), 
-                new Among("I\u00E8re", 0, 2), 
-                new Among("i\u00E8re", 0, 2),
+                new Among("Ière", 0, 2), 
+                new Among("ière", 0, 2),
                 new Among("ion", -1, 1), 
                 new Among("Ier", -1, 2), 
                 new Among("ier", -1, 2), 
-                new Among("\u00EB", -1, 4)
+                new Among("ë", -1, 4)
             };
             a_8 = new[]
             {
@@ -218,12 +218,12 @@
         
         private bool habr1(string c1, string c2, int v_1)
         {
-            if (sbp.eq_s(1, c1))
+            if (sbp.EqualsSegment(1, c1))
             {
                 sbp.ket = sbp.cursor;
-                if (sbp.in_grouping(g_v, 97, 251))
+                if (sbp.InGrouping(g_v, 97, 251))
                 {
-                    sbp.slice_from(c2);
+                    sbp.SliceFrom(c2);
                     sbp.cursor = v_1;
                     return true;
                 }
@@ -233,10 +233,10 @@
 
         private bool habr2(string c1, string c2, int v_1)
         {
-            if (sbp.eq_s(1, c1))
+            if (sbp.EqualsSegment(1, c1))
             {
                 sbp.ket = sbp.cursor;
-                sbp.slice_from(c2);
+                sbp.SliceFrom(c2);
                 sbp.cursor = v_1;
                 return true;
             }
@@ -248,7 +248,7 @@
             while (true)
             {
                 var v_1 = sbp.cursor;
-                if (sbp.in_grouping(g_v, 97, 251))
+                if (sbp.InGrouping(g_v, 97, 251))
                 {
                     sbp.bra = sbp.cursor;
                     var v_2 = sbp.cursor;
@@ -267,7 +267,7 @@
                 if (!habr1("y", "Y", v_1))
                 {
                     sbp.cursor = v_1;
-                    if (sbp.eq_s(1, "q"))
+                    if (sbp.EqualsSegment(1, "q"))
                     {
                         sbp.bra = sbp.cursor;
                         if (habr2("u", "U", v_1))
@@ -283,13 +283,13 @@
 
         private bool habr3()
         {
-            while (!sbp.in_grouping(g_v, 97, 251))
+            while (!sbp.InGrouping(g_v, 97, 251))
             {
                 if (sbp.cursor >= sbp.limit)
                     return true;
                 sbp.cursor++;
             }
-            while (!sbp.out_grouping(g_v, 97, 251))
+            while (!sbp.OutGrouping(g_v, 97, 251))
             {
                 if (sbp.cursor >= sbp.limit)
                     return true;
@@ -304,13 +304,13 @@
             var I_pV = sbp.limit;
             var I_p1 = I_pV;
             var I_p2 = I_pV;
-            if (sbp.in_grouping(g_v, 97, 251) && sbp.in_grouping(g_v, 97, 251) &&
+            if (sbp.InGrouping(g_v, 97, 251) && sbp.InGrouping(g_v, 97, 251) &&
               sbp.cursor < sbp.limit)
                 sbp.cursor++;
             else
             {
                 sbp.cursor = v_1;
-                if (sbp.find_among(a_0, 3) == 0) /* !! */
+                if (sbp.FindAmong(a_0, 3) == 0) /* !! */
                 {
                     sbp.cursor = v_1;
                     do
@@ -321,7 +321,7 @@
                             break;
                         }
                         sbp.cursor++;
-                    } while (!sbp.in_grouping(g_v, 97, 251));
+                    } while (!sbp.InGrouping(g_v, 97, 251));
                 }
             }
             I_pV = sbp.cursor;
@@ -340,20 +340,20 @@
             {
                 var v_1 = sbp.cursor;
                 sbp.bra = v_1;
-                var among_var = sbp.find_among(a_1, 4);
+                var among_var = sbp.FindAmong(a_1, 4);
                 if (among_var == 0) /* !! */
                     break;
                 sbp.ket = sbp.cursor;
                 switch (among_var)
                 {
                     case 1:
-                        sbp.slice_from("i");
+                        sbp.SliceFrom("i");
                         break;
                     case 2:
-                        sbp.slice_from("u");
+                        sbp.SliceFrom("u");
                         break;
                     case 3:
-                        sbp.slice_from("y");
+                        sbp.SliceFrom("y");
                         break;
                     case 4:
                         if (sbp.cursor >= sbp.limit)
@@ -371,7 +371,7 @@
         private bool r_standard_suffix()
         {
             sbp.ket = sbp.cursor;
-            var among_var = sbp.find_among_b(a_4, 43);
+            var among_var = sbp.FindAmongBackwards(a_4, 43);
             if (among_var != 0) /* !! */
             {
                 sbp.bra = sbp.cursor;
@@ -380,43 +380,43 @@
                     case 1:
                         if (!r_R2())
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         break;
                     case 2:
                         if (!r_R2())
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         sbp.ket = sbp.cursor;
-                        if (sbp.eq_s_b(2, "ic"))
+                        if (sbp.EqualsSegmentBackwards(2, "ic"))
                         {
                             sbp.bra = sbp.cursor;
                             if (!r_R2())
-                                sbp.slice_from("iqU");
+                                sbp.SliceFrom("iqU");
                             else
-                                sbp.slice_del();
+                                sbp.SliceDelete();
                         }
                         break;
                     case 3:
                         if (!r_R2())
                             return false;
-                        sbp.slice_from("log");
+                        sbp.SliceFrom("log");
                         break;
                     case 4:
                         if (!r_R2())
                             return false;
-                        sbp.slice_from("u");
+                        sbp.SliceFrom("u");
                         break;
                     case 5:
                         if (!r_R2())
                             return false;
-                        sbp.slice_from("ent");
+                        sbp.SliceFrom("ent");
                         break;
                     case 6:
                         if (!r_RV())
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         sbp.ket = sbp.cursor;
-                        among_var = sbp.find_among_b(a_2, 6);
+                        among_var = sbp.FindAmongBackwards(a_2, 6);
                         if (among_var != 0) /* !! */
                         {
                             sbp.bra = sbp.cursor;
@@ -425,29 +425,29 @@
                                 case 1:
                                     if (r_R2())
                                     {
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                         sbp.ket = sbp.cursor;
-                                        if (sbp.eq_s_b(2, "at"))
+                                        if (sbp.EqualsSegmentBackwards(2, "at"))
                                         {
                                             sbp.bra = sbp.cursor;
                                             if (r_R2())
-                                                sbp.slice_del();
+                                                sbp.SliceDelete();
                                         }
                                     }
                                     break;
                                 case 2:
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     else if (r_R1())
-                                        sbp.slice_from("eux");
+                                        sbp.SliceFrom("eux");
                                     break;
                                 case 3:
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     break;
                                 case 4:
                                     if (r_RV())
-                                        sbp.slice_from("i");
+                                        sbp.SliceFrom("i");
                                     break;
                             }
                         }
@@ -455,9 +455,9 @@
                     case 7:
                         if (!r_R2())
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         sbp.ket = sbp.cursor;
-                        among_var = sbp.find_among_b(a_3, 3);
+                        among_var = sbp.FindAmongBackwards(a_3, 3);
                         if (among_var != 0) /* !! */
                         {
                             sbp.bra = sbp.cursor;
@@ -465,19 +465,19 @@
                             {
                                 case 1:
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     else
-                                        sbp.slice_from("abl");
+                                        sbp.SliceFrom("abl");
                                     break;
                                 case 2:
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     else
-                                        sbp.slice_from("iqU");
+                                        sbp.SliceFrom("iqU");
                                     break;
                                 case 3:
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     break;
                             }
                         }
@@ -485,62 +485,62 @@
                     case 8:
                         if (!r_R2())
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         sbp.ket = sbp.cursor;
-                        if (sbp.eq_s_b(2, "at"))
+                        if (sbp.EqualsSegmentBackwards(2, "at"))
                         {
                             sbp.bra = sbp.cursor;
                             if (r_R2())
                             {
-                                sbp.slice_del();
+                                sbp.SliceDelete();
                                 sbp.ket = sbp.cursor;
-                                if (sbp.eq_s_b(2, "ic"))
+                                if (sbp.EqualsSegmentBackwards(2, "ic"))
                                 {
                                     sbp.bra = sbp.cursor;
                                     if (r_R2())
-                                        sbp.slice_del();
+                                        sbp.SliceDelete();
                                     else
-                                        sbp.slice_from("iqU");
+                                        sbp.SliceFrom("iqU");
                                     break;
                                 }
                             }
                         }
                         break;
                     case 9:
-                        sbp.slice_from("eau");
+                        sbp.SliceFrom("eau");
                         break;
                     case 10:
                         if (!r_R1())
                             return false;
-                        sbp.slice_from("al");
+                        sbp.SliceFrom("al");
                         break;
                     case 11:
                         if (r_R2())
-                            sbp.slice_del();
+                            sbp.SliceDelete();
                         else if (!r_R1())
                             return false;
                         else
-                            sbp.slice_from("eux");
+                            sbp.SliceFrom("eux");
                         break;
                     case 12:
-                        if (!r_R1() || !sbp.out_grouping_b(g_v, 97, 251))
+                        if (!r_R1() || !sbp.OutGroupingBackwards(g_v, 97, 251))
                             return false;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                         break;
                     case 13:
                         if (r_RV())
-                            sbp.slice_from("ant");
+                            sbp.SliceFrom("ant");
                         return false;
                     case 14:
                         if (r_RV())
-                            sbp.slice_from("ent");
+                            sbp.SliceFrom("ent");
                         return false;
                     case 15:
                         var v_1 = sbp.limit - sbp.cursor;
-                        if (sbp.in_grouping_b(g_v, 97, 251) && r_RV())
+                        if (sbp.InGroupingBackwards(g_v, 97, 251) && r_RV())
                         {
                             sbp.cursor = sbp.limit - v_1;
-                            sbp.slice_del();
+                            sbp.SliceDelete();
                         }
                         return false;
                 }
@@ -556,7 +556,7 @@
             var v_1 = sbp.limit_backward;
             sbp.limit_backward = I_pV;
             sbp.ket = sbp.cursor;
-            var among_var = sbp.find_among_b(a_5, 35);
+            var among_var = sbp.FindAmongBackwards(a_5, 35);
             if (among_var == 0) /* !! */
             {
                 sbp.limit_backward = v_1;
@@ -565,12 +565,12 @@
             sbp.bra = sbp.cursor;
             if (among_var == 1)
             {
-                if (!sbp.out_grouping_b(g_v, 97, 251))
+                if (!sbp.OutGroupingBackwards(g_v, 97, 251))
                 {
                     sbp.limit_backward = v_1;
                     return false;
                 }
-                sbp.slice_del();
+                sbp.SliceDelete();
             }
             sbp.limit_backward = v_1;
             return true;
@@ -583,7 +583,7 @@
             var v_2 = sbp.limit_backward;
             sbp.limit_backward = I_pV;
             sbp.ket = sbp.cursor;
-            var among_var = sbp.find_among_b(a_6, 38);
+            var among_var = sbp.FindAmongBackwards(a_6, 38);
             if (among_var == 0) /* !! */
             {
                 sbp.limit_backward = v_2;
@@ -598,19 +598,19 @@
                         sbp.limit_backward = v_2;
                         return false;
                     }
-                    sbp.slice_del();
+                    sbp.SliceDelete();
                     break;
                 case 2:
-                    sbp.slice_del();
+                    sbp.SliceDelete();
                     break;
                 case 3:
-                    sbp.slice_del();
+                    sbp.SliceDelete();
                     var v_3 = sbp.limit - sbp.cursor;
                     sbp.ket = sbp.cursor;
-                    if (sbp.eq_s_b(1, "e"))
+                    if (sbp.EqualsSegmentBackwards(1, "e"))
                     {
                         sbp.bra = sbp.cursor;
-                        sbp.slice_del();
+                        sbp.SliceDelete();
                     }
                     else
                         sbp.cursor = sbp.limit - v_3;
@@ -624,14 +624,14 @@
         {
             var v_1 = sbp.limit - sbp.cursor;
             sbp.ket = sbp.cursor;
-            if (sbp.eq_s_b(1, "s"))
+            if (sbp.EqualsSegmentBackwards(1, "s"))
             {
                 sbp.bra = sbp.cursor;
                 var v_2 = sbp.limit - sbp.cursor;
-                if (sbp.out_grouping_b(g_keep_with_s, 97, 232))
+                if (sbp.OutGroupingBackwards(g_keep_with_s, 97, 232))
                 {
                     sbp.cursor = sbp.limit - v_2;
-                    sbp.slice_del();
+                    sbp.SliceDelete();
                 }
                 else
                     sbp.cursor = sbp.limit - v_1;
@@ -643,7 +643,7 @@
                 var v_4 = sbp.limit_backward;
                 sbp.limit_backward = I_pV;
                 sbp.ket = sbp.cursor;
-                var among_var = sbp.find_among_b(a_7, 7);
+                var among_var = sbp.FindAmongBackwards(a_7, 7);
                 if (among_var != 0) /* !! */
                 {
                     sbp.bra = sbp.cursor;
@@ -653,24 +653,24 @@
                             if (r_R2())
                             {
                                 var v_5 = sbp.limit - sbp.cursor;
-                                if (!sbp.eq_s_b(1, "s"))
+                                if (!sbp.EqualsSegmentBackwards(1, "s"))
                                 {
                                     sbp.cursor = sbp.limit - v_5;
-                                    if (!sbp.eq_s_b(1, "t"))
+                                    if (!sbp.EqualsSegmentBackwards(1, "t"))
                                         break;
                                 }
-                                sbp.slice_del();
+                                sbp.SliceDelete();
                             }
                             break;
                         case 2:
-                            sbp.slice_from("i");
+                            sbp.SliceFrom("i");
                             break;
                         case 3:
-                            sbp.slice_del();
+                            sbp.SliceDelete();
                             break;
                         case 4:
-                            if (sbp.eq_s_b(2, "gu"))
-                                sbp.slice_del();
+                            if (sbp.EqualsSegmentBackwards(2, "gu"))
+                                sbp.SliceDelete();
                             break;
                     }
                 }
@@ -681,7 +681,7 @@
         private void r_un_double()
         {
             var v_1 = sbp.limit - sbp.cursor;
-            if (sbp.find_among_b(a_8, 5) != 0) /* !! */
+            if (sbp.FindAmongBackwards(a_8, 5) != 0) /* !! */
             {
                 sbp.cursor = sbp.limit - v_1;
                 sbp.ket = sbp.cursor;
@@ -689,7 +689,7 @@
                 {
                     sbp.cursor--;
                     sbp.bra = sbp.cursor;
-                    sbp.slice_del();
+                    sbp.SliceDelete();
                 }
             }
         }
@@ -697,20 +697,20 @@
         private void r_un_accent()
         {
             var v_2 = 1;
-            while (sbp.out_grouping_b(g_v, 97, 251))
+            while (sbp.OutGroupingBackwards(g_v, 97, 251))
                 v_2--;
             if (v_2 <= 0)
             {
                 sbp.ket = sbp.cursor;
                 var v_1 = sbp.limit - sbp.cursor;
-                if (!sbp.eq_s_b(1, "\u00E9"))
+                if (!sbp.EqualsSegmentBackwards(1, "\u00E9"))
                 {
                     sbp.cursor = sbp.limit - v_1;
-                    if (!sbp.eq_s_b(1, "\u00E8"))
+                    if (!sbp.EqualsSegmentBackwards(1, "\u00E8"))
                         return;
                 }
                 sbp.bra = sbp.cursor;
-                sbp.slice_from("e");
+                sbp.SliceFrom("e");
             }
         }
 
@@ -732,23 +732,23 @@
             }
             sbp.cursor = sbp.limit;
             sbp.ket = sbp.cursor;
-            if (sbp.eq_s_b(1, "Y"))
+            if (sbp.EqualsSegmentBackwards(1, "Y"))
             {
                 sbp.bra = sbp.cursor;
-                sbp.slice_from("i");
+                sbp.SliceFrom("i");
             }
             else
             {
                 sbp.cursor = sbp.limit;
-                if (sbp.eq_s_b(1, "\u00E7"))
+                if (sbp.EqualsSegmentBackwards(1, "\u00E7"))
                 {
                     sbp.bra = sbp.cursor;
-                    sbp.slice_from("c");
+                    sbp.SliceFrom("c");
                 }
             }
         }
 
-        private void stem()
+        private void StemImpl()
         {
             var v_1 = sbp.cursor;
             r_prelude();
