@@ -4,8 +4,7 @@ namespace Lunr.Globalization.ru
 {
 	public sealed class RussianTrimmer : TrimmerBase
 	{
-		private static readonly Regex StartRegex = new Regex("^[^" + WordCharacters.Russian + "]+", RegexOptions.Compiled);
-		private static readonly Regex EndRegex = new Regex("[^" + WordCharacters.Russian + "]+$", RegexOptions.Compiled);
-		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, ""), "");
+		private static readonly Regex Pattern = new Regex("(^[^" + WordCharacters.Russian + "]+|[^" + WordCharacters.Russian + "]+$)", RegexOptions.Compiled);
+		public override string Trim(string s) => Pattern.Replace(s, "");
 	}
 }

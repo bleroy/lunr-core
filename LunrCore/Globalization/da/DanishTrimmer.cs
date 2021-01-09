@@ -4,15 +4,7 @@ namespace Lunr.Globalization.da
 {
 	public sealed class DanishTrimmer : TrimmerBase
 	{
-		private static readonly Regex StartRegex;
-		private static readonly Regex EndRegex;
-
-		static DanishTrimmer()
-		{
-			StartRegex = new Regex("^[^" + WordCharacters.Danish + "]+", RegexOptions.Compiled);
-			EndRegex = new Regex("[^" + WordCharacters.Danish + "]+$", RegexOptions.Compiled);
-		}
-
-		public override string Trim(string s) => EndRegex.Replace(StartRegex.Replace(s, ""), "");
+		private static readonly Regex Pattern = new Regex("(^[^" + WordCharacters.Danish + "]+|[^" + WordCharacters.Danish + "]+$)", RegexOptions.Compiled);
+		public override string Trim(string s) => Pattern.Replace(s, "");
 	}
 }
