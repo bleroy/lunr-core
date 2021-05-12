@@ -174,7 +174,7 @@ namespace LunrCoreLmdb
         /// <param name="field">A field to index in all documents.</param>
         public LmdbBuilder AddField(Field field)
         {
-            if (field.Name.IndexOf('/') != -1) throw new ArgumentOutOfRangeException($"Field '{field.Name}' contains illegal character '/'");
+            if (field.Name.Contains('/')) throw new ArgumentOutOfRangeException($"Field '{field.Name}' contains illegal character '/'");
 
             _fields.Add(field.Name, field);
 
