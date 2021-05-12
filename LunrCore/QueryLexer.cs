@@ -154,11 +154,11 @@ namespace Lunr
             foreach (int escapeCharposition in _escapeCharPositions)
             {
                 int sliceEnd = escapeCharposition;
-                subSlices.Append(_str.Substring(sliceStart, sliceEnd - sliceStart));
+                subSlices.Append(_str.AsSpan(sliceStart, sliceEnd - sliceStart));
                 sliceStart = sliceEnd + 1;
             }
 
-            subSlices.Append(_str.Substring(sliceStart, _pos - sliceStart));
+            subSlices.Append(_str.AsSpan(sliceStart, _pos - sliceStart));
             _escapeCharPositions.Clear();
 
             return subSlices.ToString();
