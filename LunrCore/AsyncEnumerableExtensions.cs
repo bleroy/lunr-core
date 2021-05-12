@@ -114,7 +114,7 @@ namespace Lunr
             foreach(T item in source)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                yield return await Task.FromResult(item);
+                yield return await Task.FromResult(item).ConfigureAwait(false);
             }
         }
 
@@ -171,7 +171,7 @@ namespace Lunr
         /// <returns>An empty async enumerable of the specified type.</returns>
         public static async IAsyncEnumerable<T> Empty<T>()
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             yield break;
         }
     }

@@ -232,7 +232,7 @@ namespace Lunr
 
             foreach (Field field in Fields)
             {
-                object? fieldValue = await field.ExtractValue(doc);
+                object? fieldValue = await field.ExtractValue(doc).ConfigureAwait(false);
                 if (fieldValue is null) continue;
                 
                 var metadata = new TokenMetadata
