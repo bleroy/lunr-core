@@ -387,7 +387,7 @@ namespace Lunr
                         (TermFrequencySaturationFactor *
                             (1 - FieldLengthNormalizationFactor +
                                 FieldLengthNormalizationFactor *
-                                    (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])
+                                    (_fieldLengths[fieldRef] / AverageFieldLength[field!.Name])
                              ) + tf
                         )
                         * fieldBoost
