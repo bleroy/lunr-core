@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Lunr
 {
-    public class Token
+    public sealed class Token
     {
         /// <summary>
         /// Creates a new token from a string.
