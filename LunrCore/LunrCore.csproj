@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
     <RootNamespace>Lunr</RootNamespace>
-    <Version>2.3.8.5</Version>
+    <Version>2.3.9.0</Version>
     <Authors>Bertrand Le Roy</Authors>
     <Company>Decent Consulting</Company>
     <Description>A .NET Core port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright." Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International</Description>
