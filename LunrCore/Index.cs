@@ -110,7 +110,7 @@ namespace Lunr
 
             if (config != null)
             {
-                await config(builder);
+                await config(builder).ConfigureAwait(false);
             }
 
             return builder.Build();
@@ -563,7 +563,7 @@ namespace Lunr
         /// <param name="utf8json">The stream to persist to.</param>
         /// <param name="options">Optional serializer options.</param>
         public async Task SaveToJsonStream(Stream utf8json, JsonSerializerOptions? options = null!)
-            => await JsonSerializer.SerializeAsync(utf8json, this, options);
+            => await JsonSerializer.SerializeAsync(utf8json, this, options).ConfigureAwait(false);
 
         /// <summary>
         /// Persists an index to a stream as JSON.

@@ -48,6 +48,6 @@ namespace Lunr
         public Func<Document, Task<T>> Extractor { get; }
 
         public override async Task<object?> ExtractValue(Document doc)
-            => await Extractor(doc);
+            => await Extractor(doc).ConfigureAwait(false);
     }
 }

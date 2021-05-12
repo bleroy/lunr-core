@@ -114,7 +114,7 @@ namespace Lunr
             foreach(T item in source)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                yield return await Task.FromResult(item);
+                yield return await Task.FromResult(item).ConfigureAwait(false);
             }
         }
 

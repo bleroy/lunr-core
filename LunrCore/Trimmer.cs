@@ -18,7 +18,7 @@ namespace Lunr
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested) yield break;
-            yield return await Task.FromResult(token.Clone(Trim));
+            yield return await Task.FromResult(token.Clone(Trim)).ConfigureAwait(false);
         }
 
         public Pipeline.Function FilterFunction => TrimImplementation;
