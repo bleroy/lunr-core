@@ -22,7 +22,7 @@ namespace Lunr
 
             foreach ((string fieldName, FieldMatches value) in posting)
             {
-                if (fieldName == "_index") continue; // Ignore the term index, its not a field
+                if (fieldName is "_index") continue; // Ignore the term index, its not a field
                 documentsWithTerm += value.Count;
             }
 

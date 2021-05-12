@@ -12,7 +12,7 @@ namespace Lunr
     {
         protected Field(string name, double boost = 1)
         {
-            if (name == "") throw new InvalidOperationException("Can't create a field with an empty name.");
+            if (name is "") throw new InvalidOperationException("Can't create a field with an empty name.");
             if (name.IndexOf('/') != -1) throw new InvalidOperationException($"Can't create a field with a '/' character in its name \"{name}\".");
 
             Name = name;
