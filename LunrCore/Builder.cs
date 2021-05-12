@@ -196,7 +196,7 @@ namespace Lunr
         /// <param name="fieldName">The name of a field to index in all documents.</param>
         /// <param name="boost">An optional boost for this field.</param>
         /// <param name="extractor">An optional extraction function for this field's values.</param>
-        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null!)
+        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null)
             => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
@@ -216,9 +216,9 @@ namespace Lunr
         /// <param name="attributes">An optional set of attributes associated with this document.</param>
         public async Task Add(
             Document doc,
-            IDictionary<string, object>? attributes = null!,
-            CultureInfo? culture = null!,
-            CancellationToken? cancellationToken = null!)
+            IDictionary<string, object>? attributes = null,
+            CultureInfo? culture = null,
+            CancellationToken? cancellationToken = null)
         {
             string docRef = doc[ReferenceField].ToString()!;
 
@@ -232,7 +232,7 @@ namespace Lunr
 
             foreach (Field field in Fields)
             {
-                object? fieldValue = await field.ExtractValue(doc);
+                object? fieldValue = await field.ExtractValue(doc).ConfigureAwait(false);
                 if (fieldValue is null) continue;
                 
                 var metadata = new TokenMetadata

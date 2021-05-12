@@ -31,7 +31,7 @@ namespace Lunr
             bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
-            IEnumerable<string>? fields = null!)
+            IEnumerable<string>? fields = null)
         {
             Fields = fields ?? Array.Empty<string>();
             Boost = boost;

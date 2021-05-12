@@ -114,7 +114,7 @@ namespace Lunr
             foreach(T item in source)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                yield return await Task.FromResult(item);
+                yield return await Task.FromResult(item).ConfigureAwait(false);
             }
         }
 
@@ -128,7 +128,7 @@ namespace Lunr
         /// <returns></returns>
         public static async Task<IList<T>> ToList<T>(
             this IAsyncEnumerable<T> source,
-            CancellationToken? cancellationToken = null!)
+            CancellationToken? cancellationToken = null)
         {
             var result = new List<T>();
             await foreach (T item in source)
@@ -153,7 +153,7 @@ namespace Lunr
         /// <returns>True if any element satisfy the condition.</returns>
         public static async Task<bool> Any<T>(
             this IAsyncEnumerable<T> source,
-            Func<T, bool>? predicate = null!)
+            Func<T, bool>? predicate = null)
         {
             await foreach(T item in source)
             {
@@ -171,7 +171,7 @@ namespace Lunr
         /// <returns>An empty async enumerable of the specified type.</returns>
         public static async IAsyncEnumerable<T> Empty<T>()
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
             yield break;
         }
     }

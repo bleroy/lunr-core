@@ -77,14 +77,14 @@ namespace Lunr
         /// <param name="config">A Configuration function.</param>
         /// <returns>The index.</returns>
         public static async Task<Index> Build(
-            Func<Builder, Task>? config = null!,
-            TrimmerBase? trimmer = null!,
-            StopWordFilterBase? stopWordFilter = null!,
-            StemmerBase? stemmer = null!,
-            Tokenizer? tokenizer = null!,
-            PipelineFunctionRegistry? registry = null!,
-            IEnumerable<string>? indexingPipeline = null!,
-            IEnumerable<string>? searchPipeline = null!,
+            Func<Builder, Task>? config = null,
+            TrimmerBase? trimmer = null,
+            StopWordFilterBase? stopWordFilter = null,
+            StemmerBase? stemmer = null,
+            Tokenizer? tokenizer = null,
+            PipelineFunctionRegistry? registry = null,
+            IEnumerable<string>? indexingPipeline = null,
+            IEnumerable<string>? searchPipeline = null,
             params Field[] fields)
         {
             Pipeline.Function trimmerFunction = (trimmer ?? new Trimmer()).FilterFunction;
@@ -110,7 +110,7 @@ namespace Lunr
 
             if (config != null)
             {
-                await config(builder);
+                await config(builder).ConfigureAwait(false);
             }
 
             return builder.Build();
@@ -534,8 +534,8 @@ namespace Lunr
         /// <returns>The index.</returns>
         public static async Task<Index> LoadFromJsonStream(
             Stream utf8json,
-            StemmerBase? stemmer = null!,
-            PipelineFunctionRegistry? registry = null!)
+            StemmerBase? stemmer = null,
+            PipelineFunctionRegistry? registry = null)
         {
             Index index = (await JsonSerializer.DeserializeAsync<Index>(utf8json).ConfigureAwait(false))!;
             return ProcessDeserializedIndex(stemmer, registry, index);
@@ -550,8 +550,8 @@ namespace Lunr
         /// <returns>The index.</returns>
         public static Index LoadFromJson(
             string json,
-            StemmerBase? stemmer = null!,
-            PipelineFunctionRegistry? registry = null!)
+            StemmerBase? stemmer = null,
+            PipelineFunctionRegistry? registry = null)
         {
             Index index = JsonSerializer.Deserialize<Index>(json)!;
             return ProcessDeserializedIndex(stemmer, registry, index);
@@ -562,15 +562,15 @@ namespace Lunr
         /// </summary>
         /// <param name="utf8json">The stream to persist to.</param>
         /// <param name="options">Optional serializer options.</param>
-        public async Task SaveToJsonStream(Stream utf8json, JsonSerializerOptions? options = null!)
-            => await JsonSerializer.SerializeAsync(utf8json, this, options);
+        public async Task SaveToJsonStream(Stream utf8json, JsonSerializerOptions? options = null)
+            => await JsonSerializer.SerializeAsync(utf8json, this, options).ConfigureAwait(false);
 
         /// <summary>
         /// Persists an index to a stream as JSON.
         /// </summary>
         /// <param name="utf8json">The stream to persist to.</param>
         /// <param name="options">Optional serializer options.</param>
-        public string ToJson(JsonSerializerOptions? options = null!)
+        public string ToJson(JsonSerializerOptions? options = null)
             => JsonSerializer.Serialize(this, options);
 
         private static Index ProcessDeserializedIndex(
