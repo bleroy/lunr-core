@@ -9,7 +9,7 @@ namespace Lunr
         /// </summary>
         /// <param name="tokenString">The token string.</param>
         /// <param name="metadata">Metadata associated with this token.</param>
-        public Token(string tokenString, TokenMetadata? metadata = null!)
+        public Token(string tokenString, TokenMetadata? metadata = null)
         {
             String = tokenString ?? "";
             Metadata = metadata ?? new TokenMetadata();
