@@ -10,7 +10,7 @@ namespace Lunr.Serialization
         /// <summary>
         /// The lunr.js version that this version of the library is designed to be compatible with.
         /// </summary>
-        private static readonly string _versionString = $"2.3.8";
+        private static readonly string _versionString = "2.3.9";
 
         public override Index Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
