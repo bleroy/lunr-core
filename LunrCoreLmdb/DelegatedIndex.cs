@@ -274,7 +274,7 @@ namespace LunrCoreLmdb
                                 var matchingFieldRef = new FieldReference(matchingDocumentRef, field);
                                 FieldMatchMetadata metadata = fieldPosting[matchingDocumentRef];
                                 
-                                if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData fieldMatch))
+                                if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData? fieldMatch))
                                 {
                                     matchingFields.Add(
                                         matchingFieldRef,
@@ -365,7 +365,7 @@ namespace LunrCoreLmdb
                 Vector? fieldVector = _index.GetFieldVectorByKey(fieldRefString);
                 double score = queryVectors[fieldRef.FieldName].Similarity(fieldVector!);
 
-                if (matches.TryGetValue(docRef, out Result docMatch))
+                if (matches.TryGetValue(docRef, out Result? docMatch))
                 {
                     docMatch.Score += score;
                     docMatch.MatchData.Combine(matchingFields[fieldRef]);
