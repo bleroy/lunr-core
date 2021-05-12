@@ -69,7 +69,7 @@ namespace Lunr
 
         public static implicit operator string(Token token) => token.String;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj switch
             {
                 null => false,

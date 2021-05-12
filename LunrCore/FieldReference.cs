@@ -30,10 +30,10 @@ namespace Lunr
         public override string ToString()
             => _stringValue ??= FieldName + Joiner + DocumentReference;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is FieldReference otherRef
-                && otherRef.FieldName == FieldName
-                && otherRef.DocumentReference == DocumentReference;
+                && otherRef.FieldName.Equals(FieldName, StringComparison.Ordinal)
+                && otherRef.DocumentReference.Equals(DocumentReference, StringComparison.Ordinal);
 
         public override int GetHashCode() => (DocumentReference, FieldName).GetHashCode();
     }

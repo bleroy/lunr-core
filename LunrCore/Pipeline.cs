@@ -184,7 +184,7 @@ namespace Lunr
             if (_process.Any()) throw new InvalidOperationException("This pipeline has already been loaded.");
             foreach (string function in functions)
             {
-                if (RegisteredFunctions.TryGetValue(function, out Function registeredFunction))
+                if (RegisteredFunctions.TryGetValue(function, out Function? registeredFunction))
                 {
                     _process.Add(registeredFunction);
                 }

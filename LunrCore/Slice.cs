@@ -36,7 +36,7 @@ namespace Lunr
 
         public void Deconstruct(out int start, out int length) => (start, length) = (Start, Length);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Slice otherSlice && Start == otherSlice.Start && Length == otherSlice.Length;
         }

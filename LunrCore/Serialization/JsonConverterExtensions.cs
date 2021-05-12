@@ -35,7 +35,7 @@ namespace Lunr.Serialization
         public static T ReadValue<T>(this ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             JsonConverter<T> converter = options.GetConverter<T>();
-            T result = converter.Read(ref reader, typeof(T), options);
+            T result = converter.Read(ref reader, typeof(T), options)!;
             reader.ReadOrThrow();
             return result;
         }
