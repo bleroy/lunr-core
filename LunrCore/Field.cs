@@ -39,7 +39,7 @@ namespace Lunr
     /// </summary>
     public sealed class Field<T> : Field
     {
-        public Field(string name, double boost = 1, Func<Document, Task<T>>? extractor = null!) : base(name, boost)
+        public Field(string name, double boost = 1, Func<Document, Task<T>>? extractor = null) : base(name, boost)
             => Extractor = extractor ?? new Func<Document, Task<T>>(doc => Task.FromResult((T)doc[name]));
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace Lunr
             object obj,
             TokenMetadata metadata,
             CultureInfo culture,
-            Func<char, bool>? separator = null!)
+            Func<char, bool>? separator = null)
         {
             if (obj is null)
             {

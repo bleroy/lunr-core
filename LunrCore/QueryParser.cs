@@ -19,7 +19,7 @@ namespace Lunr
         private int _lexemeIndex = 0;
         private IList<Lexeme> _lexemes = Array.Empty<Lexeme>();
 
-        public QueryParser(string str, Query query, CultureInfo? culture = null!)
+        public QueryParser(string str, Query query, CultureInfo? culture = null)
         {
             _lexer = new QueryLexer(str);
             Query = query;
