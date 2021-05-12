@@ -19,9 +19,9 @@ namespace LunrCoreLmdb
     /// </summary>
     public class LmdbBuilder
     {
-        private readonly Dictionary<string, Field> _fields = new Dictionary<string, Field>();
-        private readonly Dictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly Dictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
+        private readonly Dictionary<string, Field> _fields = new ();
+        private readonly Dictionary<string, Document> _documents = new ();
+        private readonly Dictionary<FieldReference, int> _fieldLengths = new ();
         private readonly ITokenizer _tokenizer;
         private int _termIndex = 0;
         private double _b = 0.75;
