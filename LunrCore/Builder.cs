@@ -18,9 +18,9 @@ namespace Lunr
     /// </summary>
     public class Builder
     {
-        private readonly Dictionary<string, Field> _fields = new Dictionary<string, Field>();
-        private readonly Dictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly Dictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
+        private readonly Dictionary<string, Field> _fields = new ();
+        private readonly Dictionary<string, Document> _documents = new ();
+        private readonly Dictionary<FieldReference, int> _fieldLengths = new ();
         private readonly ITokenizer _tokenizer;
         private int _termIndex = 0;
         private double _b = 0.75;
@@ -220,7 +220,7 @@ namespace Lunr
             CultureInfo? culture = null!,
             CancellationToken? cancellationToken = null!)
         {
-            string docRef = doc[ReferenceField].ToString();
+            string docRef = doc[ReferenceField].ToString()!;
 
             _documents[docRef]
                 = new Document(attributes ?? new Dictionary<string, object>())
@@ -368,9 +368,9 @@ namespace Lunr
             {
                 var fieldVector = new Vector();
                 Dictionary<Token, int> termFrequencies = FieldTermFrequencies[fieldRef];
-                double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field field)
+                double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field? field)
                     ? field.Boost : 1;
-                double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document doc)
+                double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document? doc)
                     ? doc.Boost : 1;
 
                 foreach ((Token term, int tf) in termFrequencies)
@@ -387,7 +387,7 @@ namespace Lunr
                         (TermFrequencySaturationFactor *
                             (1 - FieldLengthNormalizationFactor +
                                 FieldLengthNormalizationFactor *
-                                    (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])
+                                    (_fieldLengths[fieldRef] / AverageFieldLength[field!.Name])
                              ) + tf
                         )
                         * fieldBoost

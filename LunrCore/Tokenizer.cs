@@ -36,7 +36,7 @@ namespace Lunr
             string str = obj switch
             {
                 DateTime dt => dt.ToEcmaString(),
-                _ => obj.ToString()
+                _ => obj.ToString()!
             };
 
             int tokenCount = 0;
@@ -97,7 +97,7 @@ namespace Lunr
             foreach (object single in enumerable)
             {
                 yield return new Token(
-                    single is null ? "" : single.ToString(),
+                    single is null ? "" : single.ToString()!,
                     metadata is null ? new TokenMetadata() : new TokenMetadata(metadata));
             }
         }

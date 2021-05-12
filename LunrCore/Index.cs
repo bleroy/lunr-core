@@ -391,7 +391,7 @@ namespace Lunr
                                 var matchingFieldRef = new FieldReference(matchingDocumentRef, field);
                                 FieldMatchMetadata metadata = fieldPosting[matchingDocumentRef];
                                 
-                                if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData fieldMatch))
+                                if (!matchingFields.TryGetValue(matchingFieldRef, out MatchData? fieldMatch))
                                 {
                                     matchingFields.Add(
                                         matchingFieldRef,
@@ -480,7 +480,7 @@ namespace Lunr
                 Vector fieldVector = FieldVectors[fieldRefString];
                 double score = queryVectors[fieldRef.FieldName].Similarity(fieldVector);
 
-                if (matches.TryGetValue(docRef, out Result docMatch))
+                if (matches.TryGetValue(docRef, out Result? docMatch))
                 {
                     docMatch.Score += score;
                     docMatch.MatchData.Combine(matchingFields[fieldRef]);
@@ -537,7 +537,7 @@ namespace Lunr
             StemmerBase? stemmer = null!,
             PipelineFunctionRegistry? registry = null!)
         {
-            Index index = await JsonSerializer.DeserializeAsync<Index>(utf8json);
+            Index index = (await JsonSerializer.DeserializeAsync<Index>(utf8json).ConfigureAwait(false))!;
             return ProcessDeserializedIndex(stemmer, registry, index);
         }
 
@@ -553,7 +553,7 @@ namespace Lunr
             StemmerBase? stemmer = null!,
             PipelineFunctionRegistry? registry = null!)
         {
-            Index index = JsonSerializer.Deserialize<Index>(json);
+            Index index = JsonSerializer.Deserialize<Index>(json)!;
             return ProcessDeserializedIndex(stemmer, registry, index);
         }
 

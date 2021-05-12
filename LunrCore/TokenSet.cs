@@ -114,7 +114,7 @@ namespace Lunr
                     char ch = frameStr[0];
 
                     TokenSet noEditNode;
-                    if (frameNode.Edges.TryGetValue(ch, out TokenSet existingChNode))
+                    if (frameNode.Edges.TryGetValue(ch, out TokenSet? existingChNode))
                     {
                         noEditNode = existingChNode;
                     }
@@ -139,7 +139,7 @@ namespace Lunr
 
                 // insertion
                 TokenSet insertionNode;
-                if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet wildcardNode))
+                if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet? wildcardNode))
                 {
                     insertionNode = wildcardNode;
                 }
@@ -183,7 +183,7 @@ namespace Lunr
                 if (frameStr.Length >= 1)
                 {
                     TokenSet substitutionNode;
-                    if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet substitutionWildcardNode))
+                    if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet? substitutionWildcardNode))
                     {
                         substitutionNode = substitutionWildcardNode;
                     }
@@ -213,7 +213,7 @@ namespace Lunr
                     char chB = frameStr[1];
                     TokenSet transposeNode;
 
-                    if (frameNode.Edges.TryGetValue(chB, out TokenSet chBNode))
+                    if (frameNode.Edges.TryGetValue(chB, out TokenSet? chBNode))
                     {
                         transposeNode = chBNode;
                     }
@@ -294,7 +294,7 @@ namespace Lunr
         /// <returns>The list of strings in the token set.</returns>
         public IEnumerable<string> ToEnumeration()
         {
-            Stack<(string prefix, TokenSet node)> stack = new Stack<(string, TokenSet)>();
+            Stack<(string prefix, TokenSet node)> stack = new ();
             stack.Push(("", this));
 
             while (stack.Any())
@@ -326,8 +326,7 @@ namespace Lunr
         {
             var output = new TokenSet(_idProvider);
 
-            Stack<(TokenSet qNode, TokenSet output, TokenSet node)> stack
-                = new Stack<(TokenSet, TokenSet, TokenSet)>();
+            Stack<(TokenSet qNode, TokenSet output, TokenSet node)> stack = new ();
             stack.Push((other, output, this));
 
             while (stack.Any())
@@ -342,7 +341,7 @@ namespace Lunr
                         {
                             bool isFinal = node.IsFinal && qNode.IsFinal;
 
-                            if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet next))
+                            if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet? next))
                             {
                                 // an edge already exists for this character
                                 // no need to create a new node, just set the finality
@@ -391,13 +390,11 @@ namespace Lunr
             return str.ToString();
         }
 
-        public class Builder
+        public sealed class Builder
         {
             private string _previousWord = "";
-            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes
-                = new List<(TokenSet, char, TokenSet)>();
-            private readonly Dictionary<string, TokenSet> _minimizedNodes
-                = new Dictionary<string, TokenSet>();
+            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes = new ();
+            private readonly Dictionary<string, TokenSet> _minimizedNodes = new ();
             private readonly TokenSetIdProvider _idProvider;
 
             public Builder(TokenSetIdProvider? idProvider = null!)
