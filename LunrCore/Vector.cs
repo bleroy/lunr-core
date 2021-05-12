@@ -1,7 +1,6 @@
 ﻿using Lunr.Serialization;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace Lunr
@@ -42,8 +41,19 @@ namespace Lunr
         /// <summary>
         /// Calculates the magnitude of this vector.
         /// </summary>
-        public double Magnitude
-            => _magnitude == 0 ? _magnitude = Math.Sqrt(_elements.Sum(el => el.value * el.value)) : _magnitude;
+        public double Magnitude => _magnitude == 0 ? _magnitude = CalculateMagnitude() : _magnitude;
+ 
+        private double CalculateMagnitude()
+        {
+            double result = 0;
+
+            foreach (var (_, v) in _elements)
+            {
+                result += v * v;
+            }
+
+            return Math.Sqrt(result);
+        }
 
         /// <summary>
         /// Calculates the dot product of this vector and another vector.
@@ -111,7 +121,7 @@ namespace Lunr
         public int PositionForIndex(int index)
         {
             // For an empty vector the tuple can be inserted at the beginning
-            if (!_elements.Any())
+            if (_elements.Count == 0)
             {
                 return 0;
             }
@@ -189,6 +199,15 @@ namespace Lunr
         /// </summary>
         /// <returns>The array of elements.</returns>
         public double[] ToArray()
-            => _elements.Select(el => el.value).ToArray();
+        {
+            var result = new double[_elements.Count];
+
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = _elements[i].value;
+            }
+           
+            return result;
+        }
     }
 }
