@@ -49,7 +49,7 @@ namespace Lunr
         /// <returns>A token set.</returns>
         public static TokenSet FromArray(
             IEnumerable<string> arr,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             var builder = new Builder(idProvider ?? TokenSetIdProvider.Instance);
 
@@ -69,7 +69,7 @@ namespace Lunr
         /// <returns>The token set.</returns>
         public static TokenSet FromClause(
             Clause clause,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             return clause.EditDistance > 0
@@ -93,7 +93,7 @@ namespace Lunr
         public static TokenSet FromFuzzyString(
             string str,
             int editDistance,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             var root = new TokenSet(idProvider);
@@ -249,7 +249,7 @@ namespace Lunr
         /// <returns>The token set.</returns>
         public static TokenSet FromString(
             string str,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             var root = new TokenSet(idProvider);
@@ -397,7 +397,7 @@ namespace Lunr
             private readonly Dictionary<string, TokenSet> _minimizedNodes = new ();
             private readonly TokenSetIdProvider _idProvider;
 
-            public Builder(TokenSetIdProvider? idProvider = null!)
+            public Builder(TokenSetIdProvider? idProvider = null)
             {
                 _idProvider = idProvider ?? TokenSetIdProvider.Instance;
                 Root = new TokenSet(_idProvider);
