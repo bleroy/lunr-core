@@ -338,7 +338,7 @@ namespace Lunr
                 await foreach (Token processedToken in step(token, i++, tokens, cancellationToken))
                 {
                     if (cancellationToken.IsCancellationRequested) yield break;
-                    if (processedToken.String != "") yield return processedToken;
+                    if (processedToken.String is not "") yield return processedToken;
                 }
             }
         }
