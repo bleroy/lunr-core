@@ -45,11 +45,11 @@ namespace Lunr
             return Query;
         }
 
-        private Lexeme PeekLexeme()
-            => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex] : Lexeme.Empty;
+        private Lexeme? PeekLexeme()
+            => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex] : null;
 
-        private Lexeme ConsumeLexeme()
-            => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex++] : Lexeme.Empty;
+        private Lexeme? ConsumeLexeme()
+            => _lexemeIndex < _lexemes.Count ? _lexemes[_lexemeIndex++] : null;
 
         private void NextClause()
         {
@@ -61,11 +61,11 @@ namespace Lunr
 
         private static State ParseClause(QueryParser parser)
         {
-            Lexeme lexeme = parser.PeekLexeme();
+            Lexeme? lexeme = parser.PeekLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
-            switch(lexeme.Type)
+            switch (lexeme.Type)
             {
                 case LexemeType.Presence: return ParsePresence;
                 case LexemeType.Field: return ParseField;
@@ -81,9 +81,9 @@ namespace Lunr
 
         private static State ParsePresence(QueryParser parser)
         {
-            Lexeme lexeme = parser.ConsumeLexeme();
+            Lexeme? lexeme = parser.ConsumeLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
             parser._currentClause = parser._currentClause.WithPresence(lexeme.Value switch
             {
@@ -91,10 +91,11 @@ namespace Lunr
                 "+" => QueryPresence.Required,
                 _ => throw new QueryParserException($"Unrecognized presence operator '{lexeme.Value}' at [{lexeme.Start}, {lexeme.End}].", lexeme.Start, lexeme.End),
             });
-            Lexeme nextLexeme = parser.PeekLexeme();
 
-            if (nextLexeme == Lexeme.Empty)
-                throw new QueryParserException($"Expecting term or field at [{nextLexeme.Start}, {nextLexeme.End}], found nothing.", nextLexeme.Start, nextLexeme.End);
+            Lexeme? nextLexeme = parser.PeekLexeme();
+
+            if (nextLexeme is null)
+                throw new QueryParserException("Expecting term or field at [0, 0], found nothing.", 0, 0);
 
             return nextLexeme.Type switch
             {
@@ -106,11 +107,11 @@ namespace Lunr
 
         private static State ParseField(QueryParser parser)
         {
-            Lexeme lexeme = parser.ConsumeLexeme();
+            Lexeme? lexeme = parser.ConsumeLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
-            if (!parser.Query.AllFields.Any(field => field == lexeme.Value))
+            if (!parser.Query.AllFields.Any(field => field.Equals(lexeme.Value, StringComparison.Ordinal)))
             {
                 throw new QueryParserException(
                     $"Unrecognized field '{lexeme.Value}'. Available fields are: [{String.Join(", ", parser.Query.AllFields.Select(f => $"'{f}'"))}].",
@@ -119,16 +120,13 @@ namespace Lunr
             }
 
             parser._currentClause = parser._currentClause
-                .WithFields(parser.Query.AllFields.First(f => f == lexeme.Value));
+                .WithFields(parser.Query.AllFields.First(f => f.Equals(lexeme.Value, StringComparison.Ordinal)));
 
-            Lexeme nextLexeme = parser.PeekLexeme();
+            Lexeme? nextLexeme = parser.PeekLexeme();
 
-            if (nextLexeme == Lexeme.Empty)
+            if (nextLexeme is null)
             {
-                throw new QueryParserException(
-                    $"Expected term, found nothing at [{nextLexeme.Start}, {nextLexeme.End}].",
-                    nextLexeme.Start,
-                    nextLexeme.End);
+                throw new QueryParserException("Expected term, found nothing at [0, 0].", 0, 0);
             }
 
             return nextLexeme.Type switch
@@ -143,9 +141,9 @@ namespace Lunr
 
         private static State ParseTerm(QueryParser parser)
         {
-            Lexeme lexeme = parser.ConsumeLexeme();
+            Lexeme? lexeme = parser.ConsumeLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
             parser._currentClause = parser._currentClause
                 .WithTerm(lexeme.Value.ToLower(parser.Culture));
@@ -155,9 +153,9 @@ namespace Lunr
                 parser._currentClause = parser._currentClause.WithUsePipeline(false);
             }
 
-            Lexeme nextLexeme = parser.PeekLexeme();
+            Lexeme? nextLexeme = parser.PeekLexeme();
 
-            if (nextLexeme == Lexeme.Empty)
+            if (nextLexeme is null)
             {
                 parser.NextClause();
                 return PastEOS;
@@ -168,9 +166,9 @@ namespace Lunr
 
         private static State ParseEditDistance(QueryParser parser)
         {
-            Lexeme lexeme = parser.ConsumeLexeme();
+            Lexeme? lexeme = parser.ConsumeLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
             if (!int.TryParse(lexeme.Value, out int editDistance))
             {
@@ -181,9 +179,9 @@ namespace Lunr
 
             parser._currentClause = parser._currentClause.WithEditDistance(editDistance);
 
-            Lexeme nextLexeme = parser.PeekLexeme();
+            Lexeme? nextLexeme = parser.PeekLexeme();
 
-            if (nextLexeme == Lexeme.Empty)
+            if (nextLexeme is null)
             {
                 parser.NextClause();
                 return PastEOS;
@@ -194,9 +192,9 @@ namespace Lunr
 
         private static State ParseBoost(QueryParser parser)
         {
-            Lexeme lexeme = parser.ConsumeLexeme();
+            Lexeme? lexeme = parser.ConsumeLexeme();
 
-            if (lexeme == Lexeme.Empty) return PastEOS;
+            if (lexeme is null) return PastEOS;
 
             if (!double.TryParse(lexeme.Value, out double boost))
             {
@@ -207,9 +205,9 @@ namespace Lunr
 
             parser._currentClause = parser._currentClause.WithBoost(boost);
 
-            Lexeme nextLexeme = parser.PeekLexeme();
+            Lexeme? nextLexeme = parser.PeekLexeme();
 
-            if (nextLexeme == Lexeme.Empty)
+            if (nextLexeme is null)
             {
                 parser.NextClause();
                 return PastEOS;
