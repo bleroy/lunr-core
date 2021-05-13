@@ -13,8 +13,8 @@ namespace Lunr
 
     public sealed class Set<T> : ISet<T>
     {
-        public static ISet<T> Empty = new EmptySety<T>();
-        public static ISet<T> Complete = new CompleteSet<T>();
+        public static readonly ISet<T> Empty = new EmptySety<T>();
+        public static readonly ISet<T> Complete = new CompleteSet<T>();
 
         private readonly HashSet<T> _innerSet;
 
@@ -51,7 +51,7 @@ namespace Lunr
             return other.Union(this);
         }
 
-        private class EmptySety<TEmpty> : ISet<TEmpty>
+        private sealed class EmptySety<TEmpty> : ISet<TEmpty>
         {
             public bool Contains(TEmpty item) => false;
 
@@ -60,7 +60,7 @@ namespace Lunr
             public ISet<TEmpty> Union(ISet<TEmpty> other) => other;
         }
 
-        private class CompleteSet<TComplete> : ISet<TComplete>
+        private sealed class CompleteSet<TComplete> : ISet<TComplete>
         {
             public bool Contains(TComplete item) => true;
 
