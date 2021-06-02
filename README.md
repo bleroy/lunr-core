@@ -68,7 +68,8 @@ It is 100% compatible with [lunr.js](https://lunrjs.com/guides/getting_started.h
 Lunr-core is suitable for small applications that require a simple search engine but without the overhead of a full-scale search engine such as Lucene.
 Its compatibility with lunr.js also opens up some interesting client-side search scenarios.
 
-<!--## Installation
+<!--
+## Installation
 
 Simply include the lunr-core package in your application.
 Lunr-core supports all .NET Standard 2.0 platforms, including .NET Core and .NET Framework 4.6.
@@ -82,7 +83,8 @@ Lunr-core supports all .NET Standard 2.0 platforms, including .NET Core and .NET
 * Fuzzy term matching with wildcards or edit distance
 * No runtime dependencies beyond SDK, BCL AsyncInterfaces and System.Text.Json
 
-<!--## Contributing
+<!--
+## Contributing
 
 See the [`CONTRIBUTING.md` file](CONTRIBUTING.md).
 -->
