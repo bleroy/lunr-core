@@ -33,8 +33,6 @@ namespace LunrCoreLmdbPerf
             }
         };
 
-       
-
         [Benchmark]
         public async Task SearchSingleTerm()
         {

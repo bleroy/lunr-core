@@ -16,10 +16,10 @@ namespace Lunr
 
         private readonly QueryLexer _lexer;
         private Clause _currentClause = Clause.Empty;
-        private int _lexemeIndex = 0;
+        private int _lexemeIndex;
         private IList<Lexeme> _lexemes = Array.Empty<Lexeme>();
 
-        public QueryParser(string str, Query query, CultureInfo? culture = null!)
+        public QueryParser(string str, Query query, CultureInfo? culture = null)
         {
             _lexer = new QueryLexer(str);
             Query = query;
@@ -110,7 +110,7 @@ namespace Lunr
 
             if (lexeme == Lexeme.Empty) return PastEOS;
 
-            if (!parser.Query.AllFields.Any(field => field == lexeme.Value))
+            if (parser.Query.AllFields.All(field => field != lexeme.Value))
             {
                 throw new QueryParserException(
                     $"Unrecognized field '{lexeme.Value}'. Available fields are: [{String.Join(", ", parser.Query.AllFields.Select(f => $"'{f}'"))}].",

@@ -9,10 +9,10 @@ namespace Lunr
     /// A single clause in a `Query` contains a term and details on how to
     /// match that term against an `Index`.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public sealed class Clause
     {
-        public static readonly Clause Empty = new Clause("");
+        public static readonly Clause Empty = new Clause();
 
         /// <summary>
         /// Builds a new clause.
@@ -31,7 +31,7 @@ namespace Lunr
             bool usePipeline = true,
             QueryWildcard wildcard = QueryWildcard.None,
             QueryPresence presence = QueryPresence.Optional,
-            IEnumerable<string>? fields = null!)
+            IEnumerable<string>? fields = null)
         {
             Fields = fields ?? Array.Empty<string>();
             Boost = boost;

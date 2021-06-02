@@ -6,7 +6,7 @@ namespace Lunr
     /// <summary>
     /// A result contains details of a document matching a search query.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class Result
     {
         /// <summary>

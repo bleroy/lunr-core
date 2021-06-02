@@ -18,11 +18,11 @@ namespace Lunr
     /// </summary>
     public class Builder
     {
-        private readonly Dictionary<string, Field> _fields = new Dictionary<string, Field>();
-        private readonly Dictionary<string, Document> _documents = new Dictionary<string, Document>();
-        private readonly Dictionary<FieldReference, int> _fieldLengths = new Dictionary<FieldReference, int>();
+        private readonly Dictionary<string, Field> _fields = new ();
+        private readonly Dictionary<string, Document> _documents = new ();
+        private readonly Dictionary<FieldReference, int> _fieldLengths = new ();
         private readonly ITokenizer _tokenizer;
-        private int _termIndex = 0;
+        private int _termIndex;
         private double _b = 0.75;
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Lunr
         /// <summary>
         /// The total number of documents indexed.
         /// </summary>
-        public int DocumentCount { get; private set; } = 0;
+        public int DocumentCount { get; private set; }
         
         /// <summary>
         /// Gets or sets the separator function used to detect which character should not be part of tokens.
@@ -127,8 +127,8 @@ namespace Lunr
         public Func<char, bool> Separator { get; set; }
 
         /// <summary>
-        /// A parameter to tune the amount of field length normalisation that is applied when calculating relevance scores.
-        /// A value of 0 will completely disable any normalisation and a value of 1 will fully normalise field lengths.
+        /// A parameter to tune the amount of field length normalization that is applied when calculating relevance scores.
+        /// A value of 0 will completely disable any normalization and a value of 1 will fully normalize field lengths.
         /// The default is 0.75. Values of b will be clamped to the range 0 - 1.
         /// </summary>
         public double FieldLengthNormalizationFactor
@@ -196,31 +196,33 @@ namespace Lunr
         /// <param name="fieldName">The name of a field to index in all documents.</param>
         /// <param name="boost">An optional boost for this field.</param>
         /// <param name="extractor">An optional extraction function for this field's values.</param>
-        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null!)
+        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null)
             => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
         /// Adds a document to the index.
-        ///
+        /// 
         /// Before adding fields to the index the index should have been fully setup, with the document
         /// ref and all fields to index already having been specified.
-        ///
+        /// 
         /// The document must have a field name as specified by the ref (by default this is 'id') and
         /// it should have all fields defined for indexing, though null or undefined values will not
         /// cause errors.
-        ///
+        /// 
         /// Entire documents can be boosted at build time. Applying a boost to a document indicates that
         /// this document should rank higher in search results than other documents.
         /// </summary>
         /// <param name="doc">The document to index.</param>
         /// <param name="attributes">An optional set of attributes associated with this document.</param>
+        /// <param name="culture">An optional culture to use in tokenization.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public async Task Add(
             Document doc,
-            IDictionary<string, object>? attributes = null!,
-            CultureInfo? culture = null!,
-            CancellationToken? cancellationToken = null!)
+            IDictionary<string, object>? attributes = null,
+            CultureInfo? culture = null,
+            CancellationToken? cancellationToken = null)
         {
-            string docRef = doc[ReferenceField].ToString();
+            string docRef = doc[ReferenceField].ToString()!;
 
             _documents[docRef]
                 = new Document(attributes ?? new Dictionary<string, object>())
@@ -232,7 +234,7 @@ namespace Lunr
 
             foreach (Field field in Fields)
             {
-                object? fieldValue = await field.ExtractValue(doc);
+                object? fieldValue = await field.ExtractValue(doc).ConfigureAwait(false);
                 if (fieldValue is null) continue;
                 
                 var metadata = new TokenMetadata
@@ -368,9 +370,9 @@ namespace Lunr
             {
                 var fieldVector = new Vector();
                 Dictionary<Token, int> termFrequencies = FieldTermFrequencies[fieldRef];
-                double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field field)
+                double fieldBoost = _fields.TryGetValue(fieldRef.FieldName, out Field? field)
                     ? field.Boost : 1;
-                double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document doc)
+                double docBoost = _documents.TryGetValue(fieldRef.DocumentReference, out Document? doc)
                     ? doc.Boost : 1;
 
                 foreach ((Token term, int tf) in termFrequencies)
@@ -387,7 +389,7 @@ namespace Lunr
                         (TermFrequencySaturationFactor *
                             (1 - FieldLengthNormalizationFactor +
                                 FieldLengthNormalizationFactor *
-                                    (_fieldLengths[fieldRef] / AverageFieldLength[field.Name])
+                                    (_fieldLengths[fieldRef] / AverageFieldLength[field!.Name])
                              ) + tf
                         )
                         * fieldBoost
@@ -410,10 +412,12 @@ namespace Lunr
         /// <summary>
         /// Creates a token set of all tokens in the index using TokenSet.
         /// </summary>
-        private TokenSet CreateTokenSet()
-            => TokenSet = TokenSet.FromArray(InvertedIndex
+        private void CreateTokenSet()
+        {
+            TokenSet = TokenSet.FromArray(InvertedIndex
                 .Keys
                 .OrderBy(k => k, StringComparer.Ordinal));
+        }
 
         private void InitializeFields(params Field[] fields)
         {

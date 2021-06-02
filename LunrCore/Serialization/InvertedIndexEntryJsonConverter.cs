@@ -18,7 +18,7 @@ namespace Lunr.Serialization
             while (reader.AdvanceTo(JsonTokenType.PropertyName, JsonTokenType.EndObject) != JsonTokenType.EndObject)
             {
                 string fieldName = reader.ReadValue<string>(options);
-                if (fieldName == "_index")
+                if (fieldName is "_index")
                 {
                     result.Index = reader.ReadValue<int>(options);
                 }
@@ -40,14 +40,9 @@ namespace Lunr.Serialization
                             while (reader.TokenType != JsonTokenType.EndArray)
                             {
                                 // Special-case known metadata
-                                if (metadataName == "position")
-                                {
-                                    data.Add(JsonSerializer.Deserialize<Slice>(ref reader, options));
-                                }
-                                else
-                                {
-                                    data.Add(reader.ReadObject(options));
-                                }
+                                data.Add(metadataName is "position"
+                                    ? JsonSerializer.Deserialize<Slice>(ref reader, options)
+                                    : reader.ReadObject(options));
                             }
                             reader.ReadOrThrow();
                             metadata.Add(metadataName, data);

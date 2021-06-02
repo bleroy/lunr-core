@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Lunr
 {
-    public class Token
+    public sealed class Token
     {
         /// <summary>
         /// Creates a new token from a string.
         /// </summary>
         /// <param name="tokenString">The token string.</param>
         /// <param name="metadata">Metadata associated with this token.</param>
-        public Token(string tokenString, TokenMetadata? metadata = null!)
+        public Token(string tokenString, TokenMetadata? metadata = null)
         {
             String = tokenString ?? "";
             Metadata = metadata ?? new TokenMetadata();
@@ -69,7 +67,7 @@ namespace Lunr
 
         public static implicit operator string(Token token) => token.String;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj switch
             {
                 null => false,

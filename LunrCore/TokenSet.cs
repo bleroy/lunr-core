@@ -7,7 +7,7 @@ namespace Lunr
 {
     /// <summary>
     /// A token set is used to store the unique list of all tokens
-    /// within an index.Token sets are also used to represent an
+    /// within an index. Token sets are also used to represent an
     /// incoming query to the index, this query token set and index
     /// token set are then intersected to find which tokens to look
     /// up in the inverted index.
@@ -20,7 +20,7 @@ namespace Lunr
     /// Leading, contained and trailing wildcards are supported, and
     /// from this edit distance matching can also be provided.
     ///
-    /// Token sets are implemented as a minimal finite state automata,
+    /// Token sets are implemented as a minimal finite state automaton,
     /// where both common prefixes and suffixes are shared between tokens.
     /// This helps to reduce the space used for storing the token set.
     /// </summary>
@@ -37,7 +37,7 @@ namespace Lunr
             Id = _idProvider.Next();
         }
 
-        public bool IsFinal { get; set; } = false;
+        public bool IsFinal { get; set; }
         public IDictionary<char, TokenSet> Edges { get; }
             = new Dictionary<char, TokenSet>();
         public int Id { get; }
@@ -46,10 +46,11 @@ namespace Lunr
         /// Creates a TokenSet instance from the given sorted array of words.
         /// </summary>
         /// <param name="arr">A sorted array of strings to create the set from.</param>
+        /// <param name="idProvider">An optional token set id provider.</param>
         /// <returns>A token set.</returns>
         public static TokenSet FromArray(
             IEnumerable<string> arr,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             var builder = new Builder(idProvider ?? TokenSetIdProvider.Instance);
 
@@ -66,10 +67,11 @@ namespace Lunr
         /// Creates a token set from a query clause.
         /// </summary>
         /// <param name="clause">A single clause.</param>
+        /// <param name="idProvider">An optional token set id provider.</param>
         /// <returns>The token set.</returns>
         public static TokenSet FromClause(
             Clause clause,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             return clause.EditDistance > 0
@@ -80,20 +82,21 @@ namespace Lunr
         /// <summary>
         /// Creates a token set representing a single string with a specified
         /// edit distance.
-        ///
+        /// 
         /// Insertions, deletions, substitutions and transpositions are each
         /// treated as an edit distance of 1.
-        ///
+        /// 
         /// Increasing the allowed edit distance will have a dramatic impact
         /// on the performance of both creating and intersecting these TokenSets.
         /// It is advised to keep the edit distance less than 3.
         /// </summary>
         /// <param name="str">The string to create the token set from.</param>
         /// <param name="editDistance">The allowed edit distance to match.</param>
+        /// <param name="idProvider">An optional token set id provider.</param>
         public static TokenSet FromFuzzyString(
             string str,
             int editDistance,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             var root = new TokenSet(idProvider);
@@ -114,7 +117,7 @@ namespace Lunr
                     char ch = frameStr[0];
 
                     TokenSet noEditNode;
-                    if (frameNode.Edges.TryGetValue(ch, out TokenSet existingChNode))
+                    if (frameNode.Edges.TryGetValue(ch, out TokenSet? existingChNode))
                     {
                         noEditNode = existingChNode;
                     }
@@ -139,7 +142,7 @@ namespace Lunr
 
                 // insertion
                 TokenSet insertionNode;
-                if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet wildcardNode))
+                if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet? wildcardNode))
                 {
                     insertionNode = wildcardNode;
                 }
@@ -183,7 +186,7 @@ namespace Lunr
                 if (frameStr.Length >= 1)
                 {
                     TokenSet substitutionNode;
-                    if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet substitutionWildcardNode))
+                    if (frameNode.Edges.TryGetValue(Query.Wildcard, out TokenSet? substitutionWildcardNode))
                     {
                         substitutionNode = substitutionWildcardNode;
                     }
@@ -213,7 +216,7 @@ namespace Lunr
                     char chB = frameStr[1];
                     TokenSet transposeNode;
 
-                    if (frameNode.Edges.TryGetValue(chB, out TokenSet chBNode))
+                    if (frameNode.Edges.TryGetValue(chB, out TokenSet? chBNode))
                     {
                         transposeNode = chBNode;
                     }
@@ -240,16 +243,17 @@ namespace Lunr
 
         /// <summary>
         /// Creates a TokenSet from a string.
-        ///
+        /// 
         /// The string may contain one or more wildcard characters(*)
         /// that will allow wildcard matching when intersecting with
         /// another TokenSet.
         /// </summary>
         /// <param name="str">The string to create a TokenSet from.</param>
+        /// <param name="idProvider">An optional token set id provider.</param>
         /// <returns>The token set.</returns>
         public static TokenSet FromString(
             string str,
-            TokenSetIdProvider? idProvider = null!)
+            TokenSetIdProvider? idProvider = null)
         {
             idProvider ??= TokenSetIdProvider.Instance;
             var root = new TokenSet(idProvider);
@@ -284,6 +288,33 @@ namespace Lunr
         }
 
         /// <summary>
+        /// Tests if the token set is empty.
+        /// </summary>
+        /// <returns>True if not empty.</returns>
+        public bool Any()
+        {
+            Stack<(string prefix, TokenSet node)> stack = new Stack<(string, TokenSet)>();
+            stack.Push(("", this));
+
+            while (stack.Any())
+            {
+                (string prefix, TokenSet node) = stack.Pop();
+
+                if (node.IsFinal)
+                {
+                    return true;
+                }
+
+                foreach ((char edgeKey, TokenSet edge) in node.Edges)
+                {
+                    stack.Push((prefix + edgeKey, edge));
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Converts this TokenSet into an enumeration of strings
         /// contained within the TokenSet.
         ///
@@ -294,7 +325,7 @@ namespace Lunr
         /// <returns>The list of strings in the token set.</returns>
         public IEnumerable<string> ToEnumeration()
         {
-            Stack<(string prefix, TokenSet node)> stack = new Stack<(string, TokenSet)>();
+            Stack<(string prefix, TokenSet node)> stack = new ();
             stack.Push(("", this));
 
             while (stack.Any())
@@ -326,8 +357,7 @@ namespace Lunr
         {
             var output = new TokenSet(_idProvider);
 
-            Stack<(TokenSet qNode, TokenSet output, TokenSet node)> stack
-                = new Stack<(TokenSet, TokenSet, TokenSet)>();
+            Stack<(TokenSet qNode, TokenSet output, TokenSet node)> stack = new ();
             stack.Push((other, output, this));
 
             while (stack.Any())
@@ -342,7 +372,7 @@ namespace Lunr
                         {
                             bool isFinal = node.IsFinal && qNode.IsFinal;
 
-                            if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet next))
+                            if (frameOutput.Edges.TryGetValue(nEdge, out TokenSet? next))
                             {
                                 // an edge already exists for this character
                                 // no need to create a new node, just set the finality
@@ -371,7 +401,7 @@ namespace Lunr
         /// Generates a string representation of a TokenSet.
         ///
         /// This is intended to allow TokenSets to be used as keys
-        /// in objects, largely to aid the construction and minimisation
+        /// in objects, largely to aid the construction and minimization
         /// of a TokenSet.As such it is not designed to be a human
         /// friendly representation of the TokenSet.
         /// </summary>
@@ -391,16 +421,14 @@ namespace Lunr
             return str.ToString();
         }
 
-        public class Builder
+        public sealed class Builder
         {
             private string _previousWord = "";
-            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes
-                = new List<(TokenSet, char, TokenSet)>();
-            private readonly Dictionary<string, TokenSet> _minimizedNodes
-                = new Dictionary<string, TokenSet>();
+            private readonly List<(TokenSet parent, char ch, TokenSet child)> _uncheckedNodes = new ();
+            private readonly Dictionary<string, TokenSet> _minimizedNodes = new ();
             private readonly TokenSetIdProvider _idProvider;
 
-            public Builder(TokenSetIdProvider? idProvider = null!)
+            public Builder(TokenSetIdProvider? idProvider = null)
             {
                 _idProvider = idProvider ?? TokenSetIdProvider.Instance;
                 Root = new TokenSet(_idProvider);

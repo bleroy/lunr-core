@@ -10,7 +10,8 @@ namespace Lunr.Serialization
         /// <summary>
         /// The lunr.js version that this version of the library is designed to be compatible with.
         /// </summary>
-        private static readonly string _versionString = $"2.3.8";
+        private static readonly string VersionString = "2.3.9";
+        private static readonly Version Version = Version.Parse(VersionString);
 
         public override Index Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
@@ -32,11 +33,12 @@ namespace Lunr.Serialization
                 switch (propertyName)
                 {
                     case "version":
-                        string version = reader.ReadValue<string>(options);
-                        if (version != _versionString)
+                        var parsedVersion = Version.Parse(reader.ReadValue<string>(options));
+                        if (parsedVersion.Major != Version.Major || parsedVersion.Minor != Version.Minor)
                         {
-                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialized index. Current version of Lunr '{_versionString}' does not match serialized index '{version}'");
+                            System.Diagnostics.Debug.Write($"Version mismatch when loading serialised index. Current version of Lunr '{VersionString}' does not match serialized index '{parsedVersion}'");
                         }
+
                         break;
                     case "invertedIndex":
                         invertedIndex = reader.ReadValue<InvertedIndex>(options);
@@ -69,7 +71,7 @@ namespace Lunr.Serialization
         public override void Write(Utf8JsonWriter writer, Index value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-            writer.WriteString("version", _versionString);
+            writer.WriteString("version", VersionString);
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
             foreach (string field in value.Fields)

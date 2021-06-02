@@ -10,8 +10,7 @@ namespace Lunr.Serialization
     /// </summary>
     internal static class JsonConverterExtensions
     {
-        private static readonly JsonTokenType[] _ignorableTokenTypes = new JsonTokenType[]
-        {
+        private static readonly JsonTokenType[] IgnorableTokenTypes = {
             JsonTokenType.Comment,
             JsonTokenType.None
         };
@@ -35,7 +34,7 @@ namespace Lunr.Serialization
         public static T ReadValue<T>(this ref Utf8JsonReader reader, JsonSerializerOptions options)
         {
             JsonConverter<T> converter = options.GetConverter<T>();
-            T result = converter.Read(ref reader, typeof(T), options);
+            T result = converter.Read(ref reader, typeof(T), options)!;
             reader.ReadOrThrow();
             return result;
         }
@@ -133,7 +132,6 @@ namespace Lunr.Serialization
         /// <summary>
         /// Reads a JSON object from a reader as a `Dictionary&lt;string, object?&gt;` using the same conventions as `ReadObject`.
         /// </summary>
-        /// <typeparam name="TValue"></typeparam>
         /// <param name="reader">The reader.</param>
         /// <param name="options">The JSON serialization options.</param>
         /// <returns>The dictionary read from the reader.</returns>
@@ -166,7 +164,7 @@ namespace Lunr.Serialization
             while (!stopTokenTypes.Contains(reader.TokenType))
             {
                 reader.ReadOrThrow();
-                if (!stopTokenTypes.Contains(reader.TokenType) && !_ignorableTokenTypes.Contains(reader.TokenType))
+                if (!stopTokenTypes.Contains(reader.TokenType) && !IgnorableTokenTypes.Contains(reader.TokenType))
                 {
                     throw new JsonException($"Unexpected token {reader.TokenType}.");
                 }
@@ -181,7 +179,7 @@ namespace Lunr.Serialization
         /// <returns>The type of the next token.</returns>
         public static JsonTokenType AdvanceToToken(this ref Utf8JsonReader reader)
         {
-            while (_ignorableTokenTypes.Contains(reader.TokenType))
+            while (IgnorableTokenTypes.Contains(reader.TokenType))
             {
                 reader.ReadOrThrow();
             }
