@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lunr
 {
@@ -67,7 +68,7 @@ namespace Lunr
         /// <returns>The `Pipeline.Function`.</returns>
         public static Function BuildFunction(Action<Token> fun)
         {
-            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
+            return (token, i, tokens, cancellationToken) =>
             {
                 fun(token);
                 return (new[] { token }).ToAsyncEnumerable(cancellationToken);
@@ -81,7 +82,7 @@ namespace Lunr
         /// <returns>The `Pipeline.Function`.</returns>
         public static Function BuildFunction(Func<Token, Token> fun)
         {
-            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
+            return (token, i, tokens, cancellationToken) =>
             {
                 return (new[] { fun(token) }).ToAsyncEnumerable(cancellationToken);
             };
@@ -94,10 +95,7 @@ namespace Lunr
         /// <returns>The `Pipeline.Function`.</returns>
         public static Function BuildFunction(Func<Token, IEnumerable<Token>> fun)
         {
-            return (Token token, int i, IAsyncEnumerable<Token> tokens, CancellationToken cancellationToken) =>
-            {
-                return fun(token).ToAsyncEnumerable(cancellationToken);
-            };
+            return (token, i, tokens, cancellationToken) => fun(token).ToAsyncEnumerable(cancellationToken);
         }
 
         private readonly IList<Function> _process;
@@ -131,7 +129,7 @@ namespace Lunr
         public PipelineFunctionRegistry RegisteredFunctions { get; }
 
         /// <summary>
-        /// Gets the list of functions in the pipeline, rehydrating it from the registry if necessary.
+        /// Gets the list of functions in the pipeline, re-hydrating it from the registry if necessary.
         /// </summary>
         public IList<Function> Process
         {
@@ -151,7 +149,7 @@ namespace Lunr
         /// Registers a function with the pipeline.
         /// 
         /// Functions that are used in the pipeline should be registered if the pipeline
-        /// needs to be serialised, or a serialised pipeline needs to be loaded.
+        /// needs to be serialized, or a serialized pipeline needs to be loaded.
         /// 
         /// Registering a function does not add it to a pipeline, functions must still be
         /// added to instances of the pipeline for them to be used when running a pipeline.
@@ -177,7 +175,7 @@ namespace Lunr
         /// If any function from the serialized data has not been registered, then an
         /// exception will be thrown.
         /// </summary>
-        /// <param name="functions">The serialised pipeline to load.</param>
+        /// <param name="functions">The serialized pipeline to load.</param>
         /// <returns>The pipeline.</returns>
         public Pipeline Load(IEnumerable<string> functions)
         {
@@ -194,9 +192,9 @@ namespace Lunr
         }
 
         /// <summary>
-        /// Returns a representation of the pipeline ready for serialisation.
+        /// Returns a representation of the pipeline ready for serialization.
         /// </summary>
-        /// <remarks>In lunr.js, this method is calles "toJSON" which is a bit of a misnomer, so I renamed it "Save" because it's the reverse of "Load".</remarks>
+        /// <remarks>In lunr.js, this method is called "toJSON" which is a bit of a misnomer, so I renamed it "Save" because it's the reverse of "Load".</remarks>
         /// <returns>The list of name of the functions forming the pipeline process.</returns>
         public IEnumerable<string> Save()
             => Process.Select(fn => RegisteredFunctions.First(kvp => kvp.Value == fn).Key);
@@ -270,7 +268,7 @@ namespace Lunr
             {
                 tokens = RunStep(function, tokens, cancellationToken);
             }
-            await foreach (Token token in tokens)
+            await foreach (Token token in tokens.WithCancellation(cancellationToken))
             {
                 yield return token;
             }

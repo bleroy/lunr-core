@@ -40,14 +40,9 @@ namespace Lunr.Serialization
                             while (reader.TokenType != JsonTokenType.EndArray)
                             {
                                 // Special-case known metadata
-                                if (metadataName is "position")
-                                {
-                                    data.Add(JsonSerializer.Deserialize<Slice>(ref reader, options));
-                                }
-                                else
-                                {
-                                    data.Add(reader.ReadObject(options));
-                                }
+                                data.Add(metadataName is "position"
+                                    ? JsonSerializer.Deserialize<Slice>(ref reader, options)
+                                    : reader.ReadObject(options));
                             }
                             reader.ReadOrThrow();
                             metadata.Add(metadataName, data);

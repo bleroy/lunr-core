@@ -12,7 +12,9 @@ namespace Lunr
     [JsonConverter(typeof(InvertedIndexEntryJsonConverter))]
     public sealed class InvertedIndexEntry : Dictionary<string, FieldMatches>
     {
-        public InvertedIndexEntry() : base() { }
+        public InvertedIndexEntry()
+        { }
+
         public InvertedIndexEntry(IEnumerable<(string term, FieldMatches occurrences)> entries)
             : base(entries.ToDictionary(e => e.term, e => e.occurrences)) { }
 

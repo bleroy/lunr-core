@@ -16,8 +16,8 @@ namespace Lunr
         private readonly string _str;
         private readonly int _length;
         private readonly IList<int> _escapeCharPositions = new List<int>();
-        private int _pos = 0;
-        private int _start = 0;
+        private int _pos;
+        private int _start;
 
         public QueryLexer(string str)
         {
@@ -151,9 +151,9 @@ namespace Lunr
             var subSlices = new StringBuilder();
             int sliceStart = _start;
             
-            foreach (int escapeCharposition in _escapeCharPositions)
+            foreach (int escapeCharPosition in _escapeCharPositions)
             {
-                int sliceEnd = escapeCharposition;
+                int sliceEnd = escapeCharPosition;
                 subSlices.Append(_str.Substring(sliceStart, sliceEnd - sliceStart));
                 sliceStart = sliceEnd + 1;
             }

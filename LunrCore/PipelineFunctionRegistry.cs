@@ -8,7 +8,8 @@ namespace Lunr
     /// </summary>
     public sealed class PipelineFunctionRegistry : Dictionary<string, Pipeline.Function>
     {
-        public PipelineFunctionRegistry() : base() { }
+        public PipelineFunctionRegistry()
+        { }
 
         public PipelineFunctionRegistry(IDictionary<string, Pipeline.Function> dictionary) : base(dictionary) { }
 
