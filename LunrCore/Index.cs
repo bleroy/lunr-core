@@ -47,14 +47,14 @@ namespace Lunr
         /// <summary>
         /// A convenience function for configuring and constructing
         /// a new lunr Index.
-        ///
+        /// 
         /// A `Builder` instance is created and the pipeline setup
         /// with a trimmer, stop word filter and stemmer.
-        ///
+        /// 
         /// This builder object is yielded to the configuration function
         /// that is passed as a parameter, allowing the list of fields
         /// and other builder parameters to be customized.
-        ///
+        /// 
         /// All documents _must_ be added within the passed config function.
         /// </summary>
         /// <example>
@@ -63,18 +63,24 @@ namespace Lunr
         ///      builder
         ///         .AddField("title")
         ///         .AddField("body");
-        ///
+        /// 
         ///      builder.ReferenceField = "id";
-        ///
+        /// 
         ///      foreach(Document doc in documents)
         ///      {
         ///          builder.add(doc);
         ///      }
         /// });
         /// </example>
-        /// <param name="stopWordFilter">An optional stopword filter. Default is English.</param>
+        /// <param name="trimmer">An optional trimmer.</param>
+        /// <param name="stopWordFilter">An optional stop word filter. Default is English.</param>
         /// <param name="stemmer">An optional stemmer. Default is English.</param>
         /// <param name="config">A Configuration function.</param>
+        /// <param name="tokenizer">An optional tokenizer.</param>
+        /// <param name="registry">An optional pipeline function registry. The default has the trimmer, stop word filter and stemmer.</param>
+        /// <param name="indexingPipeline">An optional indexing pipeline. The default has the trimmer, stop word filter and stemmer.</param>
+        /// <param name="searchPipeline">An optional search pipeline. The default has the stemmer.</param>
+        /// <param name="fields">An optional list of fields.</param>
         /// <returns>The index.</returns>
         public static async Task<Index> Build(
             Func<Builder, Task>? config = null,
@@ -297,7 +303,7 @@ namespace Lunr
                     // be used to intersect the indexes token set to get a list of terms
                     // to lookup in the inverted index.
                     var termTokenSet = TokenSet.FromClause(clause);
-                    IEnumerable<string> expandedTerms = TokenSet.Intersect(termTokenSet).ToEnumeration();
+                    TokenSet expandedTerms = TokenSet.Intersect(termTokenSet);
 
                     // If a term marked as required does not exist in the tokenSet it is
                     // impossible for the search to return any matches.We set all the field
@@ -313,7 +319,7 @@ namespace Lunr
                         break;
                     }
 
-                    foreach (string expandedTerm in expandedTerms)
+                    foreach (string expandedTerm in expandedTerms.ToEnumeration())
                     {
                         // For each term get the posting and termIndex, this is required for building the query vector.
                         InvertedIndexEntry posting = InvertedIndex[expandedTerm];
@@ -440,8 +446,8 @@ namespace Lunr
                 }
             }
 
-            IEnumerable<string> matchingFieldRefs
-                = matchingFields.Keys.Select(k => k.ToString());
+            string[] matchingFieldRefs
+                = matchingFields.Keys.Select(k => k.ToString()).ToArray();
             var matches = new Dictionary<string, Result>();
 
             // If the query is negated (contains only prohibited terms)
@@ -454,7 +460,7 @@ namespace Lunr
             // populate the results.
             if (query.IsNegated)
             {
-                matchingFieldRefs = FieldVectors.Keys;
+                matchingFieldRefs = FieldVectors.Keys.ToArray();
 
                 foreach (string matchingFieldRef in matchingFieldRefs)
                 {
@@ -568,7 +574,6 @@ namespace Lunr
         /// <summary>
         /// Persists an index to a stream as JSON.
         /// </summary>
-        /// <param name="utf8json">The stream to persist to.</param>
         /// <param name="options">Optional serializer options.</param>
         public string ToJson(JsonSerializerOptions? options = null)
             => JsonSerializer.Serialize(this, options);

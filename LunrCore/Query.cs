@@ -58,14 +58,7 @@ namespace Lunr
         /// <returns>The query.</returns>
         public Query AddClause(Clause clause)
         {
-            if (!clause.Fields.Any())
-            {
-                Clauses.Add(clause.WithFields(AllFields));
-            }
-            else
-            {
-                Clauses.Add(clause);
-            }
+            Clauses.Add(!clause.Fields.Any() ? clause.WithFields(AllFields) : clause);
             return this;
         }
 
@@ -89,11 +82,17 @@ namespace Lunr
         /// <summary>
         /// Adds a term to the current query, under the covers this will create a `Clause`
         /// to the list of clauses that make up this query.
-        ///
+        /// 
         /// The term is used as is, i.e.no tokenization will be performed by this method.
         /// Instead, conversion to a token or token-like string should be done before calling this method.
         /// </summary>
         /// <param name="term">The term to add to the query.</param>
+        /// <param name="boost">An optional boost for the term.</param>
+        /// <param name="editDistance">The maximum edit distance from the term.</param>
+        /// <param name="usePipeline">Set to false to bypass the pipeline.</param>
+        /// <param name="wildcard">An optional wildcard.</param>
+        /// <param name="presence">The type of presence for this term.</param>
+        /// <param name="fields">An optional list of fields to look for the term in.</param>
         /// <returns>The query.</returns>
         public Query AddTerm(
             string term = "",

@@ -2,7 +2,7 @@
 
 namespace Lunr
 {
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public sealed class Lexeme
     {
         public static readonly Lexeme Empty

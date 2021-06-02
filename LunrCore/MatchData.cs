@@ -7,13 +7,14 @@ namespace Lunr
     /// Contains and collects metadata about a matching document.
     /// A single instance of `MatchData` is returned as part of every index result.
     /// </summary>
-    /// <param name="term">The term this match data is associated with.</param>
-    /// <param name="field">The field in which the term was found.</param>
-    /// <param name="metadata">The metadata recorded about this term in this field.</param>
     public sealed class MatchData
     {
         public static readonly MatchData Empty = new MatchData("", "", new FieldMatchMetadata());
 
+        /// <summary>Constructs a `MatchData`.</summary>
+        /// <param name="term">The term this match data is associated with.</param>
+        /// <param name="field">The field in which the term was found.</param>
+        /// <param name="metadata">The metadata recorded about this term in this field.</param>
         public MatchData(
             string term,
             string field,

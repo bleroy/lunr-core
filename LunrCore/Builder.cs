@@ -22,7 +22,7 @@ namespace Lunr
         private readonly Dictionary<string, Document> _documents = new ();
         private readonly Dictionary<FieldReference, int> _fieldLengths = new ();
         private readonly ITokenizer _tokenizer;
-        private int _termIndex = 0;
+        private int _termIndex;
         private double _b = 0.75;
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Lunr
         /// <summary>
         /// The total number of documents indexed.
         /// </summary>
-        public int DocumentCount { get; private set; } = 0;
+        public int DocumentCount { get; private set; }
         
         /// <summary>
         /// Gets or sets the separator function used to detect which character should not be part of tokens.
@@ -127,8 +127,8 @@ namespace Lunr
         public Func<char, bool> Separator { get; set; }
 
         /// <summary>
-        /// A parameter to tune the amount of field length normalisation that is applied when calculating relevance scores.
-        /// A value of 0 will completely disable any normalisation and a value of 1 will fully normalise field lengths.
+        /// A parameter to tune the amount of field length normalization that is applied when calculating relevance scores.
+        /// A value of 0 will completely disable any normalization and a value of 1 will fully normalize field lengths.
         /// The default is 0.75. Values of b will be clamped to the range 0 - 1.
         /// </summary>
         public double FieldLengthNormalizationFactor
@@ -201,19 +201,21 @@ namespace Lunr
 
         /// <summary>
         /// Adds a document to the index.
-        ///
+        /// 
         /// Before adding fields to the index the index should have been fully setup, with the document
         /// ref and all fields to index already having been specified.
-        ///
+        /// 
         /// The document must have a field name as specified by the ref (by default this is 'id') and
         /// it should have all fields defined for indexing, though null or undefined values will not
         /// cause errors.
-        ///
+        /// 
         /// Entire documents can be boosted at build time. Applying a boost to a document indicates that
         /// this document should rank higher in search results than other documents.
         /// </summary>
         /// <param name="doc">The document to index.</param>
         /// <param name="attributes">An optional set of attributes associated with this document.</param>
+        /// <param name="culture">An optional culture to use in tokenization.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         public async Task Add(
             Document doc,
             IDictionary<string, object>? attributes = null,
@@ -410,10 +412,12 @@ namespace Lunr
         /// <summary>
         /// Creates a token set of all tokens in the index using TokenSet.
         /// </summary>
-        private TokenSet CreateTokenSet()
-            => TokenSet = TokenSet.FromArray(InvertedIndex
+        private void CreateTokenSet()
+        {
+            TokenSet = TokenSet.FromArray(InvertedIndex
                 .Keys
                 .OrderBy(k => k, StringComparer.Ordinal));
+        }
 
         private void InitializeFields(params Field[] fields)
         {

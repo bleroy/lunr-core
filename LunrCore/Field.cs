@@ -7,7 +7,7 @@ namespace Lunr
     /// <summary>
     /// A field of indeterminate type.
     /// </summary>
-    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public abstract class Field
     {
         protected Field(string name, double boost = 1)
@@ -40,7 +40,7 @@ namespace Lunr
     public sealed class Field<T> : Field
     {
         public Field(string name, double boost = 1, Func<Document, Task<T>>? extractor = null) : base(name, boost)
-            => Extractor = extractor ?? new Func<Document, Task<T>>(doc => Task.FromResult((T)doc[name]));
+            => Extractor = extractor ?? (doc => Task.FromResult((T)doc[name]));
 
         /// <summary>
         /// Function to extract a field from a document.

@@ -8,7 +8,9 @@ namespace Lunr
     /// </summary>
     public sealed class FieldMatchMetadata : Dictionary<string, IList<object?>>
     {
-        public FieldMatchMetadata() : base() { }
+        public FieldMatchMetadata()
+        { }
+ 
         public FieldMatchMetadata(int capacity) : base(capacity) { }
     }
 }
