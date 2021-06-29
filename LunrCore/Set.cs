@@ -20,6 +20,9 @@ namespace Lunr
 
         public Set(IEnumerable<T> elements)
             => _innerSet = new HashSet<T>(elements);
+        
+        public Set(IEnumerable<T> elements, IEqualityComparer<T> comparer)
+            => _innerSet = new HashSet<T>(elements, comparer);
 
         public Set(params T[] elements) : this((IEnumerable<T>)elements) { }
 
