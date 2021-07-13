@@ -313,7 +313,10 @@ namespace Lunr
                     {
                         foreach (string field in clause.Fields)
                         {
-                            requiredMatches.Add(field, Set<string>.Empty);
+                            if (!requiredMatches.TryGetValue(field, out var value))
+                            {
+                                requiredMatches.Add(field, Set<string>.Empty);
+                            }
                         }
 
                         break;
