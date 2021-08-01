@@ -4,19 +4,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace LunrCoreTests
 {
     public class TokenizerTests
     {
-        private readonly ITestOutputHelper _output;
-
-        public TokenizerTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Fact]
         public void SplittingIntoTokens()
         {
