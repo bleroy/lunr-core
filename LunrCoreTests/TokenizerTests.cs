@@ -76,8 +76,8 @@ namespace LunrCoreTests
                 .Tokenize(date)
                 .Take(4)
                 .Select(t => t.ToString());
-
-            Assert.Equal(new[] { "tue", "jan", "01", "2013" }, tokenizedDateSlice);
+            
+            Assert.Equal(new[] { "tue.", "jan.", "01", "2013" }, tokenizedDateSlice);
         }
 
         [Fact]
