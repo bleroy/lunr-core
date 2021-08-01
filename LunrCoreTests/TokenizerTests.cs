@@ -1,13 +1,22 @@
 ﻿using Lunr;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace LunrCoreTests
 {
     public class TokenizerTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public TokenizerTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void SplittingIntoTokens()
         {
@@ -69,6 +78,9 @@ namespace LunrCoreTests
         {
             var date = new DateTime(2013, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 
+            // setting explicit culture to avoid culture differences on OSes to fail the test
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
             // NOTE: slicing here to prevent asserting on parts
             // of the date that might be affected by the timezone
             // the test is running in.
@@ -76,8 +88,8 @@ namespace LunrCoreTests
                 .Tokenize(date)
                 .Take(4)
                 .Select(t => t.ToString());
-            
-            Assert.Equal(new[] { "tue.", "jan.", "01", "2013" }, tokenizedDateSlice);
+
+            Assert.Equal(new[] { "tue", "jan", "01", "2013" }, tokenizedDateSlice);
         }
 
         [Fact]
