@@ -1,6 +1,7 @@
 ﻿using Lunr;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Xunit;
 
@@ -68,6 +69,9 @@ namespace LunrCoreTests
         public void ConvertingADateToTokens()
         {
             var date = new DateTime(2013, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+
+            // setting explicit culture to avoid culture differences on OSes to fail the test
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
 
             // NOTE: slicing here to prevent asserting on parts
             // of the date that might be affected by the timezone
