@@ -111,8 +111,8 @@ namespace LunrCoreTests
             Assert.Empty(builder.InvertedIndex["bob"]["name"]["id"]);
         }
 
-        private static async Task<string> ExtractName(Document doc)
-            => await Task.FromResult(((IDictionary<string, string>)doc["person"])["name"]);
+        private static string ExtractName(Document doc)
+            => ((IDictionary<string, string>)doc["person"])["name"];
 
         [Fact]
         public void DefiningFieldsToIndex()

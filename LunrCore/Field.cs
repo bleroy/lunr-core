@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Lunr
 {
@@ -29,7 +28,7 @@ namespace Lunr
         /// </summary>
         public double Boost { get; }
 
-        public abstract Task<object?> ExtractValue(Document doc);
+        public abstract object? ExtractValue(Document doc);
 
         private string DebuggerDisplay => Boost != 1 ? $"{Name} x{Boost}" : Name;
     }
@@ -39,15 +38,16 @@ namespace Lunr
     /// </summary>
     public sealed class Field<T> : Field
     {
-        public Field(string name, double boost = 1, Func<Document, Task<T>>? extractor = null) : base(name, boost)
-            => Extractor = extractor ?? (doc => Task.FromResult((T)doc[name]));
-
+        public Field(string name, double boost = 1, Func<Document, T>? extractor = null) : base(name, boost) =>
+            Extractor = extractor ?? (doc => (T)doc[name]);
+        
         /// <summary>
         /// Function to extract a field from a document.
         /// </summary>
-        public Func<Document, Task<T>> Extractor { get; }
+        public Func<Document, T> Extractor { get; }
 
-        public override async Task<object?> ExtractValue(Document doc)
-            => await Extractor(doc).ConfigureAwait(false);
+        public override object? ExtractValue(Document doc)
+            => Extractor(doc);
+
     }
 }

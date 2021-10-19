@@ -196,7 +196,7 @@ namespace Lunr
         /// <param name="fieldName">The name of a field to index in all documents.</param>
         /// <param name="boost">An optional boost for this field.</param>
         /// <param name="extractor">An optional extraction function for this field's values.</param>
-        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null)
+        public Builder AddField(string fieldName, double boost = 1, Func<Document, string>? extractor = null)
             => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace Lunr
 
             foreach (Field field in Fields)
             {
-                object? fieldValue = await field.ExtractValue(doc).ConfigureAwait(false);
+                object? fieldValue = field.ExtractValue(doc);
                 if (fieldValue is null) continue;
                 
                 var metadata = new TokenMetadata
@@ -394,7 +394,8 @@ namespace Lunr
                         )
                         * fieldBoost
                         * docBoost;
-                    double scoreWithPrecision = Math.Round(score * 1000) / 1000;
+                    double scoreWithPrecision = Math.Round(score, 3);
+
                     // Converts 1.23456789 to 1.234.
                     // Reducing the precision so that the vectors take up less
                     // space when serialized. Doing it now so that they behave
