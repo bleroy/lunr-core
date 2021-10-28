@@ -14,7 +14,7 @@ namespace LunrCoreTests
         [Fact]
         public async Task SearchShouldNotThrowExceptionWhenNoResult()
         {
-            var index = Lunr.Index.Build(
+            var index = await Lunr.Index.Build(
                 async builder =>
                 {
                     builder
@@ -38,26 +38,17 @@ namespace LunrCoreTests
                         { "firstname", "Bob" }
                     });
                 }
-            ).Result;
+            );
 
-            bool caughtException = false;
-
-            try
+            // Lunr throws ArgumentException. This patch fixes the exception.
+            var results = index.Search("+Alice +abc");
+            int count = 0;
+            await foreach (var result in results)
             {
-                var results = index.Search("+Alice +abc");
-                int count = 0;
-                await foreach (var result in results)
-                {
-                    count += 1;
-                }
-                Assert.Equal(0, count);
+                count += 1;
             }
-            catch (AggregateException)
-            {
-                caughtException = true;
-            }
+            Assert.Equal(0, count);
 
-            Assert.False(caughtException);
         }
     }
 }
