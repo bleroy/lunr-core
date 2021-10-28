@@ -192,6 +192,7 @@ namespace Lunr
         {
             await foreach (Result result in Search(queryString, CultureInfo.CurrentCulture, cancellationToken))
             {
+                if (cancellationToken.IsCancellationRequested) yield break;
                 yield return result;
             }
         }
@@ -274,6 +275,8 @@ namespace Lunr
 
             for (int i = 0; i < query.Clauses.Count; i++)
             {
+                if (cancellationToken.IsCancellationRequested) yield break;
+
                 Clause clause = query.Clauses[i];
                 ISet<string> clauseMatches = Set<string>.Empty;
 
@@ -293,6 +296,9 @@ namespace Lunr
                         cancellationToken)
                     : new[] { clause.Term }.ToAsyncEnumerable(cancellationToken))
                 {
+
+                    if (cancellationToken.IsCancellationRequested) yield break;
+
                     // Each term returned from the pipeline needs to use the same query
                     // clause object, e.g. the same boost and or edit distance. The
                     // simplest way to do this is to re-use the clause object but mutate
@@ -313,6 +319,8 @@ namespace Lunr
                     {
                         foreach (string field in clause.Fields)
                         {
+                            if (cancellationToken.IsCancellationRequested) yield break;
+
                             requiredMatches.Add(field, Set<string>.Empty);
                         }
 
@@ -321,12 +329,16 @@ namespace Lunr
 
                     foreach (string expandedTerm in expandedTerms.ToEnumeration())
                     {
+                        if (cancellationToken.IsCancellationRequested) yield break;
+
                         // For each term get the posting and termIndex, this is required for building the query vector.
                         InvertedIndexEntry posting = InvertedIndex[expandedTerm];
                         int termIndex = posting.Index;
 
                         foreach (string field in clause.Fields)
                         {
+                            if (cancellationToken.IsCancellationRequested) yield break;
+
                             // For each field that this query term is scoped by (by default
                             // all fields are in scope) we need to get all the document refs
                             // that have this term in that field.
@@ -390,6 +402,8 @@ namespace Lunr
 
                             foreach (string matchingDocumentRef in matchingDocumentRefs)
                             {
+                                if (cancellationToken.IsCancellationRequested) yield break;
+
                                 // All metadata for this term/field/document triple
                                 // are then extracted and collected into an instance
                                 // of lunr.MatchData ready to be returned in the query
@@ -422,6 +436,8 @@ namespace Lunr
                 {
                     foreach (string field in clause.Fields)
                     {
+                        if (cancellationToken.IsCancellationRequested) yield break;
+
                         requiredMatches[field] = requiredMatches[field].Intersect(clauseMatches);
                     }
                 }
@@ -435,6 +451,8 @@ namespace Lunr
 
             foreach (string field in Fields)
             {
+                if (cancellationToken.IsCancellationRequested) yield break;
+
                 if (requiredMatches.ContainsKey(field))
                 {
                     allRequiredMatches = allRequiredMatches.Intersect(requiredMatches[field]);
@@ -464,6 +482,8 @@ namespace Lunr
 
                 foreach (string matchingFieldRef in matchingFieldRefs)
                 {
+                    if (cancellationToken.IsCancellationRequested) yield break;
+
                     var fieldRef = FieldReference.FromString(matchingFieldRef);
                     matchingFields.Add(fieldRef, MatchData.Empty);
                 }
@@ -471,6 +491,9 @@ namespace Lunr
 
             foreach (string fieldRefString in matchingFieldRefs)
             {
+
+                if (cancellationToken.IsCancellationRequested) yield break;
+
                 // Currently we have document fields that match the query, but we
                 // need to return documents.The matchData and scores are combined
                 // from multiple fields belonging to the same document.
@@ -506,6 +529,7 @@ namespace Lunr
 
             foreach (Result match in results.OrderByDescending(r => r.Score))
             {
+                if (cancellationToken.IsCancellationRequested) yield break;
                 yield return match;
             }
         }
