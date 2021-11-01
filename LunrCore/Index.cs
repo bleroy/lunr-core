@@ -321,7 +321,10 @@ namespace Lunr
                         {
                             if (cancellationToken.IsCancellationRequested) yield break;
 
-                            requiredMatches.Add(field, Set<string>.Empty);
+                            if (!requiredMatches.ContainsKey(field))
+                            {
+                                requiredMatches.Add(field, Set<string>.Empty);
+                            }
                         }
 
                         break;
