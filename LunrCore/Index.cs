@@ -82,7 +82,7 @@ namespace Lunr
         /// <param name="searchPipeline">An optional search pipeline. The default has the stemmer.</param>
         /// <param name="fields">An optional list of fields.</param>
         /// <returns>The index.</returns>
-        public static async Task<Index> Build(
+        public static async ValueTask<Index> Build(
             Func<Builder, Task>? config = null,
             TrimmerBase? trimmer = null,
             StopWordFilterBase? stopWordFilter = null,
@@ -565,7 +565,7 @@ namespace Lunr
         /// <param name="stemmer">An optional stemmer. English is used if none is provided.</param>
         /// <param name="registry">An optional registry of pipeline functions to use to resolve the persisted pipeline.</param>
         /// <returns>The index.</returns>
-        public static async Task<Index> LoadFromJsonStream(
+        public static async ValueTask<Index> LoadFromJsonStream(
             Stream utf8json,
             StemmerBase? stemmer = null,
             PipelineFunctionRegistry? registry = null)

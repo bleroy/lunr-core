@@ -196,7 +196,7 @@ namespace Lunr
         /// <param name="fieldName">The name of a field to index in all documents.</param>
         /// <param name="boost">An optional boost for this field.</param>
         /// <param name="extractor">An optional extraction function for this field's values.</param>
-        public Builder AddField(string fieldName, double boost = 1, Func<Document, Task<string>>? extractor = null)
+        public Builder AddField(string fieldName, double boost = 1, Func<Document, ValueTask<string>>? extractor = null)
             => AddField(new Field<string>(fieldName, boost, extractor));
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace Lunr
         /// <param name="attributes">An optional set of attributes associated with this document.</param>
         /// <param name="culture">An optional culture to use in tokenization.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        public async Task Add(
+        public async ValueTask Add(
             Document doc,
             IDictionary<string, object>? attributes = null,
             CultureInfo? culture = null,

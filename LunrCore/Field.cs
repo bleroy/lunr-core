@@ -29,7 +29,7 @@ namespace Lunr
         /// </summary>
         public double Boost { get; }
 
-        public abstract Task<object?> ExtractValue(Document doc);
+        public abstract ValueTask<object?> ExtractValue(Document doc);
 
         private string DebuggerDisplay => Boost != 1 ? $"{Name} x{Boost}" : Name;
     }
@@ -39,15 +39,15 @@ namespace Lunr
     /// </summary>
     public sealed class Field<T> : Field
     {
-        public Field(string name, double boost = 1, Func<Document, Task<T>>? extractor = null) : base(name, boost)
-            => Extractor = extractor ?? (doc => Task.FromResult((T)doc[name]));
+        public Field(string name, double boost = 1, Func<Document, ValueTask<T>>? extractor = null) : base(name, boost)
+            => Extractor = extractor ?? (doc => new ValueTask<T>((T)doc[name]));
 
         /// <summary>
         /// Function to extract a field from a document.
         /// </summary>
-        public Func<Document, Task<T>> Extractor { get; }
+        public Func<Document, ValueTask<T>> Extractor { get; }
 
-        public override async Task<object?> ExtractValue(Document doc)
+        public override async ValueTask<object?> ExtractValue(Document doc)
             => await Extractor(doc).ConfigureAwait(false);
     }
 }

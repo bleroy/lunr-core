@@ -41,10 +41,10 @@ namespace Lunr
             this IEnumerable<T> source,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            foreach(T item in source)
+            foreach (T item in source)
             {
                 if (cancellationToken.IsCancellationRequested) yield break;
-                yield return await Task.FromResult(item).ConfigureAwait(false);
+                yield return await new ValueTask<T>(item).ConfigureAwait(false);
             }
         }
 
@@ -56,7 +56,7 @@ namespace Lunr
         /// <param name="source">The async enumerable.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns></returns>
-        public static async Task<IList<T>> ToList<T>(
+        public static async ValueTask<IList<T>> ToList<T>(
             this IAsyncEnumerable<T> source,
             CancellationToken? cancellationToken = null)
         {
@@ -81,7 +81,7 @@ namespace Lunr
         /// If this is not provided, any element will do.
         /// </param>
         /// <returns>True if any element satisfy the condition.</returns>
-        public static async Task<bool> Any<T>(
+        public static async ValueTask<bool> Any<T>(
             this IAsyncEnumerable<T> source,
             Func<T, bool>? predicate = null)
         {
