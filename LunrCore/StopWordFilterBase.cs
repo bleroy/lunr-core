@@ -17,7 +17,7 @@ namespace Lunr
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested || IsStopWord(token.String)) yield break;
-            yield return await Task.FromResult(token);
+            yield return await new ValueTask<Token>(token);
         }
 
         public virtual bool IsStopWord(string word) => StopWords.Contains(word);

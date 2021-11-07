@@ -130,8 +130,8 @@ namespace LunrCoreLmdbTests
             Assert.Empty(index.GetInvertedIndexEntryByKey("bob")!["name"]["id"]);
         }
 
-        private static async Task<string> ExtractName(Document doc)
-            => await Task.FromResult(((IDictionary<string, string>)doc["person"])["name"]);
+        private static ValueTask<string> ExtractName(Document doc)
+            => new ValueTask<string>(((IDictionary<string, string>)doc["person"])["name"]);
 
         [Fact]
         public void DefiningFieldsToIndex()
