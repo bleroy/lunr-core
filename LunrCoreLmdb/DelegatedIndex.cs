@@ -190,7 +190,10 @@ namespace LunrCoreLmdb
                     {
                         foreach (string field in clause.Fields)
                         {
-                            requiredMatches.Add(field, Set<string>.Empty);
+                            if (!requiredMatches.ContainsKey(field))
+                            {
+                                requiredMatches.Add(field, Set<string>.Empty);
+                            }
                         }
 
                         break;

@@ -458,6 +458,15 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
+        public async Task RequiredTermsNotInIndex()
+        {
+            using var idx = await GetPlainIndex();
+            IList<Result> results = await idx.Search("+must +plan").ToList();
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
         public async Task NoMatchingTerms()
         {
             using var idx = await GetPlainIndex();
