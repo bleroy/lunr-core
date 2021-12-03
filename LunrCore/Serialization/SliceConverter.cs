@@ -17,6 +17,11 @@ namespace Lunr.Serialization
             int start = reader.ReadValue<int>(options);
             int length = reader.ReadValue<int>(options);
 
+            if (reader.TokenType != JsonTokenType.EndArray)
+            {
+                throw new JsonException("A slice can only be deserialized from an array containing two integers.");
+            }
+
             return new Slice(start, length);
         }
 

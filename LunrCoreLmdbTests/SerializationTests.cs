@@ -132,6 +132,24 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
+        public void Can_round_trip_index_with_multiple_occurrences_and_position_metadata()
+        {
+            var builder = new Builder();
+            builder.AllowMetadata("position");
+            builder.AddField("body");
+            builder.Add(new Document
+            {
+                { "id", "id" },
+                { "body", "test test2 test" }
+            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            Index index = builder.Build();
+            string json = index.ToJson();
+
+            Index deserialized = Index.LoadFromJson(json);
+            AssertInvertedIndex(index.InvertedIndex, deserialized.InvertedIndex);
+        }
+
+        [Fact]
         public void Can_round_trip_inverted_index_entries()
         {
             var builder = new Builder();
