@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>Lunr</RootNamespace>
-    <Version>2.3.8.5</Version>
+    <Version>2.3.10.0</Version>
     <Authors>Daniel Crenna, Bertrand Le Roy</Authors>
     <Company>Decent Consulting</Company>
     <Description>A .NET Core, LMDB-backed port of Oliver Nightingale's lunr.js library, a lightweight full-text indexing library that is "a bit like Solr, but much smaller and not as bright." Icon adapted from https://commons.wikimedia.org/wiki/File:Internal_Structure_of_the_Moon.JPG by Iqbal Mahmud under Creative Commons Attribution Share Alike 4.0 International</Description>
@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Assets/LunrCoreLmdb.png" Pack="true" PackagePath=""/>
-    <None Include="../LICENSE" Pack="true" PackagePath=""/>
+    <None Include="Assets/LunrCoreLmdb.png" Pack="true" PackagePath="" />
+    <None Include="../LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
