@@ -293,7 +293,7 @@ namespace Lunr
         /// <returns>True if not empty.</returns>
         public bool Any()
         {
-            Stack<(string prefix, TokenSet node)> stack = new Stack<(string, TokenSet)>();
+            var stack = new Stack<(string, TokenSet)>();
             stack.Push(("", this));
 
             while (stack.Any())
@@ -325,7 +325,7 @@ namespace Lunr
         /// <returns>The list of strings in the token set.</returns>
         public IEnumerable<string> ToEnumeration()
         {
-            Stack<(string prefix, TokenSet node)> stack = new ();
+            var stack = new Stack<(string prefix, TokenSet node)>();
             stack.Push(("", this));
 
             while (stack.Any())

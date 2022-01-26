@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net5.0;net6.0</TargetFrameworks>
     <RootNamespace>Lunr</RootNamespace>
     <Version>2.3.10.0</Version>
     <Authors>Bertrand Le Roy</Authors>
@@ -14,7 +14,7 @@
     <RepositoryUrl>https://github.com/bleroy/lunr-core</RepositoryUrl>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <LangVersion>9</LangVersion>
+    <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>

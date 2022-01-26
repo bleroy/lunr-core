@@ -78,7 +78,7 @@ namespace Lunr
         /// <summary>
         /// The list of fields for this builder.
         /// </summary>
-        public IEnumerable<Field> Fields => _fields.Values;
+        public ICollection<Field> Fields => _fields.Values;
 
         /// <summary>
         /// The set of all tokens in the index.
@@ -267,7 +267,7 @@ namespace Lunr
                     // create an initial posting if one doesn't exist
                     if (!InvertedIndex.ContainsKey(term))
                     {
-                        var posting = new InvertedIndexEntry
+                        var posting = new InvertedIndexEntry(Fields.Count)
                         {
                             Index = _termIndex++
                         };
@@ -343,11 +343,8 @@ namespace Lunr
             {
                 string fieldName = fieldRef.FieldName;
 
-                if (!documentsWithField.ContainsKey(fieldName)) documentsWithField.Add(fieldName, 0);
-                documentsWithField[fieldName]++;
-
-                if (!accumulator.ContainsKey(fieldName)) accumulator.Add(fieldName, 0);
-                accumulator[fieldName] += _fieldLengths[fieldRef];
+                documentsWithField.Increment(fieldName);
+                accumulator.Increment(fieldName, _fieldLengths[fieldRef]);
             }
 
             foreach (Field field in Fields)

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace Lunr
 {
@@ -95,7 +94,7 @@ namespace Lunr
                         }
                         else
                         {
-                            thisFieldEntry[key] = thisFieldEntry[key].Concat(otherData).ToList();
+                            thisFieldEntry[key] = Concat(thisFieldEntry[key], otherData);
                         }
                     }
                 }
@@ -134,13 +133,35 @@ namespace Lunr
                 FieldMatchMetadata fieldMetadata = termMetadata[field];
                 if (fieldMetadata.ContainsKey(key))
                 {
-                    fieldMetadata[key] = fieldMetadata[key].Concat(metadata[key]).ToList();
+                    fieldMetadata[key] = Concat(fieldMetadata[key], metadata[key]);
                 }
                 else
                 {
                     fieldMetadata[key] = metadata[key];
                 }
             }
+        }
+
+        private static IList<object?> Concat(IList<object?> a, IList<object?> b)
+        {
+            var result = new object?[a.Count + b.Count];
+            int position = 0;
+
+            for (int i = 0; i < a.Count; i++)
+            {
+                result[position] = a[i];
+
+                position++;
+            }
+
+            for (int i = 0; i < b.Count; i++)
+            {
+                result[position] = b[i];
+
+                position++;
+            }
+
+            return result;
         }
     }
 }

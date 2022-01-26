@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+
 using Lunr;
 
 namespace LunrCoreLmdb
@@ -35,15 +35,15 @@ namespace LunrCoreLmdb
 
             var count = context.ReadInt32(ref buffer);
 
-            var values = new List<(int, double)>();
+            var values = new (int, double)[count];
             for (var i = 0; i < count; i++)
             {
                 var index = context.ReadDouble(ref buffer);
                 var value = context.ReadDouble(ref buffer);
-                values.Add(((int) index, value));
+                values[i] = (((int) index, value));
             }
 
-            return new Vector(values.ToArray());
+            return new Vector(values);
         }
 
         #endregion
@@ -73,9 +73,10 @@ namespace LunrCoreLmdb
         
         public static InvertedIndex DeserializeInvertedIndex(this ReadOnlySpan<byte> buffer)
         {
-            var invertedIndex = new InvertedIndex();
             var context = new DeserializeContext(ref buffer);
             var count = context.ReadInt32(ref buffer);
+            var invertedIndex = new InvertedIndex(count);
+
             for (var i = 0; i < count; i++)
             {
                 var key = context.ReadString(ref buffer);
