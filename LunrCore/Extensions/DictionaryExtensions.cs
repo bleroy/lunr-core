@@ -8,18 +8,17 @@ internal static class DictionaryExtensions
     public static void Increment(this Dictionary<string, int> dic, string fieldName, int amount = 1)
     {
 #if NET6_0_OR_GREATER
-
         ref int value = ref CollectionsMarshal.GetValueRefOrAddDefault(dic, fieldName, out _);
 
         value += amount;
 #else
-        if (!dic.ContainsKey(fieldName))
+        if (dic.ContainsKey(fieldName))
         {
-            dic.Add(fieldName, amount);
+            dic[fieldName] += amount;
         }
         else 
         {
-            dic[fieldName] += amount;
+            dic.Add(fieldName, amount);
         }
 #endif
 
@@ -28,18 +27,17 @@ internal static class DictionaryExtensions
     public static void Increment(this Dictionary<string, double> dic, string fieldName, double amount = 1)
     {
 #if NET6_0_OR_GREATER
-
         ref double value = ref CollectionsMarshal.GetValueRefOrAddDefault(dic, fieldName, out _);
 
         value += amount;
 #else
-        if (!dic.ContainsKey(fieldName))
+        if (dic.ContainsKey(fieldName))
         {
-            dic.Add(fieldName, amount);
+            dic[fieldName] += amount;
         }
         else 
         {
-            dic[fieldName] += amount;
+            dic.Add(fieldName, amount);
         }
 #endif
 
