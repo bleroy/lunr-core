@@ -343,11 +343,8 @@ namespace Lunr
             {
                 string fieldName = fieldRef.FieldName;
 
-                if (!documentsWithField.ContainsKey(fieldName)) documentsWithField.Add(fieldName, 0);
-                documentsWithField[fieldName]++;
-
-                if (!accumulator.ContainsKey(fieldName)) accumulator.Add(fieldName, 0);
-                accumulator[fieldName] += _fieldLengths[fieldRef];
+                documentsWithField.Increment(fieldName);
+                accumulator.Increment(fieldName, _fieldLengths[fieldRef]);
             }
 
             foreach (Field field in Fields)
