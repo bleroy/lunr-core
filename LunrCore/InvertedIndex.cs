@@ -17,5 +17,8 @@ namespace Lunr
 
         public InvertedIndex(IEnumerable<(string term, InvertedIndexEntry entry)> entries)
             : base(entries.ToDictionary(e => e.term, e => e.entry)) { }
+
+        public InvertedIndex(int capacity)
+            : base(capacity) { }
     }
 }
