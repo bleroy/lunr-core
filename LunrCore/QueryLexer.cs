@@ -148,7 +148,7 @@ namespace Lunr
 
         private string SliceString()
         {
-            var subSlices = new StringBuilder();
+            var subSlices = new ValueStringBuilder(512);
             int sliceStart = _start;
             
             foreach (int escapeCharPosition in _escapeCharPositions)

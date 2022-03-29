@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lunr
 {
@@ -58,7 +59,15 @@ namespace Lunr
         internal static string ToEcmaString(this DateTime dt)
         {
             string timeZoneString = dt.ToString("zzz");
-            return dt.ToString("ddd MMM dd yyyy HH:mm:ss") + " GMT" + timeZoneString.Substring(0, 3) + timeZoneString.Substring(4);
+
+            var vsb = new ValueStringBuilder(64);
+
+            vsb.AppendSpanFormattable(dt, "ddd MMM dd yyyy HH:mm:ss");
+            vsb.Append(" GMT");
+            vsb.Append(timeZoneString.AsSpan(0, 3));
+            vsb.Append(timeZoneString.AsSpan(4));
+
+            return vsb.ToString();
         }
 
         internal static readonly Func<char, bool> IsLunrSeparatorFunc = IsLunrSeparator;
