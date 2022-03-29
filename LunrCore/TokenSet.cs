@@ -410,12 +410,14 @@ namespace Lunr
         {
             if (!string.IsNullOrEmpty(_str)) return _str!;
 
-            var str = new StringBuilder(IsFinal ? "1" : "0");
+            var str = new ValueStringBuilder(128);
+            
+            str.Append(IsFinal ? "1" : "0");
 
-            foreach ((char label, TokenSet node) in Edges.OrderBy(k => k.Key.ToString(), StringComparer.Ordinal))
+            foreach ((char label, TokenSet node) in Edges.OrderBy(static k => k.Key.ToString(), StringComparer.Ordinal))
             {
                 str.Append(label);
-                str.Append(node.Id);
+                str.AppendSpanFormattable(node.Id);
             }
 
             return str.ToString();
