@@ -1,0 +1,47 @@
+site_name: lunr-core
+theme:
+  name: material
+  
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/bleroy/lunr-core
+
+# Repository
+repo_name: bleroy/lunr-core
+repo_url: https://github.com/bleroy/lunr-core
+edit_uri: edit/main/
+
+# Extensions
+markdown_extensions:
+  - markdown.extensions.admonition
+  - markdown.extensions.codehilite
+  - markdown.extensions.def_list
+  - markdown.extensions.footnotes
+  - markdown.extensions.meta
+  - pymdownx.b64
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: false
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - git-authors
+  - git-revision-date-localized
+
+# Page tree
+nav:
+  - About: README.md
+  - Getting started:
+      - Introduction: getting-started/README.md

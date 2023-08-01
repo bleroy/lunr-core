@@ -1,0 +1,30 @@
+name: Publish docs via GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      # Only rebuild website when docs have changed
+      - 'docs/**'
+
+jobs:
+  build:
+    name: Deploy docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Deploy docs
+        run: mkdocs gh-deploy --force

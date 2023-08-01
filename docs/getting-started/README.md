@@ -1,0 +1,3 @@
+# Getting started with lunr-core
+
+In this article, we are going to see ...
