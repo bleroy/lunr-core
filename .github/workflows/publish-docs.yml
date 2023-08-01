@@ -6,7 +6,6 @@ on:
       - main
     paths:
       # Only rebuild website when docs have changed
-      - 'README.md'
       - 'docs/**'
 
 jobs:
@@ -25,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .["docs"]
+          pip install -r docs/requirements.txt
 
       - name: Deploy docs
         run: mkdocs gh-deploy --force -f mkdocs.yml
