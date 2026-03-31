@@ -252,5 +252,18 @@ namespace LunrCoreTests
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("is")]);
             Assert.Equal(1, builder.FieldTermFrequencies[FieldReference.FromString("title/id")][new Token("special")]);
         }
+
+        [Fact]
+        public async Task BuilderWithNoDocument()
+        {
+            var exception = await Record.ExceptionAsync(async () => await Index.Build(async builder =>
+            {
+                builder
+                    .AddField("title")
+                    .AddField("body");
+            }));
+
+            Assert.Null(exception);
+        }
     }
 }

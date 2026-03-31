@@ -336,6 +336,11 @@ namespace Lunr
         /// </summary>
         private void CalculateAverageFieldLengths()
         {
+            if (_fieldLengths.Keys.Count == 0)
+            {
+                return;
+            }
+
             var documentsWithField = new Dictionary<string, int>();
             var accumulator = new Dictionary<string, double>();
 
