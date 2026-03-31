@@ -109,7 +109,7 @@ namespace Lunr
                 editsRemaining: editDistance,
                 str));
 
-            while (stack.Count > 0)
+            while (stack.Any())
             {
                 (TokenSet frameNode, int frameEditsRemaining, string frameStr) = stack.Pop();
 
