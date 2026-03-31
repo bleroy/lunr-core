@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Lunr;
 using LunrCoreLmdb;
 using Xunit;
@@ -25,17 +26,17 @@ namespace LunrCoreLmdbTests
 
             using var index = new LmdbIndex(_tempDir.NewDirectory());
 
-            var addedField = index.AddField(field);
+            var addedField = index.AddField(field, TestContext.Current.CancellationToken);
             Assert.True(addedField);
 
-            var fields = index.GetFields();
+            var fields = index.GetFields(TestContext.Current.CancellationToken);
             Assert.NotNull(fields);
             Assert.Equal(field, fields.Single());
 
-            var removedField = index.RemoveField(field);
+            var removedField = index.RemoveField(field, TestContext.Current.CancellationToken);
             Assert.True(removedField);
 
-            var noFields = index.GetFields();
+            var noFields = index.GetFields(TestContext.Current.CancellationToken);
             Assert.NotNull(fields);
             Assert.Empty(noFields);
         }
@@ -53,18 +54,18 @@ namespace LunrCoreLmdbTests
             var addedVector = index.AddFieldVector(key, vector, CancellationToken.None);
             Assert.True(addedVector);
 
-            var getByKey = index.GetFieldVectorByKey(key);
+            var getByKey = index.GetFieldVectorByKey(key, TestContext.Current.CancellationToken);
             Assert.NotNull(getByKey);
-            Assert.Equal(Math.Sqrt(77), getByKey?.Magnitude);
+            Assert.Equal(Math.Sqrt(77), getByKey.Magnitude);
 
-            var getKeys = index.GetFieldVectorKeys().ToList();
+            var getKeys = index.GetFieldVectorKeys(TestContext.Current.CancellationToken).ToList();
             Assert.Single(getKeys);
-            Assert.Equal(getKeys[0], key);
+            Assert.Equal(key, getKeys[0]);
 
             var removedVector = index.RemoveFieldVector(key, CancellationToken.None);
             Assert.True(removedVector);
 
-            var noVector = index.GetFieldVectorByKey(key);
+            var noVector = index.GetFieldVectorByKey(key, TestContext.Current.CancellationToken);
             Assert.Null(noVector);
 
             var noVectorKeys = index.GetFieldVectorKeys(CancellationToken.None);
@@ -72,18 +73,18 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
-        public void Can_persist_inverted_index_entries()
+        public async Task Can_persist_inverted_index_entries()
         {
             using var lmdb = new LmdbIndex(_tempDir.NewDirectory());
 
             var builder = new Builder();
             builder.AddField("title");
-            builder.Add(new Document
+            await builder.Add(new Document
             {
                 { "id", "id" },
                 { "title", "test" },
                 { "body", "missing" }
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            });
             Index index = builder.Build();
 
             var firstKey = index.InvertedIndex.Keys.FirstOrDefault() ?? throw new InvalidOperationException();
@@ -92,10 +93,10 @@ namespace LunrCoreLmdbTests
             var added = lmdb.AddInvertedIndexEntry(firstKey, index.InvertedIndex[firstKey], CancellationToken.None);
             Assert.True(added);
                 
-            var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey);
+            var getInvertedIndexEntry = lmdb.GetInvertedIndexEntryByKey(firstKey, TestContext.Current.CancellationToken);
             Assert.NotNull(getInvertedIndexEntry);
 
-            var tokenSet = lmdb.IntersectTokenSets(index.TokenSet);
+            var tokenSet = lmdb.IntersectTokenSets(index.TokenSet, TestContext.Current.CancellationToken);
             Assert.Single(tokenSet.Edges);
         }
 
@@ -113,16 +114,16 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
-        public void Can_round_trip_inverted_indexes()
+        public async Task Can_round_trip_inverted_indexes()
         {
             var builder = new Builder();
             builder.AddField("title");
-            builder.Add(new Document
+            await builder.Add(new Document
             {
                 { "id", "id" },
                 { "title", "test" },
                 { "body", "missing" }
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            });
             Index index = builder.Build();
 
             var original = index.InvertedIndex;
@@ -132,16 +133,16 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
-        public void Can_round_trip_index_with_multiple_occurrences_and_position_metadata()
+        public async Task Can_round_trip_index_with_multiple_occurrences_and_position_metadata()
         {
             var builder = new Builder();
             builder.AllowMetadata("position");
             builder.AddField("body");
-            builder.Add(new Document
+            await builder.Add(new Document
             {
                 { "id", "id" },
                 { "body", "test test2 test" }
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            });
             Index index = builder.Build();
             string json = index.ToJson();
 
@@ -150,16 +151,16 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
-        public void Can_round_trip_inverted_index_entries()
+        public async Task Can_round_trip_inverted_index_entries()
         {
             var builder = new Builder();
             builder.AddField("title");
-            builder.Add(new Document
+            await builder.Add(new Document
             {
                 { "id", "id" },
                 { "title", "test" },
                 { "body", "missing" }
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            });
             Index index = builder.Build();
 
             foreach (var (_, original) in index.InvertedIndex)
@@ -172,16 +173,16 @@ namespace LunrCoreLmdbTests
         }
 
         [Fact]
-        public void Can_round_trip_token_set()
+        public async Task Can_round_trip_token_set()
         {
             var builder = new Builder();
             builder.AddField("title");
-            builder.Add(new Document
+            await builder.Add(new Document
             {
                 { "id", "id" },
                 { "title", "test" },
                 { "body", "missing" }
-            }).ConfigureAwait(false).GetAwaiter().GetResult();
+            });
             Index index = builder.Build();
 
             var original = index.TokenSet;

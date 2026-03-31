@@ -185,7 +185,7 @@ namespace LunrCoreTests
                 new[] { new Token("foo") }.ToAsyncEnumerable(cancellationToken),
                 cancellationToken))
             {
-                Assert.False(true, "Function fn is supposed to eat tokens.");
+                Assert.Fail("Function fn is supposed to eat tokens.");
             }
             Assert.True(_hasRun);
         }
