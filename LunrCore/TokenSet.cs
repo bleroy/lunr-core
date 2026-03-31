@@ -101,15 +101,24 @@ namespace Lunr
             idProvider ??= TokenSetIdProvider.Instance;
             var root = new TokenSet(idProvider);
 
+            var seen = new HashSet<(int nodeId, string frameStr, int editsRemaining)>();
+
             var stack = new Stack<(TokenSet node, int editsRemaining, string str)>();
             stack.Push((
                 node: root,
                 editsRemaining: editDistance,
                 str));
 
-            while (stack.Any())
+            while (stack.Count > 0)
             {
                 (TokenSet frameNode, int frameEditsRemaining, string frameStr) = stack.Pop();
+
+                // skip if already processed
+                var stateKey = (frameNode.Id, frameStr, frameEditsRemaining);
+                if (!seen.Add(stateKey))
+                {
+                    continue;
+                }
 
                 // no edit
                 if (frameStr.Length > 0)
