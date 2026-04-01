@@ -148,7 +148,7 @@ namespace LunrCoreLmdb
                 var field = Encoding.UTF8.GetString(buffer);
                 fields.Add(field);
 
-                r = cursor.Next();
+                (r, k, v) = cursor.Next();
                 if (r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
@@ -206,7 +206,7 @@ namespace LunrCoreLmdb
                 var key = Encoding.UTF8.GetString(buffer);
                 keys.Add(key);
 
-                r = cursor.Next();
+                (r, k, v) = cursor.Next();
                 if(r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
@@ -279,7 +279,7 @@ namespace LunrCoreLmdb
                 var word = Encoding.UTF8.GetString(buffer);
                 builder.Insert(word);
 
-                r = cursor.Next();
+                (r, k, v) = cursor.Next();
                 if (r == MDBResultCode.Success)
                     (r, k, v) = cursor.GetCurrent();
             }
@@ -304,12 +304,12 @@ namespace LunrCoreLmdb
             using var tx = environment.BeginTransaction();
             try
             {
-                using var db = tx.OpenDatabase(null, Config);
+                using var db = tx.OpenDatabase("LunrCore", Config);
                 tx.Commit();
             }
             catch (LightningException)
             {
-                using (tx.OpenDatabase(null, new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
+                using (tx.OpenDatabase("LunrCore", new DatabaseConfiguration {Flags = DatabaseOpenFlags.Create}))
                 {
                     tx.Commit();
                 }

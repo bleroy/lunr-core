@@ -38,7 +38,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            Result result = (await idx.Search("professor").ToList()).First();
+            Result result = (await idx.Search("professor", TestContext.Current.CancellationToken).ToList()).First();
             // b ranks highest
             Assert.Equal("b", result.DocumentReference);
         }
@@ -48,7 +48,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetIndexWithDocumentBoost();
 
-            Result result = (await idx.Search("plumb").ToList()).First();
+            Result result = (await idx.Search("plumb", TestContext.Current.CancellationToken).ToList()).First();
             // c ranks highest
             Assert.Equal("c", result.DocumentReference);
         }
@@ -58,7 +58,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetIndexWithDocumentBoost();
 
-            Result result = (await idx.Search("green study^10").ToList()).First();
+            Result result = (await idx.Search("green study^10", TestContext.Current.CancellationToken).ToList()).First();
             // b ranks highest
             Assert.Equal("b", result.DocumentReference);
         }
@@ -68,7 +68,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            Result result = (await idx.Search("scarlett").ToList()).Single();
+            Result result = (await idx.Search("scarlett", TestContext.Current.CancellationToken).ToList()).Single();
             Assert.Equal("c", result.DocumentReference);
         }
 
@@ -77,7 +77,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            Assert.False(await idx.Search("foo").Any());
+            Assert.False(await idx.Search("foo", TestContext.Current.CancellationToken).Any());
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("plant").ToList();
+            IList<Result> results = await idx.Search("plant", TestContext.Current.CancellationToken).ToList();
             
             Assert.Equal(2, results.Count);
             Assert.Equal("b", results[0].DocumentReference);
@@ -103,7 +103,7 @@ namespace LunrCoreTests
             IList<Result> results = await idx.Query(q =>
             {
                 q.AddTerm(term: "study", usePipeline: true);
-            }).ToList();
+            }, TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal("b", results[0].DocumentReference);
@@ -118,7 +118,7 @@ namespace LunrCoreTests
             IList<Result> results = await idx.Query(q =>
             {
                 q.AddTerm(term: "study", usePipeline: false);
-            }).ToList();
+            }, TestContext.Current.CancellationToken).ToList();
 
             Assert.False(results.Any());
         }
@@ -128,7 +128,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("fellow candlestick").ToList();
+            IList<Result> results = await idx.Search("fellow candlestick", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
@@ -142,7 +142,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("week foo").ToList();
+            IList<Result> results = await idx.Search("week foo", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("c", results[0].DocumentReference);
@@ -154,7 +154,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("fellow candlestick foo bar green plant fellow").ToList();
+            IList<Result> results = await idx.Search("fellow candlestick foo bar green plant fellow", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(3, results.Count);
         }
@@ -164,7 +164,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("candlestick green").ToList();
+            IList<Result> results = await idx.Search("candlestick green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(3, results.Count);
             Assert.Equal(new[] { "a", "b", "c" }, results.Select(result => result.DocumentReference));
@@ -178,7 +178,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("foo bar").ToList();
+            IList<Result> results = await idx.Search("foo bar", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -188,7 +188,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("water").ToList();
+            IList<Result> results = await idx.Search("water", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }.ToHashSet(), results.Select(result => result.DocumentReference).ToHashSet());
@@ -199,7 +199,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("title:plant").ToList();
+            IList<Result> results = await idx.Search("title:plant", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
@@ -212,7 +212,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("title:candlestick").ToList();
+            IList<Result> results = await idx.Search("title:candlestick", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -222,7 +222,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("fo*").ToList();
+            IList<Result> results = await idx.Search("fo*", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -232,7 +232,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("candle*").ToList();
+            IList<Result> results = await idx.Search("candle*", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
@@ -244,7 +244,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("pl*").ToList();
+            IList<Result> results = await idx.Search("pl*", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
@@ -257,7 +257,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("*oo").ToList();
+            IList<Result> results = await idx.Search("*oo", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -267,7 +267,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("*ant").ToList();
+            IList<Result> results = await idx.Search("*ant", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
@@ -280,7 +280,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("f*o").ToList();
+            IList<Result> results = await idx.Search("f*o", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -290,7 +290,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("pl*nt").ToList();
+            IList<Result> results = await idx.Search("pl*nt", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
@@ -303,7 +303,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("foo~1").ToList();
+            IList<Result> results = await idx.Search("foo~1", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -313,7 +313,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("plont~1").ToList();
+            IList<Result> results = await idx.Search("plont~1", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
@@ -328,7 +328,7 @@ namespace LunrCoreTests
 
             await Assert.ThrowsAsync<QueryParserException>(async () =>
             {
-                await idx.Search("unknown-field:plant").ToList();
+                await idx.Search("unknown-field:plant", TestContext.Current.CancellationToken).ToList();
             });
         }
 
@@ -337,7 +337,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("title:candlestick").ToList();
+            IList<Result> results = await idx.Search("title:candlestick", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -347,7 +347,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("title:plant").ToList();
+            IList<Result> results = await idx.Search("title:plant", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
@@ -359,7 +359,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("foo^10").ToList();
+            IList<Result> results = await idx.Search("foo^10", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -369,7 +369,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("scarlett candlestick^5").ToList();
+            IList<Result> results = await idx.Search("scarlett candlestick^5", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "a", "c" }, results.Select(result => result.DocumentReference));
@@ -385,7 +385,8 @@ namespace LunrCoreTests
             IList<Result> results = await idx.Query(q => q
                 .AddTerm("xyz", boost: 100, usePipeline: true)
                 .AddTerm("xyz", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
-                .AddTerm("xyz", boost: 1, editDistance: 1)
+                .AddTerm("xyz", boost: 1, editDistance: 1), 
+                TestContext.Current.CancellationToken
             ).ToList();
 
             Assert.Empty(results);
@@ -399,7 +400,8 @@ namespace LunrCoreTests
             IList<Result> results = await idx.Query(q => q
                 .AddTerm("pl", boost: 100, usePipeline: true)
                 .AddTerm("pl", boost: 1, usePipeline: false, wildcard: QueryWildcard.Trailing)
-                .AddTerm("pl", boost: 1, editDistance: 1)
+                .AddTerm("pl", boost: 1, editDistance: 1),
+                TestContext.Current.CancellationToken
             ).ToList();
 
             Assert.Equal(2, results.Count);
@@ -413,7 +415,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("-green").ToList();
+            IList<Result> results = await idx.Search("-green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -423,7 +425,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("-candlestick green").ToList();
+            IList<Result> results = await idx.Search("-candlestick green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(2, results.Count);
             Assert.Equal(new[] { "b", "c" }, results.Select(result => result.DocumentReference));
@@ -436,7 +438,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("-qwertyuiop").ToList();
+            IList<Result> results = await idx.Search("-qwertyuiop", TestContext.Current.CancellationToken).ToList();
 
             Assert.Equal(3, results.Count);
             Assert.True(results.All(result => result.Score == 0));
@@ -447,7 +449,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("-plant").ToList();
+            IList<Result> results = await idx.Search("-plant", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal(0, results[0].Score);
@@ -459,7 +461,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("-title:plant plumb").ToList();
+            IList<Result> results = await idx.Search("-title:plant plumb", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("c", results[0].DocumentReference);
@@ -471,7 +473,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+candlestick green").ToList();
+            IList<Result> results = await idx.Search("+candlestick green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("a", results[0].DocumentReference);
@@ -483,7 +485,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+mustard +plant").ToList();
+            IList<Result> results = await idx.Search("+mustard +plant", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -493,7 +495,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+qwertyuiop green").ToList();
+            IList<Result> results = await idx.Search("+qwertyuiop green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -503,7 +505,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+title:plant green").ToList();
+            IList<Result> results = await idx.Search("+title:plant green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
@@ -515,7 +517,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+title:plant +green").ToList();
+            IList<Result> results = await idx.Search("+title:plant +green", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
@@ -527,7 +529,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+title:plant +body:study").ToList();
+            IList<Result> results = await idx.Search("+title:plant +body:study", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);
@@ -539,7 +541,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+title:plant +body:qwertyuiop").ToList();
+            IList<Result> results = await idx.Search("+title:plant +body:qwertyuiop", TestContext.Current.CancellationToken).ToList();
 
             Assert.Empty(results);
         }
@@ -549,7 +551,7 @@ namespace LunrCoreTests
         {
             Index idx = await GetPlainIndex();
 
-            IList<Result> results = await idx.Search("+plant green -office").ToList();
+            IList<Result> results = await idx.Search("+plant green -office", TestContext.Current.CancellationToken).ToList();
 
             Assert.Single(results);
             Assert.Equal("b", results[0].DocumentReference);

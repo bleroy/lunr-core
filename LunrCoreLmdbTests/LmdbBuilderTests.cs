@@ -34,7 +34,7 @@ namespace LunrCoreLmdbTests
                 { "title", "constructor" }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);
             Assert.Equal(1,
@@ -55,7 +55,7 @@ namespace LunrCoreLmdbTests
                 { "constructor", "constructor" }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["constructor"]["id"]);
         }
@@ -72,7 +72,7 @@ namespace LunrCoreLmdbTests
                 { "title", "word" }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("word")!["title"]["constructor"]);
         }
@@ -100,7 +100,7 @@ namespace LunrCoreLmdbTests
                 { "title", "word" }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Equal(
                 new object?[] { "foo" },
@@ -125,7 +125,7 @@ namespace LunrCoreLmdbTests
                 }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Empty(index.GetInvertedIndexEntryByKey("bob")!["name"]["id"]);
         }
@@ -206,7 +206,7 @@ namespace LunrCoreLmdbTests
                 { "body", "missing" }
             });
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Empty(builder.InvertedIndex["test"]["title"]["id"]);
 
@@ -241,9 +241,9 @@ namespace LunrCoreLmdbTests
                     {"title", "Bertrand"},
                     {"body", "I am developer."}
                 });
-            });
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            Result developer = (await index.Search("developer").ToList()).Single();
+            Result developer = (await index.Search("developer", TestContext.Current.CancellationToken).ToList()).Single();
             Assert.Equal(new Slice(5, 10), (Slice?)developer.MatchData.Posting["develop"]["body"]["position"].Single());
         }
 
@@ -260,9 +260,9 @@ namespace LunrCoreLmdbTests
             {
                 { "id", "id" },
                 { "title", "constructor(this,is,special)" }
-            });
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            using var index = builder.Build(_tempDir.NewDirectory());
+            using var index = builder.Build(_tempDir.NewDirectory(), TestContext.Current.CancellationToken);
 
             Assert.Equal(4, builder.InvertedIndex.Count);
             Assert.Empty(index.GetInvertedIndexEntryByKey("constructor")!["title"]["id"]);

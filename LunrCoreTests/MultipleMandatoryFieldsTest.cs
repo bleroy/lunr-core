@@ -41,7 +41,7 @@ namespace LunrCoreTests
             );
 
             // Lunr throws ArgumentException. This patch fixes the exception.
-            var results = index.Search("+Alice +abc");
+            var results = index.Search("+Alice +abc", TestContext.Current.CancellationToken);
             int count = 0;
             await foreach (var result in results)
             {

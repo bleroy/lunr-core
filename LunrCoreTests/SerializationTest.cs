@@ -229,13 +229,13 @@ namespace LunrCoreTests
 
             });
 
-            IList<Result> builtResult = await builtIndex.Search("egll").ToList();
+            IList<Result> builtResult = await builtIndex.Search("egll", TestContext.Current.CancellationToken).ToList();
             int builtCount = builtResult.Count;
 
             string JSON = builtIndex.ToJson();
             var jsonIndex = Index.LoadFromJson(JSON);
 
-            IList<Result> jsonResult = await jsonIndex.Search("egll").ToList();
+            IList<Result> jsonResult = await jsonIndex.Search("egll", TestContext.Current.CancellationToken).ToList();
             int jsonCount = jsonResult.Count;
 
             Assert.Equal(builtCount, jsonCount);
