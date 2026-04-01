@@ -13,6 +13,7 @@ namespace LunrCoreTests
         [InlineData("stop!'", "stop")] // exclamation mark
         [InlineData("first,'", "first")] // comma
         [InlineData("[tag]'", "tag")] // brackets
+        [InlineData("__Proto__'", "__Proto__")] // underscore
         public void CheckTrim(string str, string expected)
         {
             Assert.Equal(expected, new Trimmer().Trim(str));

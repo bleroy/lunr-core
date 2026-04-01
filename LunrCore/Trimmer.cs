@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,10 +25,28 @@ namespace Lunr
 
     public sealed class Trimmer : TrimmerBase
     {
-        private static readonly Regex _trimStartExpression = new Regex(@"^\W+");
-        private static readonly Regex _trimEndExpression = new Regex(@"\W+$");
-
         public override string Trim(string s)
-            => _trimEndExpression.Replace(_trimStartExpression.Replace(s, ""), "");
+        {
+            int start = 0;
+
+            while (start < s.Length && !char.IsLetterOrDigit(s[start]) && s[start] != '_')
+            {
+                start++;
+            }
+
+            int end = s.Length - 1;
+
+            while (end >= start && !char.IsLetterOrDigit(s[end]) && s[end] != '_')
+            {
+                end--;
+            }
+
+            if (start == 0 && end == s.Length - 1)
+            {
+                return s;
+            }
+
+            return s.Substring(start, end - start + 1);
+        }
     }
 }
